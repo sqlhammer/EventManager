@@ -4,7 +4,7 @@
 - **Project Name**: EventManager
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-22T00:00:00Z
-- **Current Stage**: INCEPTION - Workflow Planning
+- **Current Stage**: INCEPTION - Application Design
 - **User Constraint (2026-07-22)**: Do NOT write code or build software yet — complete INCEPTION stages through Units Generation, then stop for user direction before CONSTRUCTION
 
 ## Workspace State
@@ -40,8 +40,8 @@
 - [x] INCEPTION: Workspace Detection (Greenfield — Reverse Engineering skipped)
 - [x] INCEPTION: Requirements Analysis (approved 2026-07-22)
 - [x] INCEPTION: User Stories (approved 2026-07-24 — 56 stories, 6 epics)
-- [ ] INCEPTION: Workflow Planning (awaiting plan approval)
-- [ ] INCEPTION: Application Design (EXECUTE)
+- [x] INCEPTION: Workflow Planning (approved 2026-07-24)
+- [ ] INCEPTION: Application Design (EXECUTE — artifacts generated, awaiting approval)
 - [ ] INCEPTION: Units Generation (EXECUTE) → then PAUSE for user direction
 - [ ] CONSTRUCTION: Functional Design (EXECUTE, per-unit)
 - [ ] CONSTRUCTION: NFR Requirements (EXECUTE, per-unit)

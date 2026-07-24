@@ -45,6 +45,8 @@
 | D-23 | NFR-5.1 scale envelope revision | Removed "single organizer per event"; replaced with a typical-count sizing assumption (no hard cap enforced, D-22) |
 | D-24 | Judge cross-mat visibility & focus mode | Judge app grants **read/write authority only on the assigned mat** (unchanged, FR-4.5); when the device has an active hub connection it may additionally show other mats' queues **read-only** for situational awareness; offline/disconnected, only the assigned mat is shown. App also supports a **focus/lock mode** restricting the screen to the current in-progress match to reduce mis-taps |
 | D-25 | Check-In recommendation on out-of-range weigh-ins | Check-In/Weigh-in staff may attach a **non-binding recommended resolution** (matching the event's configured policy options — DQ / auto-move / tolerance) to an out-of-range weigh-in event; surfaced prominently to the organizer during resolution (US-308); does **not** change decision authority — resolution remains an organizer action (Full Admin or Co-Organizer, FR-2.8) |
+| D-26 | Identifier strategy (Snowflake) | **Snowflake IDs** (64-bit, time-sortable) for all identifiers created on one node and referenced across apps or in the shared event log; local-only read-model surrogate keys unchanged. `TournamentEvent` carries `EventId` (Snowflake — PK, idempotence key, sort, cross-app ref) **and** `DeviceId` + per-device contiguous `SequenceNumber` (retained for gap-free replication). Generator lives in `EventManager.Sync`; worker IDs assigned at pairing/download (hub authority; cloud reserved range; event-scoped uniqueness). Cross-device time ordering is best-effort; authoritative per-stream order is the sequence number. *(Application Design Q8/Q9/Q10)* |
+| D-27 | Event-day organizer topology & hub RBAC | MVP runs event day from a **single Admin/hub device** (no admin-client capability). The **hub enforces organizer RBAC offline** (Full Admin vs Co-Organizer) using role assignments packaged at event download — server-side checks on the hub, Security-Baseline (SECURITY-08) compliant. Offline authentication mechanism deferred to Functional Design. *(Application Design Q5a/Q5b)* |
 
 ## 3. Personas (summary)
 
@@ -83,7 +85,7 @@
 
 ### FR-4 Offline-First Sync & Admin Hub
 - **FR-4.1** Admin app embeds a Kestrel server and acts as the LAN hub; the full event (roster, divisions, brackets, schedule) is downloaded to the hub before event day and operable with **zero internet dependency**
-- **FR-4.2** Every state change (registration edit, check-in, weigh-in, score, bracket advancement, schedule update) is an immutable, timestamped, sequence-numbered event; current state is a projection of the event log
+- **FR-4.2** Every state change (registration edit, check-in, weigh-in, score, bracket advancement, schedule update) is an immutable, timestamped, sequence-numbered event; current state is a projection of the event log. Each event carries a **Snowflake `EventId`** (time-sortable, minted at origin) as PK/idempotence key plus `DeviceId` + per-device contiguous `SequenceNumber` (D-26)
 - **FR-4.3** Judge/Check-In apps discover the hub via mDNS with documented fallbacks: **manual IP entry and QR pairing** (QR is also the security-pairing mechanism, D-08)
 - **FR-4.4** Device pairing: one QR scan conveys hub address + cert fingerprint + one-time enrollment token; hub assigns a device credential and role (e.g., "Judge — Mat 2", "Check-In"); tokens are single-use; organizer can revoke a device
 - **FR-4.5** Authority model enforced by the hub: hub authoritative for bracket structure/divisions/schedule; each Judge device authoritative (read/write) only for its assigned mat — read-only visibility into other mats is permitted while connected (FR-6.1, D-24) but never grants write authority; Check-In append-only, optionally annotated with non-binding recommendations (FR-5.3, D-25)
@@ -118,7 +120,7 @@
 - **NFR-2.2** Cloud transport: TLS 1.2+ on all API traffic — SECURITY-01
 - **NFR-2.3** At rest: SQLCipher (or equivalent) encryption on all client SQLite databases (D-09); PostgreSQL storage encryption enabled — SECURITY-01
 - **NFR-2.4** Input validation (FluentValidation/Data Annotations) on all API and hub request models before the event-log write path; parameterized queries only (EF Core) — SECURITY-05
-- **NFR-2.5** AuthN/AuthZ: deny-by-default on all cloud endpoints; object-level ownership checks generalized to per-event RBAC role-assignments (organizer↔event: Full Admin / Co-Organizer, FR-1.6; coach owns roster; athlete owns profile); Full-Admin-only actions enforced server-side (FR-2.8); server-side role checks; JWT validated on every request — SECURITY-08
+- **NFR-2.5** AuthN/AuthZ: deny-by-default on all cloud endpoints; object-level ownership checks generalized to per-event RBAC role-assignments (organizer↔event: Full Admin / Co-Organizer, FR-1.6; coach owns roster; athlete owns profile); Full-Admin-only actions enforced server-side (FR-2.8); server-side role checks; JWT validated on every request. The **Admin hub enforces the same organizer RBAC offline** on event-day admin actions using role assignments downloaded with the event (D-27) — SECURITY-08
 - **NFR-2.6** Credential management: adaptive password hashing (Identity default), breached-password check, brute-force lockout, MFA for organizer accounts, secrets via environment/secret manager — never in source — SECURITY-12
 - **NFR-2.7** Structured logging (timestamp, correlation ID, level) with no PII/secrets in logs; centralized log routing for the cloud backend — SECURITY-03
 - **NFR-2.8** HTTP security headers on any HTML-serving endpoint; hardening baseline (no default creds, generic production errors, no stack traces) — SECURITY-04, -09
@@ -157,6 +159,7 @@
 - **NFR-6.1** C# 13 / .NET 10 LTS everywhere; .NET MAUI for all client apps (Admin: Windows/Mac/iPad; Judge/Check-In: iOS/Android); ASP.NET Core Web API backend; EF Core (Npgsql cloud / SQLite local); no JS/TS/native codebases (per tech-env.md prohibitions)
 - **NFR-6.2** Repository layout (D-07): simulated multi-repo — top-level folder per app (`admin/`, `judge/`, `checkin/`, `backend/`, `shared/`), each with its own solution; shared sync/event-log library versioned and consumed via a local NuGet feed
 - **NFR-6.3** Local schema migrations never run automatically during an active tournament — on app upgrade only, with rollback path
+- **NFR-6.5** Identifier strategy (D-26): Snowflake IDs for all cross-app/log identifiers; single `IIdGenerator` in `EventManager.Sync`; stored as `BIGINT` (PostgreSQL) / `INTEGER` (SQLite); worker-ID uniqueness guaranteed by pairing/download-time allocation
 - **NFR-6.4** Deployment (D-10): backend as Docker image + Docker Compose (API + PostgreSQL); provider-agnostic; no cloud-provider IaC in MVP
 
 ## 6. Out of Scope (MVP)

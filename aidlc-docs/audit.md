@@ -198,3 +198,44 @@
 **Context**: INCEPTION - Workflow Planning approval gate (awaiting approval)
 
 ---
+
+## Workflow Planning — Approved
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "proceed"
+**AI Response**: Execution plan approved. Marked Workflow Planning complete in aidlc-state.md. Proceeding to Application Design (first EXECUTE stage).
+**Status**: Approved
+**Context**: INCEPTION - Workflow Planning complete; starting Application Design
+
+---
+
+## Application Design — Plan Created with Embedded Questions
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded application-design.md rules. Created aidlc-docs/inception/plans/application-design-plan.md with the mandatory generation checklist (components.md, component-methods.md, services.md, component-dependency.md, consolidated application-design.md) and 7 embedded context-specific design questions: (1) domain-logic placement (bracket/scoring engines — shared vs hub vs split), (2) event-store abstraction, (3) projection strategy, (4) spoke client-sync sharing, (5) RBAC enforcement location (cloud vs hub-offline), (6) shared API/DTO contracts, (7) MAUI presentation pattern. Awaiting user answers via [Answer]: tags before generating design artifacts.
+**Context**: INCEPTION - Application Design, Part 1 (awaiting design question answers)
+
+---
+
+## Application Design — User Direction: Snowflake IDs
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "I'd like to use snowflake ids (https://en.wikipedia.org/wiki/Snowflake_ID) for IDs that are accessed between apps. For example, the shared-sync-core log should use snowflake ids so that every app can do successful inserts that are also sortable in a way that follows time."
+**AI Response**: Validated the fit (local minting without coordination, time-sortable, works offline; Snowflake EventId doubles as idempotence key for AppendIfNotExists). Identified three genuine sub-decisions: (1) scope — log EventId only vs all cross-app identifiers; (2) whether to keep the per-device contiguous SequenceNumber (needed for gap-free replication per US-504/FR-4.6) alongside the Snowflake EventId or replace it; (3) worker/node-ID allocation strategy (Snowflake uniqueness depends on unique worker IDs across offline generators) — proposed assigning worker IDs at pairing/download with the hub as authority. Added an "Identifier Strategy — Snowflake IDs" section to application-design-plan.md documenting confirmed intent (generator in shared-sync-core, standard bit layout, BIGINT storage, best-effort cross-device ordering) plus Q8/Q9/Q10 to resolve the sub-decisions. Noted follow-up to add a requirements decision + NFR (identifier strategy) via change-request once answers are locked. Awaiting answers.
+**Context**: INCEPTION - Application Design, Part 1 (awaiting design question answers; Snowflake sub-decisions added as Q8-Q10)
+
+---
+
+## Application Design — Design Answers Received (Q1-Q10; Q5 deferred to discussion)
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "Questions have been answered." Answers from application-design-plan.md: Q1=C (split EventManager.Domain + EventManager.Sync shared packages); Q2=B (shared interface + shared replay/projection logic + thin per-side persistence adapters); Q3=A (in-memory projections rebuilt on startup, incrementally updated); Q4=A (shared client-sync library for spokes); Q5="Talk me through this in more detail for us to decide"; Q6=A (shared contracts package); Q7=A (MVVM); Q8=B (Snowflake for all cross-app identifiers, local-only surrogate keys unchanged); Q9=A (keep both EventId + per-device SequenceNumber); Q10=A (worker IDs assigned at pairing/download, hub as authority, event-scoped uniqueness).
+**AI Response**: Analyzed answers for contradictions/ambiguities — Q1-Q4, Q6-Q10 mutually consistent, no contradictions. Noted Q1=C implies a multi-package shared topology (Domain, Sync, Contracts, client-sync) — coherent, to be laid out at generation. Q5 open by user request: provided a detailed walkthrough (event-day offline authZ is easy since role assignments download with the event, but authN is the hard part offline; the decision hinges on event-day admin topology — single shared Admin device vs multiple admin devices; Security Baseline SECURITY-08 requires server-side role checks on the hub, making the cloud-only option a conscious deviation). Refined Q5 into Q5a (topology) + Q5b (hub enforcement) in the plan; deferred the offline-auth mechanism to Functional Design. Holding artifact generation until Q5a/Q5b answered.
+**Context**: INCEPTION - Application Design, Part 1 (Q1-Q10 recorded; awaiting Q5a/Q5b)
+
+---
+
+## Application Design — Q5 Resolved & Artifacts Generated
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "answered" — Q5a=A (single Admin/hub device on event day), Q5b=A (hub enforces organizer RBAC offline).
+**AI Response**: All 11 design answers locked and consistent (Q1=C, Q2=B, Q3=A, Q4=A, Q5a=A, Q5b=A, Q6=A, Q7=A, Q8=B, Q9=A, Q10=A). Generated the Application Design artifact set: components.md (4 shared packages — Domain/Sync/Contracts/ClientSync — + backend/admin/judge/checkin with responsibilities & interfaces), component-methods.md (indicative signatures), services.md (S-1..S-8 orchestration boundaries), component-dependency.md (acyclic package graph + dependency matrix + communication patterns, with Mermaid + text alternatives), and consolidated application-design.md; architecture-overview.md re-scoped as part of the set. Applied change-request to requirements.md: added D-26 (Snowflake identifier strategy) and D-27 (single-Admin-device topology + hub offline RBAC), updated FR-4.2, NFR-2.5, added NFR-6.5. Marked plan checkboxes complete. Presenting Application Design completion — options: Request Changes / Approve & Continue to Units Generation.
+**Context**: INCEPTION - Application Design approval gate (awaiting approval)
+
+---
