@@ -550,3 +550,33 @@
 **Context**: CONSTRUCTION - U3 NFR Design complete - awaiting approval
 
 ---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Design APPROVED
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed"
+**AI Response**: "NFR Design approved. Proceeding to Infrastructure Design (stage-by-stage)."
+**Context**: CONSTRUCTION - U3 NFR Design approved → Infrastructure Design
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Infrastructure Design (Part 1: Plan + Questions)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Entered Infrastructure Design. Infra largely fixed (Docker Compose API+PostgreSQL, provider-agnostic, no IaC; volume encryption; daily encrypted backups; health checks; no messaging tier). Wrote plan with 6 open deployment-parameter questions: Q1 TLS termination (rec Caddy reverse-proxy in Compose, doc LB/Kestrel variants), Q2 backup mechanism (rec pg_dump sidecar + optional provider snapshots), Q3 secrets injection (rec env vars: .env dev / secret-manager prod), Q4 environments (rec dev+prod), Q5 log/metrics destination (rec stdout logs + /metrics, no bundled stack), Q6 free-form. Cloud-provider selection out of scope by mandate. Awaiting answers."
+**Context**: CONSTRUCTION - U3 Infrastructure Design - plan created, awaiting answers
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Infrastructure Design (answers received)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed" (plan tags: Q1=A Caddy reverse-proxy TLS, Q2=A pg_dump backup sidecar, Q3=A env-var secrets, Q4=A dev+prod, Q5=A stdout logs+/metrics no bundled stack, Q6=N/A)
+**AI Response**: "All answers = recommendations. Confirmed backend/ has only U8 Payments module + solution, no Dockerfile/compose yet — U3 adds API project + infra to the same backend solution. Generating infrastructure-design.md + deployment-architecture.md."
+**Context**: CONSTRUCTION - U3 Infrastructure Design - answers captured, generating artifacts
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Infrastructure Design (Part 2: artifacts generated)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Generated infrastructure-design/infrastructure-design.md (component→infra mapping; 4-service Compose inventory proxy/api/db/backup; networking, storage lifecycle, sizing, dev+prod envs, provider-agnostic host variations, relationship to existing backend/ tree; extension compliance) and infrastructure-design/deployment-architecture.md (topology, GitHub Actions build/test/scan/SBOM pipeline, in-place deploy + safe rollback via expand/contract migrations, health-check wiring, backup/restore runbook, secrets, observability, infra artifacts list). Presented completion message; awaiting approval to proceed to Code Generation (final per-unit stage)."
+**Context**: CONSTRUCTION - U3 Infrastructure Design complete - awaiting approval
+
+---
