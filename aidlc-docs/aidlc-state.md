@@ -59,6 +59,7 @@
 - [ ] CONSTRUCTION: U3 Cloud Backend — **IN PROGRESS** on branch `unit/u3-cloud-backend`; large unit, stage-by-stage
   - [x] Functional Design — APPROVED (domain-entities, business-logic-model, business-rules in `construction/u3-cloud-backend/functional-design/`); answers Q1=C,Q2=A,Q3=A,Q4=A,Q5=A,Q6=A,Q7=A,Q8=N/A
   - [x] NFR Requirements — APPROVED (nfr-requirements.md, tech-stack-decisions.md); answers Q1–Q5=A, Q6=N/A
-  - [ ] NFR Design — artifacts generated (nfr-design-patterns.md, logical-components.md); answers Q1–Q3=A, Q4=N/A; **awaiting explicit approval** to proceed to Infrastructure Design
+  - [x] NFR Design — APPROVED (nfr-design-patterns.md, logical-components.md); answers Q1–Q3=A, Q4=N/A
+  - [ ] Infrastructure Design — artifacts generated (infrastructure-design.md, deployment-architecture.md); answers Q1–Q5=A, Q6=N/A; **awaiting explicit approval** to proceed to Code Generation
 - [ ] CONSTRUCTION: U4a, U4b, U7, U5, U6 (per build order, each on its own branch)
 - [ ] CONSTRUCTION: Build and Test (after all units)
