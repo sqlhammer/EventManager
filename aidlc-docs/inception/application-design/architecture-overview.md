@@ -315,3 +315,32 @@ flowchart TB
 - **Finalization** (US-601) ranks standings by wins; **disputes** (US-405) flag/resolve as events.
 - Competition read models are updated transactionally with the audit/replication event append (full log-rebuild of competition projections is a follow-up). Live-standings push reuses the U4a `IHubPush` seam.
 - Text alt: CompetitionController → {BracketService, ScoringIntakeService, WeighInResolutionService, DivisionFinalizationService, DisputeService} → U1 engines + U4a HubEventWriter/HubEventStore. Completes the `admin-hub` competition application over the U4a foundation.
+
+## As-built: U7 Offline Resilience (updated 2026-07-25, end-of-unit, fast-tracked)
+
+U7 delivered the flagship offline behavior (Epic 5) as `admin/EventManager.Hub/Resilience/`, integrating the U1/U2 primitives rather than rebuilding them. Builds green; 17 hub tests (incl. 5 U7). This makes **View 2 (event flow)** real end-to-end. Code under CS-1 (no ternaries).
+
+```mermaid
+flowchart LR
+    Spoke["Spoke (U2 ClientSync)<br/>LocalEventQueue<br/>(durable offline outbox)"] -->|"replay on reconnect"| HubStore["U4a HubEventStore<br/>(AppendIfNotExists)"]
+    HubStore --> RC["U7 ReplicationClient<br/>(U1 ReplicationProtocol,<br/>retry/backoff, completeness)"]
+    RC -->|"ICloudReplicationTransport<br/>(offline = no-op, resume)"| Cloud["Cloud mirror<br/>(U3 EventIngestController)"]
+    HubStore --> BK["U7 BackupService<br/>(AES + SHA-256 snapshot)"]
+    BK --> RestoreArrow["U7 RecoveryService<br/>(verify → idempotent replay)"]
+    RestoreArrow --> HubStore
+
+    style Spoke fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style HubStore fill:#FFA726,stroke:#E65100,color:#000
+    style RC fill:#FFCC80,stroke:#E65100,color:#000
+    style BK fill:#FFCC80,stroke:#E65100,color:#000
+    style RestoreArrow fill:#FFCC80,stroke:#E65100,color:#000
+    style Cloud fill:#42A5F5,stroke:#0D47A1,color:#fff
+```
+
+**As-built notes:**
+- **`ReplicationClient`** drives hub→cloud replication via U1 `IReplicationProtocol`, tracking per-device cloud high-water marks, with bounded retry/backoff; **an outage is a no-op that resumes gap-free**, and `VerifyCompletenessAsync` confirms every local event is mirrored (US-602).
+- **`ICloudReplicationTransport`** is a seam (`StoreBackedReplicationTransport` = in-proc/loopback + test cloud); the real HTTP adapter to U3's `EventIngestController` is deferred.
+- **`BackupService`/`RecoveryService`** produce an AES-encrypted, SHA-256 integrity-checked snapshot and **rebuild by idempotent replay** (US-505/506).
+- **Spoke offline queue** (US-502/503) reuses U2 `LocalEventQueue`; **idempotent `AppendIfNotExists`** across spoke→hub→cloud is the zero-loss / no-duplicate backbone (US-501).
+- Deferred: real HTTP replication adapter, MAUI-host reconnect scheduling (U5/U6), SQLCipher, hot standby.
+- Text alt: Spoke LocalEventQueue → HubEventStore → ReplicationClient → (transport seam) → cloud mirror; HubEventStore ⇄ Backup/Recovery. Realizes the View 2 event-flow backbone with zero loss + idempotent replay end-to-end.
