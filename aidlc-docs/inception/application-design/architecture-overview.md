@@ -353,3 +353,16 @@ U5 delivered the Judge spoke as a testable **app-core library** (`judge/EventMan
 - **`ScoreCaptureService`** captures point-sparring/forms scores (US-402/403); the **hub owns mat-authority + outcome** (U4b). `MatQueueViewModel` (US-401), read-only `CrossMatViewModel` (US-410, no write path), `FocusModeState` (US-411).
 - Reuses U2 `LocalEventQueue`/`ISyncTransport`/`PairingClient`; `InMemoryEventStore` is the default (on-device SQLite/SQLCipher is a host seam).
 - Text alt: Judge UI (MAUI Windows head) → app-core {ScoreCaptureService → SpokeEventLog → IEventStore/LocalEventQueue; MatQueue/CrossMat/Focus view-models} → U2 ClientSync transport → hub. Realizes the `judge-app` spoke box (write side durable-before-ack; read side read-only).
+
+## As-built: U6 Check-In (updated 2026-07-25, end-of-unit, fast-tracked — FINAL unit)
+
+U6 delivered the Check-In spoke with the same shape as U5: testable **app-core** (`checkin/EventManager.Checkin.Core`) + **compiling MAUI Windows head** (`checkin/EventManager.Checkin`). 5 core tests pass. This is the last unit in the build order — the MVP unit set is complete.
+
+- **`CheckInService`** (US-306): marking present is a durable append-only event before ack (NFR-1.1), visible on the hub in real time.
+- **`WeighInService`** (US-307): uses the U1 `WeighInPolicyEvaluator` for **instant in/out-of-range feedback** at the scale; the recorded weight is immutable history (corrections are new events); staff may attach an optional **non-binding recommended resolution** (D-25) surfaced to the organizer during resolution (U4b).
+- Shares `SpokeEventLog`/`InMemoryEventStore` with U5 (per-app copy; on-device SQLite/SQLCipher + concrete transport are host seams).
+- Text alt: Check-In UI (MAUI Windows head) → app-core {CheckInService, WeighInService → U1 WeighInPolicyEvaluator; SpokeEventLog → IEventStore/LocalEventQueue} → U2 ClientSync transport → hub. Realizes the `checkin-app` spoke box (append-only, durable-before-ack).
+
+---
+
+**MVP unit set COMPLETE** (all 9 units): U1 Shared Core · U2 Contracts & ClientSync · U3 Cloud Backend · U4a Hub Core · U4b Hub Competition · U5 Judge · U6 Check-In · U7 Offline Resilience · U8 Payment Stub. Cross-cutting refactor R1 (ternary elimination, CS-1) applied. The two topology worlds (View 1) and the event-flow backbone (View 2) are realized end-to-end, with MAUI UI shells shipped as compiling Windows heads (other platform heads deferred on toolchain availability).
