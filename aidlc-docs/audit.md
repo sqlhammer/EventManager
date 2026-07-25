@@ -272,3 +272,125 @@
 **Context**: INCEPTION - Units Generation approval gate; planned PAUSE before CONSTRUCTION
 
 ---
+
+## Units Generation Approved & CONSTRUCTION Started — Per-Unit Branch Workflow
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "For each unit, create a new git branch and do all work in that branch until it is approved at the end of the unit. Then, it can be merged into main. With that process requirement, proceed to construction"
+**AI Response**: Treated as (a) approval of Units Generation, (b) lifting the 2026-07-22 INCEPTION-only pause/no-code constraint, and (c) a new durable process requirement. Recorded the per-unit git-branch workflow in aidlc-state.md and in persistent memory (per-unit-git-branch-workflow.md). Verified main is clean with INCEPTION work committed. Created branch `unit/u1-shared-core` from main (git confirmed switch). Entering CONSTRUCTION per-unit loop at U1 (Shared Core), first stage Functional Design. All U1 work (design docs + code) will remain on this branch until end-of-unit approval, then merge to main.
+**Status**: Units Generation Approved; CONSTRUCTION started (U1)
+**Context**: CONSTRUCTION - U1 Shared Core - Functional Design (branch unit/u1-shared-core)
+
+---
+
+## U1 Functional Design — Plan Created with Questions
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded functional-design.md rules. Created construction/plans/u1-shared-core-functional-design-plan.md with the generation checklist (domain-entities.md, business-logic-model.md, business-rules.md; frontend N/A for a library) and 9 questions: Q1 point-sparring win determination, Q2 penalties, Q3 forms aggregation/tie-break, Q4 round-robin tie-break, Q5 seeding/academy-separation/byes, Q6 weigh-in tolerance semantics, Q7 canonical replay/apply order (projection determinism), Q8 Snowflake bit layout + clock-regression policy, Q9 event payload versioning. Awaiting answers via [Answer]: tags before generating U1 functional-design artifacts. All work on branch unit/u1-shared-core.
+**Context**: CONSTRUCTION - U1 Shared Core - Functional Design, Part 1 (awaiting answers)
+
+---
+
+## U1 Functional Design — Answers Received & Artifacts Generated
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "answered" — Q1=A (higher-total win + optional target/mercy), Q2=D (configurable penalty policy per event), Q3=A (avg with high/low drop ≥5 judges), Q4=A (wins→H2H→differential→manual), Q5=A (halves-then-quarters academy separation, byes to top seeds), Q6=A (tolerance % of upper limit, over-only), Q7=A (fold by EventId), Q8=A (41/10/12, epoch 2026-01-01, wait-on-regression), Q9=A (schema-version + upcast on replay).
+**AI Response**: Answers consistent, no ambiguity (Q2=D → model a configurable PenaltyPolicy VO). Generated U1 functional-design artifacts on branch unit/u1-shared-core: domain-entities.md (Sync model + domain entities/VOs + cross-entity invariants), business-logic-model.md (Snowflake gen, idempotent append, canonical EventId-ordered replay/fold, upcasting, replication protocol, bracket/seeding/scoring/weigh-in/RBAC algorithms), business-rules.md (BR-1..BR-7 with mapped PBT invariants). Frontend N/A (library). Marked plan checkboxes complete; updated aidlc-state.md. Presenting Functional Design 2-option completion gate.
+**Context**: CONSTRUCTION - U1 Shared Core - Functional Design approval gate
+**AI Prompt**: "Request Changes / Continue to Next Stage (NFR Requirements)"
+
+---
+
+## U1 Functional Design — Approved
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "proceed"
+**AI Response**: U1 Functional Design approved. Marked complete in aidlc-state.md. Proceeding to NFR Requirements (U1) on branch unit/u1-shared-core.
+**Status**: Approved
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Requirements
+
+---
+
+## U1 NFR Requirements — Plan Created with Questions
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded nfr-requirements.md rules. Created construction/plans/u1-shared-core-nfr-requirements-plan.md. Noted inherited/fixed NFRs (C#/.NET 10, FsCheck, 80% core coverage, append-only, no infra for a pure library, cold-start <30s). Asked 4 U1-specific tech questions: Q1 event serialization (System.Text.Json vs MessagePack), Q2 Snowflake impl (hand-rolled vs library), Q3 U1 performance targets, Q4 U1 coverage gate (90% vs 80%). Awaiting answers before generating nfr-requirements.md + tech-stack-decisions.md.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Requirements (awaiting answers)
+
+---
+
+## U1 NFR Requirements — Answers Received; Q2 Deferred for Library Overview
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "Answered, Continue" — Q1=A (System.Text.Json; defer possible MessagePack perf refactor post-MVP), Q3=A (perf targets), Q4=A (90% U1 coverage gate). Q2 answer: "Provide an overview of your recommended library before I decide."
+**AI Response**: Q1/Q3/Q4 locked. Q2 not yet decided — provided an overview of the library option (IdGen: MIT, default IdStructure matches our 41/10/12, custom epoch + backwards-clock strategy maps 1:1 onto Q8) with an A-vs-B comparison; reaffirmed recommendation A (hand-rolled, dependency-free PBT core) while noting B is a valid lower-effort proven alternative. Added the comparison under Q2 in the plan. Holding artifact generation until Q2 (A or B) is set.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Requirements (awaiting Q2 A/B decision)
+
+---
+
+## U1 NFR Requirements — Q2 Resolved (IdGen) & Artifacts Generated
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "proceed, idgen selected" — Q2=B (IdGen).
+**AI Response**: All four locked (Q1=A System.Text.Json, Q2=B IdGen, Q3=A perf targets, Q4=A 90% coverage). Generated nfr-requirements.md (U1 performance/reliability/security/testing/maintainability NFRs traced to global NFR-x; out-of-scope list for the library) and tech-stack-decisions.md (TSD-1..6 + dependency/supply-chain summary). Key: Snowflake now realized via IdGen wrapped behind IIdGenerator (IdStructure 41/10/12, epoch 2026-01-01, SpinWait-then-throw regression); PBT for BR-2.x shifts to testing the wrapper/config + decode round-trip. Marked plan checkboxes complete; updated aidlc-state.md. Presenting NFR Requirements 2-option gate.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Requirements approval gate
+**AI Prompt**: "Request Changes / Continue to Next Stage (NFR Design)"
+
+---
+
+## U1 NFR Requirements — Approved
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "proceed"
+**AI Response**: U1 NFR Requirements approved. Marked complete in aidlc-state.md. Proceeding to NFR Design (U1).
+**Status**: Approved
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Design
+
+---
+
+## U1 NFR Design — Plan Created with Questions
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded nfr-design.md rules. Created construction/plans/u1-shared-core-nfr-design-plan.md. Noted determined patterns (serialization Strategy, IdGen Adapter, deterministic fold projections, idempotent append, upcaster pipeline, PBT harness) and infra components N/A for a pure library. Asked 2 genuine design questions: Q1 domain error-handling pattern (Result/Either vs exceptions), Q2 concurrency/thread-safety contract (single-writer model vs fully concurrent). Awaiting answers before generating nfr-design-patterns.md + logical-components.md.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Design (awaiting answers)
+
+---
+
+## U1 NFR Design — Answers Received & Artifacts Generated
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "answered, proceed" — Q1=A (Result pattern; use a library such as ErrorOr, or AI's suggestion), Q2=A (single-writer concurrency contract).
+**AI Response**: Accepted ErrorOr (MIT, purpose-built result/errors) for the Result pattern. Generated nfr-design-patterns.md (P-1..P-11: serialization Strategy, IdGen Adapter, idempotent-append dedupe, deterministic reducer/fold projections, upcaster pipeline, ErrorOr Result pattern, single-writer concurrency contract, pure RBAC, append-only immutability, replication HWM+gap detection, PBT harness; infra patterns N/A) and logical-components.md (Sync/Domain seams with ownership: U1 interfaces + pure impls; IEventStore adapters by U3/U4a; replication wiring by U7; infra components N/A with rationale). Added ErrorOr to tech-stack-decisions.md dependency summary. Marked plan checkboxes complete; updated aidlc-state.md. Presenting NFR Design 2-option gate.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Design approval gate
+**AI Prompt**: "Request Changes / Continue to Next Stage (Infrastructure Design)"
+
+---
+
+## U1 NFR Design — Approved; Infrastructure Design SKIPPED for U1
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "approved, proceed"
+**AI Response**: U1 NFR Design approved. Infrastructure Design assessed as **SKIP for U1**: U1 is a pure class library (`EventManager.Domain` + `EventManager.Sync`) with no deployment footprint — no containers, networking, cloud resources, or infra services to map (storage/transport adapters and their infra belong to consuming units U3/U4a/U7). User pre-agreed to this skip when approving. Recorded skip with rationale; proceeding to Code Generation (U1). Marked NFR Design complete + Infrastructure Design skipped in aidlc-state.md.
+**Status**: Approved (NFR Design); Infrastructure Design SKIPPED (U1, not applicable)
+**Context**: CONSTRUCTION - U1 Shared Core - Code Generation
+
+---
+
+## U1 Code Generation — Plan Created (Part 1)
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded code-generation.md rules. Created construction/plans/u1-shared-core-code-generation-plan.md — 12 numbered steps: project structure (shared/EventManager.Shared.sln + Domain/Sync libs + 2 xUnit test projects + Directory.Build.props), Domain entities/VOs, Domain engines, Sync event model+serialization, Snowflake (IdGen), event store interface+replay, projection framework, replication protocol+upcasting, Domain FsCheck+xUnit tests, Sync FsCheck+xUnit tests, documentation, non-gating build sanity check. API/Repository/Frontend/migrations/deployment marked N/A (pure library). Code location shared/ per D-07; all on branch unit/u1-shared-core. Awaiting plan approval before Part 2 generation.
+**Context**: CONSTRUCTION - U1 Shared Core - Code Generation, Part 1 (awaiting plan approval)
+**AI Prompt**: "Approve the U1 code generation plan to proceed to generation? (Request Changes / Approve & Generate)"
+
+---
+
+## New Process Requirement (End-of-Unit Deliverables) + U1 Code-Gen Plan Approved
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "Make sure, at the end of every unit that architecture overview diagrams and user testing guide are updated/authored. Check your context for anything useful to persist to disk in case we decide to clear context soon. Once you have done that, I approve and ask you to proceed."
+**AI Response**: (1) Recorded a new durable process requirement — every unit updates architecture-overview diagrams + authors/updates a user testing guide before end-of-unit approval — in aidlc-state.md and persistent memory (end-of-unit-deliverables.md). (2) Persisted resume context to memory: eventmanager-aidlc-orientation.md (where state lives, current position) + confirmed per-unit-git-branch-workflow.md; updated MEMORY.md index. Verified .NET 10 SDK 10.0.302 present. Added Steps 13 (architecture diagrams) + 14 (user testing guide) to the U1 code-generation plan. (3) User approved the U1 code generation plan → proceeding to Part 2 generation on branch unit/u1-shared-core.
+**Status**: Approved (U1 Code Generation Plan); process requirement added
+**Context**: CONSTRUCTION - U1 Shared Core - Code Generation Part 2 (generating)
+
+---
+
+## U1 Code Generation — Part 2 Complete
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Executed all 14 plan steps on branch unit/u1-shared-core. Scaffolded shared/ solution (EventManager.Shared.slnx — .NET 10 produced .slnx format) with EventManager.Domain + EventManager.Sync libraries and two xUnit test projects; packages IdGen + ErrorOr (runtime) and FsCheck.Xunit (test) restored successfully. Wrote Domain (entities/VOs + bracket/seeding/scoring/weigh-in/RBAC engines) and Sync (TournamentEvent, serialization+upcasters, Snowflake via IdGen adapter, IEventStore, replay, projections, replication). Wrote FsCheck property + xUnit example tests for BR-1..BR-7. Results: `dotnet build` succeeded (0/0); `dotnet test` **31 passed / 0 failed** (Domain 20, Sync 11). Step 12 sanity build + full test run executed (green) for confidence though formal Build&Test gate is later. Steps 13-14 (end-of-unit deliverables): updated architecture-overview.md with an as-built U1 section + internal diagram and noted the Sync-independent-of-Domain refinement (also in component-dependency.md); authored user-testing-guide.md. Marked all plan checkboxes [x]; updated aidlc-state.md. NOT yet committed/merged — presenting the Code Generation (end-of-unit) approval gate; on approval will commit branch and merge to main.
+**Context**: CONSTRUCTION - U1 Shared Core - Code Generation approval gate (end-of-unit)
+**AI Prompt**: "Request Changes / Approve (end-of-unit) → commit branch + merge to main, then start U2"
+
+---
