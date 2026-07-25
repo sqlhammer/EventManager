@@ -667,3 +667,10 @@
 **Context**: CONSTRUCTION - U5 complete; merging
 
 ---
+
+## CONSTRUCTION — U6 Check-In — fast-track code complete + merge (FINAL unit)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Fast-tracked U6 (final unit): checkin/EventManager.Checkin.Core (CheckInService US-306, WeighInService US-307 with U1 WeighInPolicyEvaluator range validation + non-binding recommendation D-25, shared SpokeEventLog/InMemoryEventStore) + checkin/EventManager.Checkin MAUI Windows head (BUILD SUCCEEDED) + 5 core tests. Recovered from a stray nested MAUI project (dotnet new cwd drift) by removing it + cleaning Core bin/obj. Under CS-1. End-of-unit: architecture as-built (MVP unit set complete) + code-summary. Committing + merging. ALL 9 UNITS + R1 COMPLETE."
+**Context**: CONSTRUCTION - U6 complete; MVP unit set done
+
+---
