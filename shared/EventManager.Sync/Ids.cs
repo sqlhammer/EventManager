@@ -101,6 +101,10 @@ public sealed class WorkerIdRegistry : IWorkerIdRegistry
 
     public int? WorkerIdFor(long deviceId)
     {
-        lock (_gate) return _assigned.TryGetValue(deviceId, out var w) ? w : null;
+        lock (_gate)
+        {
+            if (_assigned.TryGetValue(deviceId, out var w)) return w;
+            return null;
+        }
     }
 }

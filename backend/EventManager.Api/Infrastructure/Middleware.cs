@@ -25,9 +25,8 @@ public sealed class DbHealthCheck(AppDbContext db) : IHealthCheck
     {
         try
         {
-            return await db.Database.CanConnectAsync(ct)
-                ? HealthCheckResult.Healthy()
-                : HealthCheckResult.Unhealthy("Database unreachable.");
+            if (await db.Database.CanConnectAsync(ct)) return HealthCheckResult.Healthy();
+            return HealthCheckResult.Unhealthy("Database unreachable.");
         }
         catch (Exception ex)
         {

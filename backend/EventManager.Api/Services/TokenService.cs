@@ -39,7 +39,7 @@ public sealed class TokenService(JwtOptions options, RefreshTokenStore refreshTo
                 new Claim(JwtRegisteredClaimNames.Sub, accountId.ToString()),
                 new Claim(AccountIdClaim, accountId.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, email),
-                new Claim("mfa", mfaSatisfied ? "1" : "0"),
+                new Claim("mfa", MfaClaim(mfaSatisfied)),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
             ],
             expires: accessExpires.UtcDateTime,
@@ -83,4 +83,10 @@ public sealed class TokenService(JwtOptions options, RefreshTokenStore refreshTo
     private SymmetricSecurityKey Key() => new(Encoding.UTF8.GetBytes(options.SigningKey));
 
     private static string RandomToken() => Convert.ToBase64String(RandomNumberGenerator.GetBytes(32));
+
+    private static string MfaClaim(bool mfaSatisfied)
+    {
+        if (mfaSatisfied) return "1";
+        return "0";
+    }
 }
