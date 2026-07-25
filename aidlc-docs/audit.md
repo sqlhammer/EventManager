@@ -298,3 +298,37 @@
 **AI Prompt**: "Request Changes / Continue to Next Stage (NFR Requirements)"
 
 ---
+
+## U1 Functional Design — Approved
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "proceed"
+**AI Response**: U1 Functional Design approved. Marked complete in aidlc-state.md. Proceeding to NFR Requirements (U1) on branch unit/u1-shared-core.
+**Status**: Approved
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Requirements
+
+---
+
+## U1 NFR Requirements — Plan Created with Questions
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded nfr-requirements.md rules. Created construction/plans/u1-shared-core-nfr-requirements-plan.md. Noted inherited/fixed NFRs (C#/.NET 10, FsCheck, 80% core coverage, append-only, no infra for a pure library, cold-start <30s). Asked 4 U1-specific tech questions: Q1 event serialization (System.Text.Json vs MessagePack), Q2 Snowflake impl (hand-rolled vs library), Q3 U1 performance targets, Q4 U1 coverage gate (90% vs 80%). Awaiting answers before generating nfr-requirements.md + tech-stack-decisions.md.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Requirements (awaiting answers)
+
+---
+
+## U1 NFR Requirements — Answers Received; Q2 Deferred for Library Overview
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "Answered, Continue" — Q1=A (System.Text.Json; defer possible MessagePack perf refactor post-MVP), Q3=A (perf targets), Q4=A (90% U1 coverage gate). Q2 answer: "Provide an overview of your recommended library before I decide."
+**AI Response**: Q1/Q3/Q4 locked. Q2 not yet decided — provided an overview of the library option (IdGen: MIT, default IdStructure matches our 41/10/12, custom epoch + backwards-clock strategy maps 1:1 onto Q8) with an A-vs-B comparison; reaffirmed recommendation A (hand-rolled, dependency-free PBT core) while noting B is a valid lower-effort proven alternative. Added the comparison under Q2 in the plan. Holding artifact generation until Q2 (A or B) is set.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Requirements (awaiting Q2 A/B decision)
+
+---
+
+## U1 NFR Requirements — Q2 Resolved (IdGen) & Artifacts Generated
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "proceed, idgen selected" — Q2=B (IdGen).
+**AI Response**: All four locked (Q1=A System.Text.Json, Q2=B IdGen, Q3=A perf targets, Q4=A 90% coverage). Generated nfr-requirements.md (U1 performance/reliability/security/testing/maintainability NFRs traced to global NFR-x; out-of-scope list for the library) and tech-stack-decisions.md (TSD-1..6 + dependency/supply-chain summary). Key: Snowflake now realized via IdGen wrapped behind IIdGenerator (IdStructure 41/10/12, epoch 2026-01-01, SpinWait-then-throw regression); PBT for BR-2.x shifts to testing the wrapper/config + decode round-trip. Marked plan checkboxes complete; updated aidlc-state.md. Presenting NFR Requirements 2-option gate.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Requirements approval gate
+**AI Prompt**: "Request Changes / Continue to Next Stage (NFR Design)"
+
+---
