@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/EventManager.Judge.Core.Tests/EventManager.Judge.Core.Tests.csproj" />
+  </Folder>
+  <Project Path="EventManager.Judge.Core/EventManager.Judge.Core.csproj" />
+  <Project Path="EventManager.Judge/EventManager.Judge.csproj" />
+</Solution>
