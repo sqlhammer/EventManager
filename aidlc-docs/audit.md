@@ -489,3 +489,34 @@
 **Context**: CONSTRUCTION - U3 Functional Design complete - awaiting approval
 
 ---
+
+## CONSTRUCTION — U3 Cloud Backend — Functional Design APPROVED
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "approved and proceed"
+**AI Response**: "Functional Design approved. Marking stage complete; proceeding to NFR Requirements (stage-by-stage)."
+**Context**: CONSTRUCTION - U3 Functional Design approved → NFR Requirements
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Requirements (Part 1: Plan + Questions)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: (proceeding from Functional Design approval)
+**AI Response**: "Entered NFR Requirements. Noted the project-level NFR baseline (NFR-1..6 in requirements.md) already binds U3 (availability 99.5%, RTO 4h/RPO 24h, TLS, deny-by-default RBAC, JWT, breached-password/lockout/MFA, rate limiting, FsCheck PBT, scale 300 athletes / hundreds concurrent registration burst, Docker Compose, EF Npgsql). Wrote plan `construction/plans/u3-cloud-backend-nfr-requirements-plan.md` mapping those to U3 and asking only 6 open unit-level parameters: Q1 breached-password source (rec offline local dataset), Q2 JWT lifetimes/refresh (rec 60m access + 14d rotating refresh + revocation), Q3 rate-limit/lockout values (rec login 5/min, reg 10/hr, lockout 5→15m), Q4 idempotency-key store (rec PostgreSQL table 30d), Q5 at-rest encryption layer (rec volume-level), Q6 free-form. Awaiting answers."
+**Context**: CONSTRUCTION - U3 NFR Requirements - plan created, awaiting answers
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Requirements (answers received)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "answereed" — plan `[Answer]:` tags: Q1=A (offline local breached-password dataset), Q2=A (60m access + 14d rotating refresh + revocation list), Q3=A (login 5/min IP+account, reg 10/hr IP, lockout 5→15m escalating), Q4=A (PostgreSQL idempotency table, 30d, in-transaction), Q5=A (volume/storage-level at-rest encryption), Q6=N/A.
+**AI Response**: "All answers = recommendations; no ambiguity. Generating nfr-requirements.md + tech-stack-decisions.md."
+**Context**: CONSTRUCTION - U3 NFR Requirements - answers captured, generating artifacts
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Requirements (Part 2: artifacts generated)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Generated nfr-requirements/nfr-requirements.md (U3 NFR tables — Security S1-S14, Resiliency R1-R9, Performance P1-P3, Testing T1-T4 incl. PBT-1..4, Platform X1-X3; extension compliance: Security/PBT/Resiliency Compliant, LAN + warm-standby N/A) and nfr-requirements/tech-stack-decisions.md (fixed baseline confirmed + 10 library decisions TSD-1..10: PostgresEventStore, Identity TOTP, offline breached-password dataset, built-in rate limiter, FluentValidation, JWT rotating refresh + PG revocation, PG idempotency table, IEmailSender stub, volume-level at-rest, standard health checks). Presented completion message; awaiting approval to proceed to NFR Design."
+**Context**: CONSTRUCTION - U3 NFR Requirements complete - awaiting approval
+
+---
