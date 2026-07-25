@@ -1,5 +1,6 @@
 using EventManager.Contracts;
 using EventManager.Domain.Engines;
+using EventManager.Hub.Competition;
 using EventManager.Hub.Events;
 using EventManager.Hub.Persistence;
 using EventManager.Hub.Projections;
@@ -22,6 +23,12 @@ builder.Services.AddSingleton(new HubIdentity());
 builder.Services.AddSingleton<IHubPush, InProcessHubPush>();
 builder.Services.AddSingleton<IMdnsAdvertiser, NoopMdnsAdvertiser>();
 
+// U1 competition engines (pure, stateless)
+builder.Services.AddSingleton<ISeedingEngine, SeedingEngine>();
+builder.Services.AddSingleton<IBracketEngine, BracketEngine>();
+builder.Services.AddSingleton<IScoringEngine, ScoringEngine>();
+builder.Services.AddSingleton<IWeighInPolicyEvaluator, WeighInPolicyEvaluator>();
+
 // Hub-core scoped components
 builder.Services.AddScoped<IEventStore, HubEventStore>();
 builder.Services.AddScoped<HubProjectionHost>();
@@ -31,6 +38,13 @@ builder.Services.AddScoped<DeviceRegistry>();
 builder.Services.AddScoped<OfflineOrganizerAuth>();
 builder.Services.AddScoped<SyncIntakeService>();
 builder.Services.AddScoped<EventDownloadService>();
+
+// U4b competition services
+builder.Services.AddScoped<BracketService>();
+builder.Services.AddScoped<ScoringIntakeService>();
+builder.Services.AddScoped<WeighInResolutionService>();
+builder.Services.AddScoped<DivisionFinalizationService>();
+builder.Services.AddScoped<DisputeService>();
 
 builder.Services.AddControllers();
 
