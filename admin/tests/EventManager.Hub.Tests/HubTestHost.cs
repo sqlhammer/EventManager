@@ -1,4 +1,5 @@
 using EventManager.Domain.Engines;
+using EventManager.Hub.Competition;
 using EventManager.Hub.Events;
 using EventManager.Hub.Persistence;
 using EventManager.Hub.Projections;
@@ -21,6 +22,11 @@ public sealed class HubTestHost : IDisposable
     public SyncIntakeService Sync { get; }
     public OfflineOrganizerAuth Auth { get; }
     public HubEventStore Store { get; }
+    public BracketService Brackets { get; }
+    public ScoringIntakeService Scoring { get; }
+    public WeighInResolutionService WeighIn { get; }
+    public DivisionFinalizationService Finalization { get; }
+    public DisputeService Disputes { get; }
 
     public HubTestHost()
     {
@@ -41,6 +47,12 @@ public sealed class HubTestHost : IDisposable
         Devices = new DeviceRegistry(Db, writer, Workers, push);
         Sync = new SyncIntakeService(Db, Store, Devices);
         Auth = new OfflineOrganizerAuth(Db, new RoleAuthorizationPolicy());
+
+        Brackets = new BracketService(Db, writer, Ids, new SeedingEngine(), new BracketEngine());
+        Scoring = new ScoringIntakeService(Devices, new ScoringEngine(), Brackets);
+        WeighIn = new WeighInResolutionService(Db, writer, new WeighInPolicyEvaluator());
+        Finalization = new DivisionFinalizationService(Db, writer);
+        Disputes = new DisputeService(Db, writer, Ids);
     }
 
     public void Dispose() { Db.Dispose(); _conn.Dispose(); }

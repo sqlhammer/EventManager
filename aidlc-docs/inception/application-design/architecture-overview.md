@@ -268,3 +268,50 @@ flowchart TB
 - **Hub-side RBAC reuses U1's `RoleAuthorizationPolicy`** (identical to cloud, D-27) over credentials packaged at event download.
 - **Deferred seams**: MAUI Admin UI shell; concrete SignalR/WSS push (`IHubPush`); concrete mDNS (`IMdnsAdvertiser`); SQLCipher; hub→cloud replication client (U7 owns S-7 client side).
 - Text alt: Controllers → {PairingService, DeviceRegistry, SyncIntakeService} → HubEventStore→U1 Sync; OfflineOrganizerAuth+PairingService→U1 Domain (policy, worker-id); Controllers→U2 Contracts. Realizes the `admin-hub` box's server side in topology View 1; U4b adds bracket/scoring/competition on top.
+
+## As-built: U4b Hub Competition (updated 2026-07-25, end-of-unit, fast-tracked)
+
+U4b added a `Competition/` module inside `admin/EventManager.Hub` that **orchestrates the U1 domain engines** on the hub. No new UI. Builds green; 12 hub tests pass (5 U4a + 7 U4b). First unit written under coding standard **CS-1 (no ternary `?:`)**.
+
+```mermaid
+flowchart TB
+    subgraph COMP["admin/EventManager.Hub · Competition (U4b)"]
+        CComp["CompetitionController"]
+        Brk["BracketService<br/>(seed→generate→advance→start)"]
+        Sco["ScoringIntakeService<br/>(mat authority, US-406)"]
+        Wgh["WeighInResolutionService<br/>(policy + move)"]
+        Fin["DivisionFinalizationService"]
+        Dis["DisputeService"]
+        CRead["Read models: Bracket/Standing/<br/>Dispute/DivisionStatus"]
+        CComp --> Brk & Fin & Dis
+        Sco --> Brk
+        Brk --> CRead
+    end
+    U1E["U1 Engines<br/>Seeding · Bracket · Scoring · WeighInPolicy"]
+    HubW["U4a HubEventWriter / HubEventStore"]
+    Brk --> U1E
+    Sco --> U1E
+    Wgh --> U1E
+    Brk --> HubW
+    Wgh --> HubW
+    Fin --> HubW
+    Dis --> HubW
+
+    style CComp fill:#FFA726,stroke:#E65100,color:#000
+    style Brk fill:#FFCC80,stroke:#E65100,color:#000
+    style Sco fill:#FFCC80,stroke:#E65100,color:#000
+    style Wgh fill:#FFCC80,stroke:#E65100,color:#000
+    style Fin fill:#FFCC80,stroke:#E65100,color:#000
+    style Dis fill:#FFCC80,stroke:#E65100,color:#000
+    style CRead fill:#FFE082,stroke:#F57F17,color:#000
+    style U1E fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style HubW fill:#FFCC80,stroke:#E65100,color:#000
+```
+
+**As-built notes:**
+- **Bracket lifecycle** (US-311/312/313/314/404/408): `BracketService` seeds via U1 `SeedingEngine`, generates via `BracketEngine`, advances outcomes, and **blocks regeneration once a division has started**. Bracket state persists as serialized `MatchDto[]`, reconstructed to the U1 `Bracket` for advancement.
+- **Mat authority** (US-406): `ScoringIntakeService` rejects a score from any device not assigned to the match's division; valid scores run the U1 `ScoringEngine` and advance the bracket.
+- **Weigh-in resolution** (US-308/309): delegates to U1 `WeighInPolicyEvaluator`; a Moved outcome emits `DivisionMoved` (caller regenerates affected brackets).
+- **Finalization** (US-601) ranks standings by wins; **disputes** (US-405) flag/resolve as events.
+- Competition read models are updated transactionally with the audit/replication event append (full log-rebuild of competition projections is a follow-up). Live-standings push reuses the U4a `IHubPush` seam.
+- Text alt: CompetitionController → {BracketService, ScoringIntakeService, WeighInResolutionService, DivisionFinalizationService, DisputeService} → U1 engines + U4a HubEventWriter/HubEventStore. Completes the `admin-hub` competition application over the U4a foundation.
