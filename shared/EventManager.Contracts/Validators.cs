@@ -19,7 +19,8 @@ public sealed class EventEnvelopeDtoValidator : AbstractValidator<EventEnvelopeD
     internal static bool BeBase64(string s)
     {
         if (s is null) return false;
-        Span<byte> buffer = s.Length > 0 ? new byte[s.Length] : Array.Empty<byte>();
+        Span<byte> buffer = Array.Empty<byte>();
+        if (s.Length > 0) buffer = new byte[s.Length];
         return Convert.TryFromBase64String(s, buffer, out _);
     }
 }

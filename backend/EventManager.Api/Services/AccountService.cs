@@ -36,7 +36,8 @@ public sealed class AccountService(
         var user = await users.FindByEmailAsync(emailAddress);
         if (user is null) return Error.NotFound("Account.NotFound", "Confirmation failed.");
         var result = await users.ConfirmEmailAsync(user, token);
-        return result.Succeeded ? Result.Success : Error.Validation("Account.Confirm", "Confirmation failed.");
+        if (result.Succeeded) return Result.Success;
+        return Error.Validation("Account.Confirm", "Confirmation failed.");
     }
 
     public async Task<ErrorOr<LoginOutcome>> LoginAsync(string emailAddress, string password, string? totp, CancellationToken ct = default)

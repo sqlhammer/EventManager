@@ -24,7 +24,11 @@ public sealed class BracketEngine : IBracketEngine
         int size = NextPow2(n);
         int[] positions = StandardSeedingOrder(size); // seed numbers (1..size) in position order
 
-        Snowflake? CompetitorForSeedNo(int seedNo) => seedNo <= n ? ordered[seedNo - 1].RegistrationId : null; // > n => Bye
+        Snowflake? CompetitorForSeedNo(int seedNo)
+        {
+            if (seedNo <= n) return ordered[seedNo - 1].RegistrationId;
+            return null; // > n => Bye
+        }
 
         var matches = new List<Match>();
         int rounds = Log2(size);
@@ -103,9 +107,10 @@ public sealed class BracketEngine : IBracketEngine
         int ni = matches.FindIndex(m => m.RoundIndex == nextRound && m.SlotIndex == nextSlot);
         if (ni < 0) return; // final round; no next match
         var next = matches[ni];
-        matches[ni] = (played.SlotIndex % 2 == 0)
-            ? next with { CompetitorA = winner }
-            : next with { CompetitorB = winner };
+        if (played.SlotIndex % 2 == 0)
+            matches[ni] = next with { CompetitorA = winner };
+        else
+            matches[ni] = next with { CompetitorB = winner };
     }
 
     private static int FindMatchIndex(Bracket b, Snowflake matchId)

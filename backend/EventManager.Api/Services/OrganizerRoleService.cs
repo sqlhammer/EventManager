@@ -46,7 +46,8 @@ public sealed class OrganizerRoleService(
         if (!Enum.TryParse<OrganizerRole>(newRole, out var role))
             return Error.Validation("Organizer.Role", "Unknown role.");
 
-        var action = role == OrganizerRole.FullAdmin ? OrganizerAction.TransferFullAdmin : OrganizerAction.DemoteOrganizer;
+        var action = OrganizerAction.DemoteOrganizer;
+        if (role == OrganizerRole.FullAdmin) action = OrganizerAction.TransferFullAdmin;
         if (!await authz.IsPermittedAsync(callerAccountId, eventId, action, ct))
             return Error.Forbidden("Organizer.Forbidden", "Full-Admin-only action.");
 

@@ -15,7 +15,8 @@ public sealed class CurrentUser(IHttpContextAccessor accessor)
         get
         {
             var raw = accessor.HttpContext?.User.FindFirstValue(TokenService.AccountIdClaim);
-            return long.TryParse(raw, out var id) ? id : null;
+            if (long.TryParse(raw, out var id)) return id;
+            return null;
         }
     }
 
@@ -33,9 +34,9 @@ public sealed class EventAuthorizer(AppDbContext db, IRoleAuthorizationPolicy po
     {
         var row = await db.OrganizerRows.AsNoTracking()
             .FirstOrDefaultAsync(o => o.EventId == eventId && o.AccountId == accountId, ct);
-        var assignment = row is null
-            ? null
-            : new OrganizerRoleAssignment((Snowflake)row.Id, (Snowflake)row.EventId, (Snowflake)row.AccountId,
+        OrganizerRoleAssignment? assignment = null;
+        if (row is not null)
+            assignment = new OrganizerRoleAssignment((Snowflake)row.Id, (Snowflake)row.EventId, (Snowflake)row.AccountId,
                 Enum.Parse<OrganizerRole>(row.Role));
         return policy.IsPermitted(assignment, action);   // deny-by-default when assignment is null
     }

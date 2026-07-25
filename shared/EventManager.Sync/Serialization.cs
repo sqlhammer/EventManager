@@ -58,6 +58,7 @@ public sealed class UpcasterRegistry
             payload = up.Upcast(payload);
             version++;
         }
-        return version == evt.SchemaVersion ? evt : evt with { Payload = payload, SchemaVersion = version };
+        if (version == evt.SchemaVersion) return evt;
+        return evt with { Payload = payload, SchemaVersion = version };
     }
 }

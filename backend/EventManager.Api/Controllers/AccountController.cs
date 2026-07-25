@@ -19,7 +19,8 @@ public sealed class AccountController(AccountService accounts, TokenService toke
         if (await ValidateAsync(req, ct) is { } bad) return bad;
         var result = await accounts.RegisterAsync(req.Email, req.Password, ct);
         // Generic 200 on success; duplicate maps to a non-enumerating conflict message.
-        return result.IsError ? Problem(result.Errors) : Ok(new { message = "Registration received. Check your email to confirm." });
+        if (result.IsError) return Problem(result.Errors);
+        return Ok(new { message = "Registration received. Check your email to confirm." });
     }
 
     [HttpPost("confirm-email")]
@@ -34,9 +35,11 @@ public sealed class AccountController(AccountService accounts, TokenService toke
     {
         if (await ValidateAsync(req, ct) is { } bad) return bad;
         var result = await accounts.LoginAsync(req.Email, req.Password, req.Totp, ct);
-        return Respond(result, outcome => outcome.MfaRequired
-            ? Ok(new { mfaRequired = true })
-            : Ok(new TokenResponse(outcome.Tokens!.AccessToken, outcome.Tokens.RefreshToken, outcome.Tokens.AccessExpiresAt)));
+        return Respond(result, outcome =>
+        {
+            if (outcome.MfaRequired) return Ok(new { mfaRequired = true });
+            return Ok(new TokenResponse(outcome.Tokens!.AccessToken, outcome.Tokens.RefreshToken, outcome.Tokens.AccessExpiresAt));
+        });
     }
 
     [HttpPost("refresh")]
@@ -44,9 +47,8 @@ public sealed class AccountController(AccountService accounts, TokenService toke
     public async Task<IActionResult> Refresh(RefreshRequest req, CancellationToken ct)
     {
         var issued = await tokens.RefreshAsync(req.RefreshToken, req.Email, ct);
-        return issued is null
-            ? Unauthorized()
-            : Ok(new TokenResponse(issued.AccessToken, issued.RefreshToken, issued.AccessExpiresAt));
+        if (issued is null) return Unauthorized();
+        return Ok(new TokenResponse(issued.AccessToken, issued.RefreshToken, issued.AccessExpiresAt));
     }
 
     [HttpPost("logout")]
