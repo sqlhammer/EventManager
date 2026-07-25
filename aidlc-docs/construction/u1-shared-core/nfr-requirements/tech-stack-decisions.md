@@ -39,6 +39,7 @@ C# 13 / .NET 10, `net10.0` class libraries. No platform-specific APIs so the pac
 | Dependency | Scope | License | Notes |
 |---|---|---|---|
 | IdGen | runtime | MIT | Snowflake generator (TSD-3); pinned version, CI vuln scan |
+| ErrorOr | runtime | MIT | result/error type for expected domain outcomes (NFR Design P-6, Q1=A) |
 | System.Text.Json | runtime | BCL (MIT) | serialization (TSD-2); source-gen |
 | FsCheck | test only | BSD | PBT (TSD-4) |
 | xUnit | test only | Apache-2.0 | test framework |

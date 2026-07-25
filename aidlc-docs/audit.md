@@ -332,3 +332,29 @@
 **AI Prompt**: "Request Changes / Continue to Next Stage (NFR Design)"
 
 ---
+
+## U1 NFR Requirements — Approved
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "proceed"
+**AI Response**: U1 NFR Requirements approved. Marked complete in aidlc-state.md. Proceeding to NFR Design (U1).
+**Status**: Approved
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Design
+
+---
+
+## U1 NFR Design — Plan Created with Questions
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded nfr-design.md rules. Created construction/plans/u1-shared-core-nfr-design-plan.md. Noted determined patterns (serialization Strategy, IdGen Adapter, deterministic fold projections, idempotent append, upcaster pipeline, PBT harness) and infra components N/A for a pure library. Asked 2 genuine design questions: Q1 domain error-handling pattern (Result/Either vs exceptions), Q2 concurrency/thread-safety contract (single-writer model vs fully concurrent). Awaiting answers before generating nfr-design-patterns.md + logical-components.md.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Design (awaiting answers)
+
+---
+
+## U1 NFR Design — Answers Received & Artifacts Generated
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "answered, proceed" — Q1=A (Result pattern; use a library such as ErrorOr, or AI's suggestion), Q2=A (single-writer concurrency contract).
+**AI Response**: Accepted ErrorOr (MIT, purpose-built result/errors) for the Result pattern. Generated nfr-design-patterns.md (P-1..P-11: serialization Strategy, IdGen Adapter, idempotent-append dedupe, deterministic reducer/fold projections, upcaster pipeline, ErrorOr Result pattern, single-writer concurrency contract, pure RBAC, append-only immutability, replication HWM+gap detection, PBT harness; infra patterns N/A) and logical-components.md (Sync/Domain seams with ownership: U1 interfaces + pure impls; IEventStore adapters by U3/U4a; replication wiring by U7; infra components N/A with rationale). Added ErrorOr to tech-stack-decisions.md dependency summary. Marked plan checkboxes complete; updated aidlc-state.md. Presenting NFR Design 2-option gate.
+**Context**: CONSTRUCTION - U1 Shared Core - NFR Design approval gate
+**AI Prompt**: "Request Changes / Continue to Next Stage (Infrastructure Design)"
+
+---

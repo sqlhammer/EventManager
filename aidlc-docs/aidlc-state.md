@@ -4,7 +4,7 @@
 - **Project Name**: EventManager
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-22T00:00:00Z
-- **Current Stage**: CONSTRUCTION - U1 Shared Core - NFR Requirements (on branch `unit/u1-shared-core`)
+- **Current Stage**: CONSTRUCTION - U1 Shared Core - NFR Design (on branch `unit/u1-shared-core`)
 - **User Constraint (2026-07-22)**: LIFTED 2026-07-24 — user directed "proceed to construction" (approves Units Generation, ends the INCEPTION-only pause)
 - **Process Requirement (2026-07-24)**: Each unit is built on its own git branch (`unit/<id>-<slug>`); all per-unit work stays on the branch until end-of-unit approval, then merges into `main`. Build order: U1 → U2 → U8 → U3 → U4a → U4b → U7 → U5 → U6
 - **Active Branch**: `unit/u1-shared-core`
@@ -49,8 +49,8 @@
 - [x] INCEPTION: Units Generation (approved 2026-07-24 — 9 units; "proceed to construction")
 - [ ] CONSTRUCTION: U1 Shared Core — branch `unit/u1-shared-core` (IN PROGRESS)
   - [x] Functional Design (approved 2026-07-24)
-  - [ ] NFR Requirements (artifacts generated; awaiting approval)
-  - [ ] NFR Design
+  - [x] NFR Requirements (approved 2026-07-24 — System.Text.Json, IdGen, 90% gate)
+  - [ ] NFR Design (artifacts generated; awaiting approval)
   - [ ] Infrastructure Design
   - [ ] Code Generation
   - [ ] End-of-unit approval → merge to main
