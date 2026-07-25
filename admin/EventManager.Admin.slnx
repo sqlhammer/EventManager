@@ -1,0 +1,6 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/EventManager.Hub.Tests/EventManager.Hub.Tests.csproj" />
+  </Folder>
+  <Project Path="EventManager.Hub/EventManager.Hub.csproj" />
+</Solution>

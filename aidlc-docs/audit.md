@@ -610,3 +610,17 @@
 **Context**: CONSTRUCTION - U3 approved → end-of-unit deliverables + merge → U4a fast-track
 
 ---
+
+## CONSTRUCTION — U3 MERGED; U4a Hub Core fast-track START
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "U3 end-of-unit deliverables done (architecture-overview U3 as-built section + user-testing-guide.md dev verification guide). Committed branch unit/u3-cloud-backend (3e8eabc) and merged to main (merge b1564c8, --no-ff). main builds green. Updated state + memory. Starting U4a Hub Core on branch unit/u4a-hub-core, FAST-TRACKED per user direction (compressed single design doc with AI-recommended decisions, no per-stage approval gates). MAUI workload availability to be checked; if absent, build hub-core as plain .NET/ASP.NET Core library + host and defer MAUI UI shell as a documented seam."
+**Context**: CONSTRUCTION - U3 merged; U4a fast-track begins
+
+---
+
+## CONSTRUCTION — U4a Hub Core — fast-track code complete
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Fast-tracked U4a: wrote fast-track-design.md (consolidated functional+NFR+infra, AI-recommended). Generated admin/EventManager.Hub (ASP.NET Core host + hub-core: HubDbContext/HubEventStore SQLite, HubEventWriter/HubProjectionHost, PairingService [single-use token + worker-id], DeviceRegistry [revoke/role], OfflineOrganizerAuth [hub RBAC via U1 policy], SyncIntakeService [idempotent], EventDownloadService [readiness], IHubPush/IMdnsAdvertiser seams, 3 controllers + /health) and admin/tests/EventManager.Hub.Tests. MAUI workload ABSENT -> Hub Core built as library+host; MAUI UI shell + concrete SignalR/mDNS + SQLCipher + hub->cloud replication client deferred as documented seams. dotnet build green; dotnet test => 5 passed (pairing single-use, unique worker-id, revoked-device intake rejected, idempotent-intake property, hub RBAC deny-by-default). End-of-unit: architecture-overview U4a as-built section + code-summary.md verification guide. Proceeding to commit branch unit/u4a-hub-core and merge to main."
+**Context**: CONSTRUCTION - U4a fast-track code complete; merging
+
+---
