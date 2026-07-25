@@ -21,6 +21,7 @@ public sealed class DeviceRecord
     public string RoleDescriptor { get; set; } = "";  // e.g. "Judge — Mat 2"
     public int WorkerId { get; set; }
     public bool Revoked { get; set; }
+    public long? AssignedDivisionId { get; set; }     // mat authority scope (US-406)
 }
 
 /// <summary>One-time pairing token (US-303/304). Single-use: consumed on redemption.</summary>
