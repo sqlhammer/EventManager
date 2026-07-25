@@ -219,3 +219,52 @@ flowchart TB
 - **Replication ingest** (`EventIngestController`) accepts the hub's replicated log via U2 `EventEnvelope`, event-scoped-authorized (Q7=A) and idempotent; the cloud is a mirror.
 - **Deployment**: Docker Compose (Caddy TLS proxy · api · PostgreSQL · backup sidecar); provider-agnostic, no IaC (NFR-6.4).
 - Text alt: Controllers → Services → {Auth→U1 Domain policy; EventWriter→CloudProjectionHost→PostgresEventStore→U1 Sync + PostgreSQL}; Controllers→U2 Contracts (ingest); Services→U8 Payments. The topology View 1 `cloud-backend` box is now realized by this internal structure.
+
+## As-built: U4a Hub Core (updated 2026-07-25, end-of-unit, fast-tracked)
+
+U4a delivered `admin/EventManager.Hub` — the LAN hub foundation. **MAUI workload is absent in this environment, so Hub Core ships as an ASP.NET Core library + host; the MAUI Admin UI shell is a deferred seam.** Builds green; 5 tests pass.
+
+```mermaid
+flowchart TB
+    subgraph HUB["admin/EventManager.Hub (U4a delivered)"]
+        HCtrls["Controllers<br/>Pairing · Sync · Device · /health"]
+        Pair["PairingService<br/>(one-time token, single-use,<br/>worker-id assign)"]
+        DevReg["DeviceRegistry<br/>(list/reassign/revoke)"]
+        OAuth["OfflineOrganizerAuth<br/>(hub-side RBAC)"]
+        Intake["SyncIntakeService<br/>(idempotent spoke intake)"]
+        HProj["HubProjectionHost<br/>(DeviceRecord read model)"]
+        HStore["HubEventStore : IEventStore<br/>(SQLite; SQLCipher deferred)"]
+        Seams["Seams: IHubPush · IMdnsAdvertiser<br/>(SignalR/mDNS deferred)"]
+        HCtrls --> Pair & DevReg & Intake
+        Pair --> HStore
+        DevReg --> HStore
+        Intake --> HStore
+        HProj --> HStore
+    end
+    Domain["U1 Domain<br/>(RoleAuthorizationPolicy,<br/>WorkerIdRegistry)"]
+    Sync["U1 Sync (IEventStore, IIdGenerator)"]
+    Contracts["U2 Contracts<br/>(pairing/push DTOs, EventEnvelope)"]
+    OAuth --> Domain
+    Pair --> Domain
+    HStore --> Sync
+    HCtrls --> Contracts
+
+    style HCtrls fill:#FFA726,stroke:#E65100,color:#000
+    style Pair fill:#FFCC80,stroke:#E65100,color:#000
+    style DevReg fill:#FFCC80,stroke:#E65100,color:#000
+    style OAuth fill:#FFCC80,stroke:#E65100,color:#000
+    style Intake fill:#FFCC80,stroke:#E65100,color:#000
+    style HProj fill:#FFCC80,stroke:#E65100,color:#000
+    style HStore fill:#FFCC80,stroke:#E65100,color:#000
+    style Seams fill:#FFE082,stroke:#F57F17,color:#000
+    style Domain fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style Sync fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style Contracts fill:#C8E6C9,stroke:#1B5E20,color:#000
+```
+
+**As-built notes:**
+- **Hub event store** = `HubEventStore : IEventStore` (SQLite) — the local counterpart to the cloud's `PostgresEventStore`; same idempotent-append contract. SQLCipher at-rest (D-09) is a deferred seam.
+- **Pairing** issues single-use tokens and assigns Snowflake worker ids via U1 `WorkerIdRegistry`; **device revocation** frees the worker id and rejects the credential on next spoke contact (US-508).
+- **Hub-side RBAC reuses U1's `RoleAuthorizationPolicy`** (identical to cloud, D-27) over credentials packaged at event download.
+- **Deferred seams**: MAUI Admin UI shell; concrete SignalR/WSS push (`IHubPush`); concrete mDNS (`IMdnsAdvertiser`); SQLCipher; hub→cloud replication client (U7 owns S-7 client side).
+- Text alt: Controllers → {PairingService, DeviceRegistry, SyncIntakeService} → HubEventStore→U1 Sync; OfflineOrganizerAuth+PairingService→U1 Domain (policy, worker-id); Controllers→U2 Contracts. Realizes the `admin-hub` box's server side in topology View 1; U4b adds bracket/scoring/competition on top.
