@@ -38,7 +38,9 @@ public sealed class RegistrationService(
             var owned = await db.AthleteProfileRows.AnyAsync(a => a.AthleteId == id && a.OwnerAccountId == ownerAccountId, ct);
             if (!owned) return Error.Forbidden("Profile.Forbidden", "Profile not owned by this account.");
         }
-        await writer.AppendAsync(id, existing ? EventTypes.AthleteProfileUpdated : EventTypes.AthleteProfileCreated,
+        var profileEventType = EventTypes.AthleteProfileCreated;
+        if (existing) profileEventType = EventTypes.AthleteProfileUpdated;
+        await writer.AppendAsync(id, profileEventType,
             new AthleteProfilePayload(id, ownerAccountId, p.Name, p.DateOfBirth, p.Rank, p.Weight, p.Academy, p.Gender), ct);
         await db.SaveChangesAsync(ct);
         return id;
@@ -200,7 +202,8 @@ public sealed class RegistrationService(
         var assigned = selected.Where(eligible.Contains).OrderBy(x => x).ToList();
         var rejected = selected.Where(s => !eligible.Contains(s)).ToList();
         var mismatch = rejected.Count > 0;
-        var reasons = mismatch ? $"Not eligible for divisions: {string.Join(',', rejected)}" : null;
+        string? reasons = null;
+        if (mismatch) reasons = $"Not eligible for divisions: {string.Join(',', rejected)}";
         return (assigned, mismatch, reasons);
     }
 

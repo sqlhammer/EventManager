@@ -45,7 +45,11 @@ public sealed class ScoringEngine : IScoringEngine
             if (b >= target && b > a) return new MatchOutcome(input.CompetitorB, MatchMethod.Points, "Target reached");
         }
         if (config.MercyGap is { } gap && Math.Abs(a - b) >= gap)
-            return new MatchOutcome(a > b ? input.CompetitorA : input.CompetitorB, MatchMethod.Points, "Mercy gap");
+        {
+            var mercyWinner = input.CompetitorB;
+            if (a > b) mercyWinner = input.CompetitorA;
+            return new MatchOutcome(mercyWinner, MatchMethod.Points, "Mercy gap");
+        }
 
         // Higher total wins; equal -> needs a judge decision.
         if (a > b) return new MatchOutcome(input.CompetitorA, MatchMethod.Points);
@@ -81,6 +85,7 @@ public sealed class ScoringEngine : IScoringEngine
             considered = sorted.Skip(1).Take(sorted.Count - 2); // drop lowest + highest
         }
         var list = considered.ToList();
-        return list.Count == 0 ? 0d : list.Average();
+        if (list.Count == 0) return 0d;
+        return list.Average();
     }
 }

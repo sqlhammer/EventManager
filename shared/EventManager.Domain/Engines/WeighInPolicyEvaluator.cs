@@ -30,9 +30,8 @@ public sealed class WeighInPolicyEvaluator : IWeighInPolicyEvaluator
                 if (policy.TolerancePercent is not { } pct)
                     return Error.Validation("WeighIn.NoTolerance", "Tolerance policy requires a percent.");
                 double cap = wc.UpperBound * (1 + pct / 100.0);
-                return weight <= cap
-                    ? new WeighInOutcome(WeighInResult.TolerancePass)
-                    : new WeighInOutcome(WeighInResult.Disqualified);
+                if (weight <= cap) return new WeighInOutcome(WeighInResult.TolerancePass);
+                return new WeighInOutcome(WeighInResult.Disqualified);
 
             case WeighInPolicyMode.AutoMove:
                 var target = autoMoveCandidates.FirstOrDefault(d =>
@@ -40,9 +39,8 @@ public sealed class WeighInPolicyEvaluator : IWeighInPolicyEvaluator
                     d.Status == DivisionStatus.NotStarted &&
                     weight <= d.Criteria.WeightClass.UpperBound &&
                     weight >= (d.Criteria.WeightClass.LowerBound ?? double.MinValue));
-                return target is null
-                    ? new WeighInOutcome(WeighInResult.Disqualified)
-                    : new WeighInOutcome(WeighInResult.Moved, target.DivisionId);
+                if (target is null) return new WeighInOutcome(WeighInResult.Disqualified);
+                return new WeighInOutcome(WeighInResult.Moved, target.DivisionId);
 
             default:
                 return Error.Unexpected("WeighIn.UnknownMode", "Unknown weigh-in policy mode.");

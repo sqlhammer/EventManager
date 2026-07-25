@@ -646,3 +646,10 @@
 **Context**: CONSTRUCTION - U4b fast-track complete; merging
 
 ---
+
+## REFACTOR R1 — Ternary Elimination COMPLETE & MERGED
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Executed refactor sub-unit R1 on branch refactor/r1-ternary: replaced all 30 ternary conditional (?:) occurrences across 21 files in shared/ (BracketEngine, ScoringEngine, WeighInPolicyEvaluator, Serialization, Ids, Replication, Validators, LocalEventQueue), backend/EventManager.Api (AccountController, EventAuthorizer, ApiControllerBase, IdempotencyStore, Program, Middleware, AccountService, EventService, OrganizerRoleService, RegistrationService x2, TokenService), and admin/EventManager.Hub (HubControllerBase, OfflineOrganizerAuth) with if/else / switch / named locals per CS-1; kept ??/?.. Verified zero remaining ternaries (grep). All tests green: shared 42, backend 26, admin 12 = 80 total. Merging to main, then fast-tracking U7."
+**Context**: R1 complete; next fast-track U7 Offline Resilience
+
+---
