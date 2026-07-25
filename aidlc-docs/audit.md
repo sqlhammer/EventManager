@@ -465,3 +465,27 @@
 
 ---
 
+
+## CONSTRUCTION — U3 Cloud Backend — Functional Design (Part 1: Plan + Questions)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "Resume..." (context-clear resume; RESUME POINTER directed starting U3 Cloud Backend stage-by-stage)
+**AI Response**: "Resumed on main (clean). Created branch `unit/u3-cloud-backend` from main. Analyzed U3 context: 20 primary stories (US-101–109, US-201–207, US-209–211, US-603); consumed seams U1 IEventStore/Domain, U2 Contracts/EventEnvelope, U8 IPaymentProvider; approved orchestration S-1/S-2/S-7. Entered Functional Design stage-by-stage. Wrote plan `aidlc-docs/construction/plans/u3-cloud-backend-functional-design-plan.md` with 8 embedded design questions (Q1 persistence model for pre-event entities [rec hybrid event-sourced domain + Identity tables]; Q2 bulk-registration atomicity; Q3 division assignment vs self-selection; Q4 event-edit window; Q5 email delivery stub; Q6 results read-model scope; Q7 replication-ingest auth; Q8 free-form scope). Awaiting answers."
+**Context**: CONSTRUCTION - U3 Functional Design - plan created, awaiting user answers to design questions
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Functional Design (answers received)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "Answered" — plan file `[Answer]:` tags filled: Q1=C (hybrid: domain entities event-sourced via IEventStore, ASP.NET Identity accounts in Identity tables), Q2=A (bulk validate-then-commit atomic w/ idempotent resubmit), Q3=A (auto-compute eligible set → registrant confirms → mismatches flagged to organizer), Q4=A (all event edits are events; window state is a business rule), Q5=A (IEmailSender seam + stub/log impl), Q6=A (build results projection + read API now over ingest path), Q7=A (hub authenticates as organizer-scoped JWT service principal, event-scoped RBAC), Q8=N/A.
+**AI Response**: "All answers match recommendations; no ambiguity — no follow-ups. Generating functional-design artifacts: domain-entities.md, business-logic-model.md, business-rules.md."
+**Context**: CONSTRUCTION - U3 Functional Design - answers captured, generating artifacts
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Functional Design (Part 2: artifacts generated)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: (answers captured in prior entry)
+**AI Response**: "Generated 3 functional-design artifacts under aidlc-docs/construction/u3-cloud-backend/functional-design/: (1) domain-entities.md — two persistence planes per Q1=C (Identity plane for accounts/MFA; event-sourced domain plane for events/divisions/registrations/roles), reuses U1 Domain records as projection shapes, defines U3 event vocabulary + ResultsProjection contract (Q6=A); (2) business-logic-model.md — flow groups A (auth) / B (event+division setup) / C (RBAC) / D (registration incl. bulk atomic Q2=A, eligibility Q3=A) / E (ingest Q7=A + results), universal validate→append→project write path, 4 PBT invariants; (3) business-rules.md — enumerated BR families (AUTH/EVT/DIV/RBAC/REG/PAY/ING/RES/X) with sources + enforcement points, security 🔒 + resiliency carry-forward. frontend-components.md correctly skipped (backend service, no UI). Presented Functional Design completion message; awaiting explicit approval to proceed to NFR Requirements."
+**Context**: CONSTRUCTION - U3 Functional Design complete - awaiting approval
+
+---
