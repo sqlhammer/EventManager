@@ -110,3 +110,32 @@ flowchart LR
 | `checkin/` (**checkin-app**) | Check-In MAUI spoke app | Front-table device |
 
 The design questions (Q1–Q7) are all asking: **which box does each piece of logic live in, and where does it run** — especially how much goes into the shared `shared/` library vs. each app.
+
+---
+
+## As-built: U1 Shared Core (updated 2026-07-24, end-of-unit)
+
+U1 delivered the `shared/` foundation. Internal structure as-built:
+
+```mermaid
+flowchart TD
+    subgraph SHARED["shared/ (U1 delivered)"]
+        Domain["EventManager.Domain<br/>entities + engines<br/>(bracket, seeding, scoring,<br/>weigh-in, RBAC)"]
+        Sync["EventManager.Sync<br/>TournamentEvent, IEventStore,<br/>replay, projections,<br/>Snowflake(IdGen), replication"]
+    end
+    IdGen["IdGen (MIT)"]
+    ErrorOr["ErrorOr (MIT)"]
+    Domain --> ErrorOr
+    Sync --> IdGen
+    Sync --> ErrorOr
+
+    style Domain fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style Sync fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style IdGen fill:#FFE082,stroke:#F57F17,color:#000
+    style ErrorOr fill:#FFE082,stroke:#F57F17,color:#000
+```
+
+**As-built refinements (vs. the high-level graph in `component-dependency.md`):**
+- **`EventManager.Sync` is independent of `EventManager.Domain`.** Event payloads are opaque bytes at the Sync layer, so the event-sourcing plumbing is generic and reusable; concrete domain projections live in consuming units. (The earlier `Sync → Domain` edge is superseded by this cleaner layering.)
+- Snowflake ids are generated via **IdGen** behind `IIdGenerator`; expected domain failures use **ErrorOr**.
+- Text alt: Domain → ErrorOr; Sync → IdGen, ErrorOr; Domain and Sync are siblings with no edge between them.
