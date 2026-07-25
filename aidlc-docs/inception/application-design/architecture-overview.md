@@ -139,3 +139,25 @@ flowchart TD
 - **`EventManager.Sync` is independent of `EventManager.Domain`.** Event payloads are opaque bytes at the Sync layer, so the event-sourcing plumbing is generic and reusable; concrete domain projections live in consuming units. (The earlier `Sync → Domain` edge is superseded by this cleaner layering.)
 - Snowflake ids are generated via **IdGen** behind `IIdGenerator`; expected domain failures use **ErrorOr**.
 - Text alt: Domain → ErrorOr; Sync → IdGen, ErrorOr; Domain and Sync are siblings with no edge between them.
+
+## As-built: U2 Contracts & ClientSync (updated 2026-07-25, end-of-unit)
+
+U2 added the wire contracts and the reusable spoke-sync library.
+
+```mermaid
+flowchart TD
+    Contracts["EventManager.Contracts<br/>DTOs + mapper + validators (FluentValidation)"]
+    ClientSync["EventManager.ClientSync<br/>queue, sync client, reconnect,<br/>push consumer, pairing<br/>(ISyncTransport / IHubDiscovery seams)"]
+    Sync["EventManager.Sync"]
+    Contracts --> Sync
+    ClientSync --> Sync
+    ClientSync --> Contracts
+
+    style Contracts fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style ClientSync fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style Sync fill:#A5D6A7,stroke:#1B5E20,color:#000
+```
+
+- `Contracts` maps `TournamentEvent` ⇄ `EventEnvelopeDto` (so it references `Sync`, not `Domain`).
+- `ClientSync` reuses U1's `IEventStore` (durable queue) and `ProjectionHost` (push apply); the concrete SignalR/WSS transport is injected at app wiring via `ISyncTransport`.
+- Text alt: Contracts → Sync; ClientSync → Sync, Contracts.

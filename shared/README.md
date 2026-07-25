@@ -2,13 +2,13 @@
 
 Shared .NET class libraries consumed by the backend, hub, and spoke apps (D-07 layout). Built as versioned packages via a local NuGet feed.
 
-## Packages (as of U1)
+## Packages (as of U2)
 | Package | Purpose |
 |---|---|
 | `EventManager.Domain` | Pure domain model + correctness-critical engines (bracket, seeding, scoring, weigh-in, RBAC). No I/O. Heaviest PBT surface. |
 | `EventManager.Sync` | Event-sourcing plumbing: `TournamentEvent`, `IEventStore`, idempotent replay, projections, Snowflake ids (IdGen), replication protocol. Independent of Domain (payloads are opaque). |
-
-_Later units add `EventManager.Contracts` and `EventManager.ClientSync` to this solution (U2)._
+| `EventManager.Contracts` | Transport-level DTOs + `EventEnvelopeMapper` + FluentValidation validators (single source of truth for the wire). Domain REST/LAN DTOs grow with their consumers. |
+| `EventManager.ClientSync` | Spoke offline behavior: durable queue, idempotent replay, bounded-backoff reconnect, typed push consumer, pairing. Transport is a seam (`ISyncTransport`/`IHubDiscovery`); SignalR impl provided at app wiring. |
 
 ## Build & test
 ```bash
