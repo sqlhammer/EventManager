@@ -624,3 +624,10 @@
 **Context**: CONSTRUCTION - U4a fast-track code complete; merging
 
 ---
+
+## CONSTRUCTION — U4a MERGED
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Committed branch unit/u4a-hub-core (4bd03ee) and merged to main (merge 13945cc, --no-ff). main builds green (both backend + admin solutions); all tests pass. Updated state + memory. Build order U1→U2→U8→U3→U4a done; next U4b Hub Competition."
+**Context**: CONSTRUCTION - U4a merged; next U4b
+
+---

@@ -4,7 +4,7 @@
 - **Project Name**: EventManager
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-22T00:00:00Z
-- **Current Stage**: CONSTRUCTION — **U3 merged to main 2026-07-25 (merge b1564c8). Next unit: U4a Hub Core (fast-track).** U1 merged 2026-07-24; U2+U8+U3 merged 2026-07-25.
+- **Current Stage**: CONSTRUCTION — **U4a merged to main 2026-07-25 (merge 13945cc). Next unit: U4b Hub Competition.** U1 merged 2026-07-24; U2+U8+U3+U4a merged 2026-07-25.
 - **>>> RESUME POINTER (context cleared 2026-07-25) <<<**: On `main`, working tree CLEAN, U1+U2+U8 all merged. **Start here: U3 Cloud Backend.** Create branch `unit/u3-cloud-backend` from main, then run the per-unit loop STAGE-BY-STAGE (Functional Design → NFR Requirements → NFR Design → Infrastructure Design → Code Generation) — U3 is LARGE (accounts/auth+MFA, organizer RBAC mgmt, registration self/parent/coach-bulk, division config+assignment, replication ingest [consumes U1 IEventStore + U2 EventEnvelope contracts], results; first unit with a real API layer + EF Core/PostgreSQL + Docker; consumes U8 EventManager.Payments). Recommend NOT fast-tracking. Read this file + audit.md + memory `eventmanager-aidlc-orientation` first. Tests green: 42 in shared/, 6 in backend/.
 - **User Constraint (2026-07-22)**: LIFTED 2026-07-24 — user directed "proceed to construction" (approves Units Generation, ends the INCEPTION-only pause)
 - **Process Requirement (2026-07-24)**: Each unit is built on its own git branch (`unit/<id>-<slug>`); all per-unit work stays on the branch until end-of-unit approval, then merges into `main`. Build order: U1 → U2 → U8 → U3 → U4a → U4b → U7 → U5 → U6
@@ -63,6 +63,7 @@
   - [x] Infrastructure Design — APPROVED (infrastructure-design.md, deployment-architecture.md); answers Q1–Q5=A, Q6=N/A
   - [x] Code Generation — **COMPLETE** (consent pre-granted). Generated `backend/EventManager.Api` (31 source files: persistence/event-store/projections/services/controllers/auth/validators/Program), EF `InitialCreate` migration, `backend/tests/EventManager.Api.Tests` (**20 tests passing** incl. PBT-1..4), infra (Dockerfile, docker-compose, Caddyfile, backup.sh, .env.example, CI). `dotnet build backend/EventManager.Backend.slnx` green. Awaiting end-of-unit review (still on branch `unit/u3-cloud-backend`; NOT yet merged; end-of-unit deliverables — arch diagram update + user testing guide — still pending per memory).
 - [x] CONSTRUCTION: U3 Cloud Backend — **COMPLETE & MERGED** to main 2026-07-25 (merge b1564c8); backend/EventManager.Api + 20 tests; end-of-unit deliverables done (arch as-built + dev verification guide)
-- [ ] CONSTRUCTION: U4a Hub Core — **fast-tracked; code complete on branch `unit/u4a-hub-core`** (`admin/EventManager.Hub` + 5 tests; pairing/device-mgmt/offline-RBAC/sync-intake/readiness; MAUI UI shell + SignalR/mDNS/SQLCipher deferred as seams). Awaiting merge in this same turn.
-- [ ] CONSTRUCTION: U4b, U7, U5, U6 (per build order, each on its own branch)
+- [x] CONSTRUCTION: U4a Hub Core — **COMPLETE & MERGED** to main 2026-07-25 (merge 13945cc); `admin/EventManager.Hub` (fast-tracked) + 5 tests; pairing/device-mgmt/offline-RBAC/sync-intake/readiness; MAUI UI shell + SignalR/mDNS/SQLCipher + hub→cloud replication client deferred as seams; end-of-unit deliverables done
+- [ ] CONSTRUCTION: U4b Hub Competition — **NEXT** (branch `unit/u4b-hub-competition`); depends on U4a + U1 (bracket/scoring engines already in U1)
+- [ ] CONSTRUCTION: U7, U5, U6 (per build order, each on its own branch)
 - [ ] CONSTRUCTION: Build and Test (after all units)
