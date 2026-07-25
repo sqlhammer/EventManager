@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/EventManager.Checkin.Core.Tests/EventManager.Checkin.Core.Tests.csproj" />
+  </Folder>
+  <Project Path="EventManager.Checkin.Core/EventManager.Checkin.Core.csproj" />
+  <Project Path="EventManager.Checkin/EventManager.Checkin.csproj" />
+</Solution>
