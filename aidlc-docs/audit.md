@@ -438,3 +438,21 @@
 
 ---
 
+## U2 Approved & Merged; U8 Fast-Tracked
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed and fast track U8"
+**AI Response**: U2 end-of-unit approved → committed (b176bb5) + merged to main --no-ff (e6a8aef). Created branch unit/u8-payment-stub. Fast-tracked U8 (Payment Stub, D-06/US-208): wrote functional design + consolidated NFR/tech docs (Infra SKIPPED — library); stood up the backend/ solution (EventManager.Backend.slnx) with EventManager.Payments (IPaymentProvider seam + StubPaymentProvider — idempotent by IdempotencyKey, injectable outcome, no external call) + xUnit/FsCheck tests. Build succeeded (0/0); tests **6 passed / 0 failed**. End-of-unit deliverables: architecture-overview.md updated (U8 as-built + backend/ standup); user-testing-guide.md + code-summary.md authored. aidlc-state.md updated. NOT committed/merged — presenting U8 end-of-unit approval gate.
+**Context**: CONSTRUCTION - U8 - Code Generation approval gate (end-of-unit)
+**AI Prompt**: "Request Changes / Approve (end-of-unit) → commit + merge, then start U3"
+
+---
+
+## Context-Clear Handoff (documentation checkpoint)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "I am going to clear context prior to the next unit. Make sure everything is documented."
+**AI Response**: Prepared for context clear. Committed U8 to its branch (unit/u8-payment-stub, commit 162c3ee) so the working tree is CLEAN — U8 NOT merged (still awaiting explicit end-of-unit approval per the branch workflow). Updated aidlc-state.md with a RESUME POINTER (exact position, the pending U8 merge command, and that U3 is next + large + should run stage-by-stage). Updated persistent memory eventmanager-aidlc-orientation.md with the current date/position. Git state: main has U1+U2 merged (0fa8ba9, e6a8aef); unit/u8-payment-stub has U8 committed ahead of main. Nothing uncommitted. On resume, read aidlc-state.md → audit.md → memory, then approve/merge U8 and start U3.
+**Status**: Documentation checkpoint complete; U8 committed on branch, pending merge
+**Context**: CONSTRUCTION - U8 end-of-unit approval gate (pending) → U3 next
+
+---
+
