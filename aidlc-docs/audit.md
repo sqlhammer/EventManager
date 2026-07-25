@@ -660,3 +660,10 @@
 **Context**: CONSTRUCTION - U7 fast-track complete; merging
 
 ---
+
+## CONSTRUCTION — U5 Judge — fast-track code complete + merge
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Confirmed MAUI env: maui-windows+maui-android workloads installed; NO JDK/Android SDK (Android head can't build), no Mac (iOS/Mac can't). Spiked + verified a MAUI Windows head compiles. Fast-tracked U5: judge/EventManager.Judge.Core (SpokeEventLog durable-before-ack, ScoreCaptureService US-402/403, MatQueueViewModel US-401, read-only CrossMatViewModel US-410, FocusModeState US-411, InMemoryEventStore) + judge/EventManager.Judge MAUI Windows head (net10.0-windows only, references core, DI root; BUILD SUCCEEDED) + 6 core tests passing. Under CS-1. gitignored *.SdkResolver.*.Backup.tmp. End-of-unit: architecture as-built + code-summary. Committing + merging."
+**Context**: CONSTRUCTION - U5 complete; merging
+
+---

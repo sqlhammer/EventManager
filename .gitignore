@@ -11,3 +11,6 @@ obj/
 # Secrets — never commit real env files (Q3=A / NFR-2.6)
 .env
 backend/.env
+
+# MSBuild SDK resolver temp files
+*.SdkResolver.*.proj.Backup.tmp

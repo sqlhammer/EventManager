@@ -344,3 +344,12 @@ flowchart LR
 - **Spoke offline queue** (US-502/503) reuses U2 `LocalEventQueue`; **idempotent `AppendIfNotExists`** across spoke→hub→cloud is the zero-loss / no-duplicate backbone (US-501).
 - Deferred: real HTTP replication adapter, MAUI-host reconnect scheduling (U5/U6), SQLCipher, hot standby.
 - Text alt: Spoke LocalEventQueue → HubEventStore → ReplicationClient → (transport seam) → cloud mirror; HubEventStore ⇄ Backup/Recovery. Realizes the View 2 event-flow backbone with zero loss + idempotent replay end-to-end.
+
+## As-built: U5 Judge (updated 2026-07-25, end-of-unit, fast-tracked)
+
+U5 delivered the Judge spoke as a testable **app-core library** (`judge/EventManager.Judge.Core`, net10.0) plus a **compiling MAUI Windows head** (`judge/EventManager.Judge`). The `maui-windows`/`maui-android` workloads are installed, but no JDK/Android SDK and no Mac, so **only the Windows head compiles**; Android/iOS/Mac heads are a one-line TFM add later. 6 core tests pass.
+
+- **`SpokeEventLog`** is the judge's durable-before-ack write path (NFR-1.1): mint id + contiguous sequence → persist to the local `IEventStore` before the UI acks; the queued event replays to the hub (U4a intake → U4b scoring) idempotently.
+- **`ScoreCaptureService`** captures point-sparring/forms scores (US-402/403); the **hub owns mat-authority + outcome** (U4b). `MatQueueViewModel` (US-401), read-only `CrossMatViewModel` (US-410, no write path), `FocusModeState` (US-411).
+- Reuses U2 `LocalEventQueue`/`ISyncTransport`/`PairingClient`; `InMemoryEventStore` is the default (on-device SQLite/SQLCipher is a host seam).
+- Text alt: Judge UI (MAUI Windows head) → app-core {ScoreCaptureService → SpokeEventLog → IEventStore/LocalEventQueue; MatQueue/CrossMat/Focus view-models} → U2 ClientSync transport → hub. Realizes the `judge-app` spoke box (write side durable-before-ack; read side read-only).
