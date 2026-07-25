@@ -520,3 +520,33 @@
 **Context**: CONSTRUCTION - U3 NFR Requirements complete - awaiting approval
 
 ---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Requirements APPROVED
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed"
+**AI Response**: "NFR Requirements approved. Proceeding to NFR Design (stage-by-stage)."
+**Context**: CONSTRUCTION - U3 NFR Requirements approved → NFR Design
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Design (Part 1: Plan + Questions)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Entered NFR Design. Most patterns determined by NFR-Req/TSD; wrote plan `construction/plans/u3-cloud-backend-nfr-design-plan.md` with 4 design-shaping questions: Q1 API instance model vs single-writer contract (rec single container, DB-enforced idempotent append keeps horizontal-scale-ready), Q2 projection update timing (rec synchronous inline), Q3 outbound-call resilience depth (rec timeouts+bounded retry only, no circuit breakers against stubs), Q4 free-form. Awaiting answers."
+**Context**: CONSTRUCTION - U3 NFR Design - plan created, awaiting answers
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Design (answers received)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed" (plan tags: Q1=A single container/DB-enforced idempotent append, Q2=A synchronous inline projections, Q3=A timeouts+bounded retry only, Q4=N/A)
+**AI Response**: "All answers = recommendations; generating nfr-design-patterns.md + logical-components.md."
+**Context**: CONSTRUCTION - U3 NFR Design - answers captured, generating artifacts
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Design (Part 2: artifacts generated)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Generated nfr-design/nfr-design-patterns.md (SP-1..7 security, PP-1..4 performance, RP-1..6 resilience, SC-1 scalability, OB-1 observability; traceability + extension compliance) and nfr-design/logical-components.md (component map, PostgresEventStore/IdempotencyStore/RefreshTokenStore/CloudProjectionHost+5 projections/6 app services/TokenService/authz filter/BreachedPasswordValidator/validators/rate-limit/exception+health/IEmailSender stub; S-1/S-2/S-7 wiring; consumes U1/U2/U8). Presented completion message; awaiting approval to proceed to Infrastructure Design."
+**Context**: CONSTRUCTION - U3 NFR Design complete - awaiting approval
+
+---

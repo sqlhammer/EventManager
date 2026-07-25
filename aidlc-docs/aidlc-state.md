@@ -58,6 +58,7 @@
 - [x] CONSTRUCTION: U8 Payment Stub — **COMPLETE & MERGED** to main 2026-07-25 (c858173); stood up backend/ solution; 6 tests passing
 - [ ] CONSTRUCTION: U3 Cloud Backend — **IN PROGRESS** on branch `unit/u3-cloud-backend`; large unit, stage-by-stage
   - [x] Functional Design — APPROVED (domain-entities, business-logic-model, business-rules in `construction/u3-cloud-backend/functional-design/`); answers Q1=C,Q2=A,Q3=A,Q4=A,Q5=A,Q6=A,Q7=A,Q8=N/A
-  - [ ] NFR Requirements — artifacts generated (nfr-requirements.md, tech-stack-decisions.md); answers Q1–Q5=A, Q6=N/A; **awaiting explicit approval** to proceed to NFR Design
+  - [x] NFR Requirements — APPROVED (nfr-requirements.md, tech-stack-decisions.md); answers Q1–Q5=A, Q6=N/A
+  - [ ] NFR Design — artifacts generated (nfr-design-patterns.md, logical-components.md); answers Q1–Q3=A, Q4=N/A; **awaiting explicit approval** to proceed to Infrastructure Design
 - [ ] CONSTRUCTION: U4a, U4b, U7, U5, U6 (per build order, each on its own branch)
 - [ ] CONSTRUCTION: Build and Test (after all units)
