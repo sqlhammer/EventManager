@@ -60,6 +60,7 @@
   - [x] Functional Design — APPROVED (domain-entities, business-logic-model, business-rules in `construction/u3-cloud-backend/functional-design/`); answers Q1=C,Q2=A,Q3=A,Q4=A,Q5=A,Q6=A,Q7=A,Q8=N/A
   - [x] NFR Requirements — APPROVED (nfr-requirements.md, tech-stack-decisions.md); answers Q1–Q5=A, Q6=N/A
   - [x] NFR Design — APPROVED (nfr-design-patterns.md, logical-components.md); answers Q1–Q3=A, Q4=N/A
-  - [ ] Infrastructure Design — artifacts generated (infrastructure-design.md, deployment-architecture.md); answers Q1–Q5=A, Q6=N/A; **awaiting explicit approval** to proceed to Code Generation
+  - [x] Infrastructure Design — APPROVED (infrastructure-design.md, deployment-architecture.md); answers Q1–Q5=A, Q6=N/A
+  - [x] Code Generation — **COMPLETE** (consent pre-granted). Generated `backend/EventManager.Api` (31 source files: persistence/event-store/projections/services/controllers/auth/validators/Program), EF `InitialCreate` migration, `backend/tests/EventManager.Api.Tests` (**20 tests passing** incl. PBT-1..4), infra (Dockerfile, docker-compose, Caddyfile, backup.sh, .env.example, CI). `dotnet build backend/EventManager.Backend.slnx` green. Awaiting end-of-unit review (still on branch `unit/u3-cloud-backend`; NOT yet merged; end-of-unit deliverables — arch diagram update + user testing guide — still pending per memory).
 - [ ] CONSTRUCTION: U4a, U4b, U7, U5, U6 (per build order, each on its own branch)
 - [ ] CONSTRUCTION: Build and Test (after all units)

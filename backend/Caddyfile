@@ -1,0 +1,10 @@
+# TLS termination for the cloud backend (Q1=A, NFR-2.2). Replace the site address with your domain;
+# Caddy provisions/renews certificates automatically in production. For local dev use `localhost`.
+{$SITE_ADDRESS:localhost} {
+    encode gzip
+    reverse_proxy api:8080
+    header {
+        Strict-Transport-Security "max-age=31536000;"
+        -Server
+    }
+}
