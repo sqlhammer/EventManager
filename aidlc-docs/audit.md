@@ -358,3 +358,39 @@
 **AI Prompt**: "Request Changes / Continue to Next Stage (Infrastructure Design)"
 
 ---
+
+## U1 NFR Design — Approved; Infrastructure Design SKIPPED for U1
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "approved, proceed"
+**AI Response**: U1 NFR Design approved. Infrastructure Design assessed as **SKIP for U1**: U1 is a pure class library (`EventManager.Domain` + `EventManager.Sync`) with no deployment footprint — no containers, networking, cloud resources, or infra services to map (storage/transport adapters and their infra belong to consuming units U3/U4a/U7). User pre-agreed to this skip when approving. Recorded skip with rationale; proceeding to Code Generation (U1). Marked NFR Design complete + Infrastructure Design skipped in aidlc-state.md.
+**Status**: Approved (NFR Design); Infrastructure Design SKIPPED (U1, not applicable)
+**Context**: CONSTRUCTION - U1 Shared Core - Code Generation
+
+---
+
+## U1 Code Generation — Plan Created (Part 1)
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded code-generation.md rules. Created construction/plans/u1-shared-core-code-generation-plan.md — 12 numbered steps: project structure (shared/EventManager.Shared.sln + Domain/Sync libs + 2 xUnit test projects + Directory.Build.props), Domain entities/VOs, Domain engines, Sync event model+serialization, Snowflake (IdGen), event store interface+replay, projection framework, replication protocol+upcasting, Domain FsCheck+xUnit tests, Sync FsCheck+xUnit tests, documentation, non-gating build sanity check. API/Repository/Frontend/migrations/deployment marked N/A (pure library). Code location shared/ per D-07; all on branch unit/u1-shared-core. Awaiting plan approval before Part 2 generation.
+**Context**: CONSTRUCTION - U1 Shared Core - Code Generation, Part 1 (awaiting plan approval)
+**AI Prompt**: "Approve the U1 code generation plan to proceed to generation? (Request Changes / Approve & Generate)"
+
+---
+
+## New Process Requirement (End-of-Unit Deliverables) + U1 Code-Gen Plan Approved
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "Make sure, at the end of every unit that architecture overview diagrams and user testing guide are updated/authored. Check your context for anything useful to persist to disk in case we decide to clear context soon. Once you have done that, I approve and ask you to proceed."
+**AI Response**: (1) Recorded a new durable process requirement — every unit updates architecture-overview diagrams + authors/updates a user testing guide before end-of-unit approval — in aidlc-state.md and persistent memory (end-of-unit-deliverables.md). (2) Persisted resume context to memory: eventmanager-aidlc-orientation.md (where state lives, current position) + confirmed per-unit-git-branch-workflow.md; updated MEMORY.md index. Verified .NET 10 SDK 10.0.302 present. Added Steps 13 (architecture diagrams) + 14 (user testing guide) to the U1 code-generation plan. (3) User approved the U1 code generation plan → proceeding to Part 2 generation on branch unit/u1-shared-core.
+**Status**: Approved (U1 Code Generation Plan); process requirement added
+**Context**: CONSTRUCTION - U1 Shared Core - Code Generation Part 2 (generating)
+
+---
+
+## U1 Code Generation — Part 2 Complete
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Executed all 14 plan steps on branch unit/u1-shared-core. Scaffolded shared/ solution (EventManager.Shared.slnx — .NET 10 produced .slnx format) with EventManager.Domain + EventManager.Sync libraries and two xUnit test projects; packages IdGen + ErrorOr (runtime) and FsCheck.Xunit (test) restored successfully. Wrote Domain (entities/VOs + bracket/seeding/scoring/weigh-in/RBAC engines) and Sync (TournamentEvent, serialization+upcasters, Snowflake via IdGen adapter, IEventStore, replay, projections, replication). Wrote FsCheck property + xUnit example tests for BR-1..BR-7. Results: `dotnet build` succeeded (0/0); `dotnet test` **31 passed / 0 failed** (Domain 20, Sync 11). Step 12 sanity build + full test run executed (green) for confidence though formal Build&Test gate is later. Steps 13-14 (end-of-unit deliverables): updated architecture-overview.md with an as-built U1 section + internal diagram and noted the Sync-independent-of-Domain refinement (also in component-dependency.md); authored user-testing-guide.md. Marked all plan checkboxes [x]; updated aidlc-state.md. NOT yet committed/merged — presenting the Code Generation (end-of-unit) approval gate; on approval will commit branch and merge to main.
+**Context**: CONSTRUCTION - U1 Shared Core - Code Generation approval gate (end-of-unit)
+**AI Prompt**: "Request Changes / Approve (end-of-unit) → commit branch + merge to main, then start U2"
+
+---

@@ -58,6 +58,8 @@ Checkin     -> ClientSync (-> Sync, Contracts), Domain
 ```
 No cycles. `Domain` is the sink (depends on nothing); apps are sources.
 
+> **As-built refinement (U1, 2026-07-24)**: `Sync` was implemented **independent of `Domain`** — the `Sync → Domain` edge above is not used. Sync treats event payloads as opaque bytes (generic event-sourcing plumbing); concrete domain projections live in consuming units. This is cleaner layering and does not affect any other edge. See `architecture-overview.md` → "As-built: U1 Shared Core".
+
 ---
 
 ## Dependency matrix (module → shared package)

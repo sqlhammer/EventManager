@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/tests/">
+    <Project Path="tests/EventManager.Domain.Tests/EventManager.Domain.Tests.csproj" />
+    <Project Path="tests/EventManager.Sync.Tests/EventManager.Sync.Tests.csproj" />
+  </Folder>
+  <Project Path="EventManager.Domain/EventManager.Domain.csproj" />
+  <Project Path="EventManager.Sync/EventManager.Sync.csproj" />
+</Solution>
