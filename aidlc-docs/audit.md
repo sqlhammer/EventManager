@@ -631,3 +631,18 @@
 **Context**: CONSTRUCTION - U4a merged; next U4b
 
 ---
+
+## USER GUIDELINE — avoid ternary operators + refactor sub-unit
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "Add a new coding guideline to avoid ternary operators. Also, create a new task as a sub-unit to refactor existing ternary operators to easier to read code."
+**AI Response**: "Added coding standard CS-1 (no `?:` conditional operator; prefer if/else / switch expression / named local; `??` and `?.` still allowed) at aidlc-docs/coding-standards.md. Saved feedback memory 'avoid-ternary-operators'. Registered REFACTOR SUB-UNIT R1 (Ternary Elimination) in aidlc-state.md to sweep pre-existing ternaries across U1–U4b on branch refactor/r1-ternary. Applying the guideline to all remaining U4b code from here on."
+**Context**: Mid-U4b — new coding guideline + refactor sub-unit registered
+
+---
+
+## CONSTRUCTION — U4b Hub Competition — fast-track code complete + merge
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Fast-tracked U4b: Competition module in admin/EventManager.Hub orchestrating U1 engines (SeedingEngine/BracketEngine/ScoringEngine/WeighInPolicyEvaluator). BracketService (seed/generate/advance/start + regen guard), ScoringIntakeService (mat authority US-406), WeighInResolutionService (US-308/309), DivisionFinalizationService (US-601), DisputeService (US-405); competition read models + CompetitionController; DeviceRegistry.AssignMatAsync. Written under CS-1 (no ternaries; fixed the 2 U4b files authored just before the guideline). dotnet test => 12 passed (5 U4a + 7 U4b). End-of-unit: architecture-overview U4b as-built + code-summary.md. Committing + merging to main."
+**Context**: CONSTRUCTION - U4b fast-track complete; merging
+
+---

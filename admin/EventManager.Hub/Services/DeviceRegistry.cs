@@ -20,6 +20,20 @@ public sealed class DeviceRegistry(HubDbContext db, HubEventWriter writer, IWork
     public async Task<bool> IsActiveAsync(long deviceId, CancellationToken ct = default) =>
         await db.Devices.AsNoTracking().AnyAsync(d => d.DeviceId == deviceId && !d.Revoked, ct);
 
+    /// <summary>The division a device is authorized to score (mat authority, US-406). Null = unassigned.</summary>
+    public async Task<long?> AssignedDivisionAsync(long deviceId, CancellationToken ct = default) =>
+        (await db.Devices.AsNoTracking().FirstOrDefaultAsync(d => d.DeviceId == deviceId && !d.Revoked, ct))?.AssignedDivisionId;
+
+    /// <summary>Assign a device to a division/mat (organizer action).</summary>
+    public async Task<ErrorOr<Success>> AssignMatAsync(long deviceId, long divisionId, CancellationToken ct = default)
+    {
+        var device = await db.Devices.FindAsync([deviceId], ct);
+        if (device is null) return Error.NotFound("Device.NotFound", "Device not found.");
+        device.AssignedDivisionId = divisionId;
+        await db.SaveChangesAsync(ct);
+        return Result.Success;
+    }
+
     public async Task<ErrorOr<Success>> RevokeAsync(long deviceId, CancellationToken ct = default)
     {
         var device = await db.Devices.FindAsync([deviceId], ct);
