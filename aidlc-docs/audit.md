@@ -420,3 +420,21 @@
 **AI Prompt**: "Request Changes / Continue to Next Stage (NFR Requirements)"
 
 ---
+
+## U2 — Functional Design Approved; FAST-TRACK Authorized
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "fast track U2"
+**AI Response**: Interpreted as (a) approval of U2 Functional Design and (b) authorization to run U2's remaining stages (NFR Requirements → NFR Design → Infrastructure Design → Code Generation) using AI-recommended answers, stopping only at the end-of-unit approval before merge. Proceeding to make and record the recommended decisions without per-stage question gates. Recommended decisions: validation=FluentValidation; DTO serialization=System.Text.Json; push=lightweight typed .NET event (no System.Reactive dep); transport as ISyncTransport/IHubDiscovery seams (concrete SignalR impl deferred to app wiring so ClientSync is unit-testable with fakes); coverage gate 90% on ClientSync core; single-writer + thread-safe status; backoff initial 1s/max 30s/x2. Infrastructure Design = SKIP (libraries).
+**Context**: CONSTRUCTION - U2 - fast-track through NFR + Code Generation
+
+---
+
+## U2 — Fast-Track Complete; Awaiting End-of-Unit Approval
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: N/A (fast-track execution)
+**AI Response**: Executed U2 NFR Requirements + NFR Design (artifacts written with recommended decisions), SKIPPED Infrastructure Design (libraries), and completed Code Generation on branch unit/u2-contracts-clientsync. Added EventManager.Contracts (DTOs, EventEnvelopeMapper, FluentValidation validators) and EventManager.ClientSync (LocalEventQueue, SyncClient, ReconnectSupervisor, HubPushConsumer, PairingClient, transport seams) + two xUnit test projects to shared/EventManager.Shared.slnx. Build succeeded (0/0); full suite **42 passed / 0 failed** (Domain 20, Sync 11, Contracts 4, ClientSync 7). End-of-unit deliverables done: architecture-overview.md updated with a U2 as-built section + diagram; user-testing-guide.md authored; README updated; code-summary.md written. All plan checkboxes [x]; aidlc-state.md updated. NOT committed/merged — presenting end-of-unit approval gate.
+**Context**: CONSTRUCTION - U2 - Code Generation approval gate (end-of-unit)
+**AI Prompt**: "Request Changes / Approve (end-of-unit) → commit branch + merge to main, then start U8"
+
+---
+
