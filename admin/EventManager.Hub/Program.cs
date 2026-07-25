@@ -4,6 +4,7 @@ using EventManager.Hub.Competition;
 using EventManager.Hub.Events;
 using EventManager.Hub.Persistence;
 using EventManager.Hub.Projections;
+using EventManager.Hub.Resilience;
 using EventManager.Hub.Services;
 using EventManager.Sync;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +29,12 @@ builder.Services.AddSingleton<ISeedingEngine, SeedingEngine>();
 builder.Services.AddSingleton<IBracketEngine, BracketEngine>();
 builder.Services.AddSingleton<IScoringEngine, ScoringEngine>();
 builder.Services.AddSingleton<IWeighInPolicyEvaluator, WeighInPolicyEvaluator>();
+
+// U7 offline-resilience (replication protocol + backup/recovery). The concrete cloud-replication
+// transport (HTTP → cloud ingest) is a deferred seam wired by the MAUI host.
+builder.Services.AddSingleton<IReplicationProtocol, ReplicationProtocol>();
+builder.Services.AddSingleton<BackupService>();
+builder.Services.AddSingleton<RecoveryService>();
 
 // Hub-core scoped components
 builder.Services.AddScoped<IEventStore, HubEventStore>();
