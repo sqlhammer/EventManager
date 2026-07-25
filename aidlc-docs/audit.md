@@ -272,3 +272,29 @@
 **Context**: INCEPTION - Units Generation approval gate; planned PAUSE before CONSTRUCTION
 
 ---
+
+## Units Generation Approved & CONSTRUCTION Started — Per-Unit Branch Workflow
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "For each unit, create a new git branch and do all work in that branch until it is approved at the end of the unit. Then, it can be merged into main. With that process requirement, proceed to construction"
+**AI Response**: Treated as (a) approval of Units Generation, (b) lifting the 2026-07-22 INCEPTION-only pause/no-code constraint, and (c) a new durable process requirement. Recorded the per-unit git-branch workflow in aidlc-state.md and in persistent memory (per-unit-git-branch-workflow.md). Verified main is clean with INCEPTION work committed. Created branch `unit/u1-shared-core` from main (git confirmed switch). Entering CONSTRUCTION per-unit loop at U1 (Shared Core), first stage Functional Design. All U1 work (design docs + code) will remain on this branch until end-of-unit approval, then merge to main.
+**Status**: Units Generation Approved; CONSTRUCTION started (U1)
+**Context**: CONSTRUCTION - U1 Shared Core - Functional Design (branch unit/u1-shared-core)
+
+---
+
+## U1 Functional Design — Plan Created with Questions
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded functional-design.md rules. Created construction/plans/u1-shared-core-functional-design-plan.md with the generation checklist (domain-entities.md, business-logic-model.md, business-rules.md; frontend N/A for a library) and 9 questions: Q1 point-sparring win determination, Q2 penalties, Q3 forms aggregation/tie-break, Q4 round-robin tie-break, Q5 seeding/academy-separation/byes, Q6 weigh-in tolerance semantics, Q7 canonical replay/apply order (projection determinism), Q8 Snowflake bit layout + clock-regression policy, Q9 event payload versioning. Awaiting answers via [Answer]: tags before generating U1 functional-design artifacts. All work on branch unit/u1-shared-core.
+**Context**: CONSTRUCTION - U1 Shared Core - Functional Design, Part 1 (awaiting answers)
+
+---
+
+## U1 Functional Design — Answers Received & Artifacts Generated
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "answered" — Q1=A (higher-total win + optional target/mercy), Q2=D (configurable penalty policy per event), Q3=A (avg with high/low drop ≥5 judges), Q4=A (wins→H2H→differential→manual), Q5=A (halves-then-quarters academy separation, byes to top seeds), Q6=A (tolerance % of upper limit, over-only), Q7=A (fold by EventId), Q8=A (41/10/12, epoch 2026-01-01, wait-on-regression), Q9=A (schema-version + upcast on replay).
+**AI Response**: Answers consistent, no ambiguity (Q2=D → model a configurable PenaltyPolicy VO). Generated U1 functional-design artifacts on branch unit/u1-shared-core: domain-entities.md (Sync model + domain entities/VOs + cross-entity invariants), business-logic-model.md (Snowflake gen, idempotent append, canonical EventId-ordered replay/fold, upcasting, replication protocol, bracket/seeding/scoring/weigh-in/RBAC algorithms), business-rules.md (BR-1..BR-7 with mapped PBT invariants). Frontend N/A (library). Marked plan checkboxes complete; updated aidlc-state.md. Presenting Functional Design 2-option completion gate.
+**Context**: CONSTRUCTION - U1 Shared Core - Functional Design approval gate
+**AI Prompt**: "Request Changes / Continue to Next Stage (NFR Requirements)"
+
+---

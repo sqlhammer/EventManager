@@ -4,8 +4,10 @@
 - **Project Name**: EventManager
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-22T00:00:00Z
-- **Current Stage**: INCEPTION - Units Generation (artifacts generated; awaiting approval → then PAUSE before CONSTRUCTION)
-- **User Constraint (2026-07-22)**: Do NOT write code or build software yet — complete INCEPTION stages through Units Generation, then stop for user direction before CONSTRUCTION
+- **Current Stage**: CONSTRUCTION - U1 Shared Core - Functional Design (on branch `unit/u1-shared-core`)
+- **User Constraint (2026-07-22)**: LIFTED 2026-07-24 — user directed "proceed to construction" (approves Units Generation, ends the INCEPTION-only pause)
+- **Process Requirement (2026-07-24)**: Each unit is built on its own git branch (`unit/<id>-<slug>`); all per-unit work stays on the branch until end-of-unit approval, then merges into `main`. Build order: U1 → U2 → U8 → U3 → U4a → U4b → U7 → U5 → U6
+- **Active Branch**: `unit/u1-shared-core`
 
 ## Workspace State
 - **Existing Code**: No
@@ -44,10 +46,13 @@
 - [x] INCEPTION: User Stories (approved 2026-07-24 — 56 stories, 6 epics)
 - [x] INCEPTION: Workflow Planning (approved 2026-07-24)
 - [x] INCEPTION: Application Design (approved 2026-07-24 — 4 shared pkgs + 4 modules; D-26/D-27)
-- [ ] INCEPTION: Units Generation (EXECUTE — in progress) → then PAUSE for user direction
-- [ ] CONSTRUCTION: Functional Design (EXECUTE, per-unit)
-- [ ] CONSTRUCTION: NFR Requirements (EXECUTE, per-unit)
-- [ ] CONSTRUCTION: NFR Design (EXECUTE, per-unit)
-- [ ] CONSTRUCTION: Infrastructure Design (EXECUTE, per-unit)
-- [ ] CONSTRUCTION: Code Generation (EXECUTE, per-unit)
-- [ ] CONSTRUCTION: Build and Test (EXECUTE)
+- [x] INCEPTION: Units Generation (approved 2026-07-24 — 9 units; "proceed to construction")
+- [ ] CONSTRUCTION: U1 Shared Core — branch `unit/u1-shared-core` (IN PROGRESS)
+  - [ ] Functional Design (artifacts generated; awaiting approval)
+  - [ ] NFR Requirements
+  - [ ] NFR Design
+  - [ ] Infrastructure Design
+  - [ ] Code Generation
+  - [ ] End-of-unit approval → merge to main
+- [ ] CONSTRUCTION: U2, U8, U3, U4a, U4b, U7, U5, U6 (per build order, each on its own branch)
+- [ ] CONSTRUCTION: Build and Test (after all units)
