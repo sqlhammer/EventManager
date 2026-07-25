@@ -7,3 +7,7 @@ obj/
 [Bb]in/
 [Oo]bj/
 *.user
+
+# Secrets — never commit real env files (Q3=A / NFR-2.6)
+.env
+backend/.env

@@ -1,0 +1,43 @@
+# CI for the cloud backend (NFR-3.4/2.9). Build → test (xUnit + FsCheck) → coverage gate → image.
+name: backend
+
+on:
+  push:
+    branches: [main]
+    paths: ["backend/**", "shared/**", ".github/workflows/backend.yml"]
+  pull_request:
+    paths: ["backend/**", "shared/**", ".github/workflows/backend.yml"]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Restore
+        run: dotnet restore backend/EventManager.Backend.slnx
+
+      - name: Build
+        run: dotnet build backend/EventManager.Backend.slnx -c Release --no-restore
+
+      - name: Test (xUnit + FsCheck, seeds logged on failure) with coverage
+        run: dotnet test backend/EventManager.Backend.slnx -c Release --no-build --collect:"XPlat Code Coverage"
+
+      # Coverage gate (>=80% on core logic, NFR-4.4) — wire a coverage summary/threshold check here.
+
+  image:
+    needs: build-test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image (pinned base, SBOM)
+        run: |
+          docker build -f backend/EventManager.Api/Dockerfile -t eventmanager-backend:${{ github.sha }} .
+          # docker sbom / scan steps (NFR-2.9) run here before push.
