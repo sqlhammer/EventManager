@@ -394,3 +394,29 @@
 **AI Prompt**: "Request Changes / Approve (end-of-unit) → commit branch + merge to main, then start U2"
 
 ---
+
+## U1 — End-of-Unit Approved & Merged to Main
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "Approved"
+**AI Response**: U1 end-of-unit approved. Committed all U1 work on branch unit/u1-shared-core (41 files, commit fcf7681; first commit had a malformed message from mistakenly using PowerShell here-string syntax in the Bash tool — amended to a clean message). Merged into main with --no-ff (merge commit 0fa8ba9). Now on main with U1 landed. Marked U1 COMPLETE & MERGED in aidlc-state.md. Created branch unit/u2-contracts-clientsync from main and started U2 (Contracts & ClientSync) at Functional Design. Not pushed (user has not requested push).
+**Status**: U1 COMPLETE & MERGED
+**Context**: CONSTRUCTION - U2 Contracts & ClientSync - Functional Design (branch unit/u2-contracts-clientsync)
+
+---
+
+## U2 Functional Design — Plan Created with Questions
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Created construction/plans/u2-contracts-clientsync-functional-design-plan.md with generation checklist + 3 questions: Q1 contract scope (transport-level now vs full DTO set now vs everything), Q2 ClientSync durability seam (reuse U1 IEventStore/local queue vs own queue), Q3 hub push consumption model. Awaiting answers before generating U2 functional-design artifacts. All U2 work on branch unit/u2-contracts-clientsync.
+**Context**: CONSTRUCTION - U2 Contracts & ClientSync - Functional Design (awaiting answers)
+
+---
+
+## U2 Functional Design — Answers Received & Artifacts Generated
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "answered" — Q1=A (transport-level contracts now; domain DTOs grow with consumer), Q2=A (reuse U1 IEventStore for durability), Q3=A (typed subscription push model).
+**AI Response**: Answers consistent, no ambiguity. Generated U2 functional-design artifacts on branch unit/u2-contracts-clientsync: domain-entities.md (transport-level Contracts DTOs — EventEnvelope, ReplicationBatch/Ack, Pairing req/resp, HubPushMessage, HubDiscoveryInfo — + ClientSync state types), business-logic-model.md (LocalEventQueue durable-before-ack, SyncClient replay, ReconnectSupervisor bounded backoff, HubPushConsumer typed subscription, PairingClient discovery+enrollment), business-rules.md (BR-CS-1..8 + contract validation rules with PBT candidates). Frontend N/A. Marked plan checkboxes complete; updated aidlc-state.md. Presenting Functional Design 2-option gate.
+**Context**: CONSTRUCTION - U2 - Functional Design approval gate
+**AI Prompt**: "Request Changes / Continue to Next Stage (NFR Requirements)"
+
+---
