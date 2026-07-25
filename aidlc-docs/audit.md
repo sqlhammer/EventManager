@@ -674,3 +674,11 @@
 **Context**: CONSTRUCTION - U6 complete; MVP unit set done
 
 ---
+
+## DOCS — Testing guides backfilled + consolidated
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "Is the human testing guide up to date?" → "Yes do both"
+**AI Response**: "Testing guides were up to date only for U1/U2/U3/U8; the 5 fast-tracked units lacked a standalone guide (verification was folded into code-summary.md). On branch docs/testing-guides: created aidlc-docs/testing-guide.md (consolidated end-to-end system guide: build/test all 96, cloud REST walkthrough, hub pairing/competition walkthrough, U7 resilience via tests, spoke app-core flows with UI-pending notes, full offline-first loop, per-unit links) and backfilled per-unit user-testing-guide.md for U4a, U4b, U7 (developer verification) and U5, U6 (app-core verification + explicit 'manual UI walkthrough PENDING' since MAUI heads are compiling template shells). Merging to main."
+**Context**: DOCS - testing guides current for all 9 units + system-level
+
+---
