@@ -1,0 +1,159 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 760" width="1180" height="760" font-family="-apple-system, Segoe UI, system-ui, Roboto, sans-serif" role="img" aria-label="EventManager hub-and-spoke data flow">
+  <title>EventManager — Hub-and-Spoke Data Flow</title>
+  <style>
+    svg{
+      --bg:#F7F6F2; --panel:#FFFFFF; --panel2:#F3F2EC; --ink:#1B1E22; --muted:#5A616B;
+      --border:#E4E2DB; --hair:#D8D6CE;
+      --spoke:#2E7D32; --hub:#E65100; --cloud:#1565C0;
+      --spoke-wash:#EBF4EB; --hub-wash:#FBEEE3; --cloud-wash:#E8F1FB;
+    }
+    @media (prefers-color-scheme: dark){
+      svg{
+        --bg:#15171A; --panel:#20242A; --panel2:#191D22; --ink:#E9EBEE; --muted:#9BA1A9;
+        --border:#2E333A; --hair:#2A2F35;
+        --spoke:#7CC77F; --hub:#FF8A50; --cloud:#6FB2F0;
+        --spoke-wash:#1B2A1D; --hub-wash:#2C1F15; --cloud-wash:#152738;
+      }
+    }
+    .bg{fill:var(--bg);}
+    .zone{stroke:var(--hair);stroke-width:1.5;}
+    .zone.spoke{fill:var(--spoke-wash);} .zone.hub{fill:var(--hub-wash);} .zone.cloud{fill:var(--cloud-wash);}
+    .zlabel{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;letter-spacing:.12em;font-weight:600;text-transform:uppercase;}
+    .zlabel.spoke{fill:var(--spoke);} .zlabel.hub{fill:var(--hub);} .zlabel.cloud{fill:var(--cloud);}
+    .card{fill:var(--panel);stroke:var(--border);stroke-width:1.5;}
+    .node{fill:var(--panel2);stroke:var(--border);stroke-width:1;}
+    .t{fill:var(--ink);font-size:14.5px;font-weight:700;}
+    .t.sm{font-size:13px;}
+    .sub{fill:var(--muted);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;}
+    .sub.spoke{fill:var(--spoke);}
+    .hair{stroke:var(--hair);stroke-width:1;}
+    .flowline{fill:none;stroke:var(--muted);stroke-width:2.2;}
+    .flowline.hub{stroke:var(--hub);} .flowline.cloud{stroke:var(--cloud);} .flowline.spoke{stroke:var(--spoke);}
+    .flowline.dash{stroke-dasharray:6 6;stroke:var(--cloud);}
+    .badge circle{stroke:var(--panel);stroke-width:2;}
+    .badge.spoke circle{fill:var(--spoke);} .badge.hub circle{fill:var(--hub);} .badge.cloud circle{fill:var(--cloud);}
+    .badge text{fill:#fff;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:12px;font-weight:700;text-anchor:middle;}
+    .elabel{fill:var(--muted);font-family:ui-monospace,Menlo,Consolas,monospace;font-size:11px;}
+    .pill{fill:var(--panel);stroke:var(--border);stroke-width:1.5;}
+    .marker{fill:var(--muted);} .marker.hub{fill:var(--hub);} .marker.cloud{fill:var(--cloud);} .marker.spoke{fill:var(--spoke);}
+  </style>
+
+  <defs>
+    <marker id="ar-mut" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="marker" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="ar-hub" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="marker hub" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="ar-cloud" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="marker cloud" d="M0,0 L10,5 L0,10 z"/></marker>
+    <marker id="ar-spoke" viewBox="0 0 10 10" refX="8.5" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="marker spoke" d="M0,0 L10,5 L0,10 z"/></marker>
+  </defs>
+
+  <rect class="bg" x="0" y="0" width="1180" height="760"/>
+
+  <!-- ZONES -->
+  <rect class="zone spoke" x="24" y="104" width="316" height="600" rx="18"/>
+  <text class="zlabel spoke" x="34" y="94">Spokes · venue LAN</text>
+  <rect class="zone hub" x="432" y="70" width="316" height="650" rx="18"/>
+  <text class="zlabel hub" x="442" y="60">Admin Hub · authoritative on-site</text>
+  <rect class="zone cloud" x="840" y="150" width="316" height="470" rx="18"/>
+  <text class="zlabel cloud" x="850" y="140">Cloud · setup + mirror</text>
+
+  <!-- SPOKE: JUDGE -->
+  <rect class="card" x="48" y="150" width="268" height="238" rx="12"/>
+  <text class="t" x="68" y="182">Judge <tspan class="sub" dx="4">U5</tspan></text>
+  <line class="hair" x1="68" y1="196" x2="296" y2="196"/>
+  <text class="t sm" x="68" y="224">Capture UI</text>
+  <text class="sub" x="68" y="242">score · forms</text>
+  <text class="t sm" x="68" y="278">SpokeEventLog</text>
+  <text class="sub spoke" x="68" y="296">durable BEFORE ack</text>
+  <text class="t sm" x="68" y="332">Local outbox</text>
+  <text class="sub" x="68" y="350">IEventStore + queue</text>
+
+  <!-- SPOKE: CHECK-IN -->
+  <rect class="card" x="48" y="424" width="268" height="238" rx="12"/>
+  <text class="t" x="68" y="456">Check-In <tspan class="sub" dx="4">U6</tspan></text>
+  <line class="hair" x1="68" y1="470" x2="296" y2="470"/>
+  <text class="t sm" x="68" y="498">Capture UI</text>
+  <text class="sub" x="68" y="516">check-in · weigh-in</text>
+  <text class="t sm" x="68" y="552">WeighIn range check</text>
+  <text class="sub spoke" x="68" y="570">green / flag · U1 engine</text>
+  <text class="t sm" x="68" y="606">Local outbox</text>
+  <text class="sub" x="68" y="624">durable BEFORE ack</text>
+
+  <!-- HUB CARD -->
+  <rect class="card" x="456" y="118" width="268" height="560" rx="12"/>
+  <text class="t" x="476" y="150">Admin Hub</text>
+  <text class="sub" x="476" y="168">U4a Core · U4b Competition · U7</text>
+  <line class="hair" x1="476" y1="182" x2="704" y2="182"/>
+
+  <rect class="node" x="474" y="198" width="232" height="52" rx="9"/>
+  <text class="t sm" x="490" y="221">SyncIntakeService</text>
+  <text class="sub" x="490" y="238">idempotent · mat-authority</text>
+
+  <rect class="node" x="474" y="262" width="232" height="52" rx="9"/>
+  <text class="t sm" x="490" y="285">HubEventStore</text>
+  <text class="sub" x="490" y="302">append-only log (SQLite)</text>
+
+  <rect class="node" x="474" y="326" width="232" height="52" rx="9"/>
+  <text class="t sm" x="490" y="349">Projections + Competition</text>
+  <text class="sub" x="490" y="366">brackets · scoring · standings</text>
+
+  <rect class="node" x="474" y="390" width="232" height="52" rx="9"/>
+  <text class="t sm" x="490" y="413">IHubPush to spokes</text>
+  <text class="sub" x="490" y="430">SignalR</text>
+
+  <rect class="node" x="474" y="454" width="232" height="52" rx="9"/>
+  <text class="t sm" x="490" y="477">ReplicationClient</text>
+  <text class="sub" x="490" y="494">retry/backoff · completeness</text>
+
+  <rect class="node" x="474" y="518" width="232" height="52" rx="9"/>
+  <text class="t sm" x="490" y="541">Backup / Recovery</text>
+  <text class="sub" x="490" y="558">AES + SHA-256 · replay</text>
+
+  <!-- CLOUD CARD -->
+  <rect class="card" x="864" y="196" width="268" height="386" rx="12"/>
+  <text class="t" x="884" y="228">Cloud Backend</text>
+  <text class="sub" x="884" y="246">U3 · U8</text>
+  <line class="hair" x1="884" y1="260" x2="1112" y2="260"/>
+
+  <rect class="node" x="882" y="276" width="232" height="52" rx="9"/>
+  <text class="t sm" x="898" y="299">REST controllers</text>
+  <text class="sub" x="898" y="316">accounts · events · registration</text>
+
+  <rect class="node" x="882" y="340" width="232" height="52" rx="9"/>
+  <text class="t sm" x="898" y="363">EventIngestController</text>
+  <text class="sub" x="898" y="380">event-scoped · idempotent</text>
+
+  <rect class="node" x="882" y="404" width="232" height="52" rx="9"/>
+  <text class="t sm" x="898" y="427">PostgresEventStore</text>
+  <text class="sub" x="898" y="444">event-sourced + Identity</text>
+
+  <rect class="node" x="882" y="468" width="232" height="52" rx="9"/>
+  <text class="t sm" x="898" y="491">Projections</text>
+  <text class="sub" x="898" y="508">roster · results read models</text>
+
+  <!-- ACTOR PILL -->
+  <rect class="pill" x="864" y="98" width="268" height="34" rx="17"/>
+  <text class="t sm" x="998" y="120" text-anchor="middle">Organizer · Registrant · Coach</text>
+
+  <!-- CONNECTORS -->
+  <path class="flowline dash" d="M905,196 C 820,150 740,150 726,168" marker-end="url(#ar-cloud)"/>
+  <text class="elabel" x="742" y="146">event download</text>
+  <path class="flowline cloud" d="M998,132 L998,276" marker-end="url(#ar-cloud)"/>
+  <text class="elabel" x="1006" y="176">setup (TLS)</text>
+  <path class="flowline spoke" d="M316,250 C 388,240 410,224 474,222" marker-end="url(#ar-spoke)"/>
+  <path class="flowline spoke" d="M316,520 C 400,520 420,240 474,232" marker-end="url(#ar-spoke)"/>
+  <text class="elabel" x="352" y="214">sync batch</text>
+  <path class="flowline hub" d="M474,410 C 412,410 392,410 344,410" marker-end="url(#ar-hub)"/>
+  <text class="elabel" x="352" y="400">push</text>
+  <path class="flowline hub" d="M706,480 C 790,480 800,368 882,366" marker-end="url(#ar-hub)"/>
+  <text class="elabel" x="742" y="430">replicate (online)</text>
+
+  <!-- NUMBER BADGES -->
+  <g class="badge spoke" transform="translate(64,166)"><circle r="15"/><text y="4">1-4</text></g>
+  <g class="badge spoke" transform="translate(64,440)"><circle r="15"/><text y="4">1-4</text></g>
+  <g class="badge cloud" transform="translate(768,168)"><circle r="13"/><text y="4">0</text></g>
+  <g class="badge spoke" transform="translate(408,228)"><circle r="13"/><text y="4">5</text></g>
+  <g class="badge hub"   transform="translate(408,410)"><circle r="13"/><text y="4">8</text></g>
+  <g class="badge hub"   transform="translate(690,266)"><circle r="13"/><text y="4">6</text></g>
+  <g class="badge hub"   transform="translate(690,330)"><circle r="13"/><text y="4">7</text></g>
+  <g class="badge hub"   transform="translate(792,420)"><circle r="13"/><text y="4">9</text></g>
+  <g class="badge cloud" transform="translate(1098,408)"><circle r="13"/><text y="4">10</text></g>
+</svg>
