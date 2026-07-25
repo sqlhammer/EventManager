@@ -4,7 +4,7 @@
 - **Project Name**: EventManager
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-22T00:00:00Z
-- **Current Stage**: INCEPTION - Application Design
+- **Current Stage**: INCEPTION - Units Generation (artifacts generated; awaiting approval → then PAUSE before CONSTRUCTION)
 - **User Constraint (2026-07-22)**: Do NOT write code or build software yet — complete INCEPTION stages through Units Generation, then stop for user direction before CONSTRUCTION
 
 ## Workspace State
@@ -33,16 +33,18 @@
 - **Risk Level**: High (distributed offline-first event-sourcing; MAUI cross-platform TLS/SQLCipher; correctness-critical bracket/replay logic)
 - **Stages to Execute**: Application Design, Units Generation (INCEPTION); Functional Design, NFR Requirements, NFR Design, Infrastructure Design, Code Generation, Build and Test (CONSTRUCTION, per-unit)
 - **Stages to Skip**: Reverse Engineering (greenfield)
-- **Critical path**: shared-sync-core unit built first (event log + idempotent replay + projections)
-- **PAUSE point**: after Units Generation, await user direction before CONSTRUCTION (active constraint)
+- **Critical path**: U1 Shared Core (event log + idempotent replay + projections) built first
+- **Unit set (9)**: U1 Shared Core · U2 Contracts & ClientSync · U3 Cloud Backend · U4a Hub Core · U4b Hub Competition · U5 Judge · U6 Check-In · U7 Offline Resilience · U8 Payment Stub
+- **Build order**: U1 → U2 → U8 → U3 → U4a → U4b → U7 → U5 → U6
+- **PAUSE point**: after Units Generation approval, await user direction before CONSTRUCTION (active constraint)
 
 ## Stage Progress
 - [x] INCEPTION: Workspace Detection (Greenfield — Reverse Engineering skipped)
 - [x] INCEPTION: Requirements Analysis (approved 2026-07-22)
 - [x] INCEPTION: User Stories (approved 2026-07-24 — 56 stories, 6 epics)
 - [x] INCEPTION: Workflow Planning (approved 2026-07-24)
-- [ ] INCEPTION: Application Design (EXECUTE — artifacts generated, awaiting approval)
-- [ ] INCEPTION: Units Generation (EXECUTE) → then PAUSE for user direction
+- [x] INCEPTION: Application Design (approved 2026-07-24 — 4 shared pkgs + 4 modules; D-26/D-27)
+- [ ] INCEPTION: Units Generation (EXECUTE — in progress) → then PAUSE for user direction
 - [ ] CONSTRUCTION: Functional Design (EXECUTE, per-unit)
 - [ ] CONSTRUCTION: NFR Requirements (EXECUTE, per-unit)
 - [ ] CONSTRUCTION: NFR Design (EXECUTE, per-unit)

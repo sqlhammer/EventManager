@@ -239,3 +239,36 @@
 **Context**: INCEPTION - Application Design approval gate (awaiting approval)
 
 ---
+
+## Application Design — Approved
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "approved"
+**AI Response**: Application Design approved (components.md, component-methods.md, services.md, component-dependency.md, architecture-overview.md, application-design.md; requirements deltas D-26/D-27). Marked complete in aidlc-state.md. Proceeding to Units Generation — the final INCEPTION stage before the planned pause per the active no-code constraint.
+**Status**: Approved
+**Context**: INCEPTION - Application Design complete; starting Units Generation
+
+---
+
+## Units Generation — Plan Created with Embedded Questions (Part 1)
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: N/A (stage execution)
+**AI Response**: Loaded units-generation.md rules. Created aidlc-docs/inception/plans/unit-of-work-plan.md with the mandatory generation checklist (unit-of-work.md, unit-of-work-dependency.md, unit-of-work-story-map.md) and a candidate 6-unit decomposition aligned to the Application Design (U1 Shared Core [Domain+Sync], U2 Contracts & ClientSync, U3 Cloud Backend, U4 Admin Hub, U5 Judge App, U6 Check-In App; build order U1→U2→U3→U4→U5/U6). Embedded 5 decomposition questions: (1) shared-package unit grouping, (2) Admin Hub granularity (keep vs split), (3) Offline Resilience E5 placement (distribute vs dedicated unit), (4) build/sequence ordering, (5) payment stub placement. Awaiting answers via [Answer]: tags before generation. Reminder logged: Units Generation is the last INCEPTION stage before the planned pause.
+**Context**: INCEPTION - Units Generation, Part 1 (awaiting decomposition answers)
+
+---
+
+## Units Generation — Answers Received; Ambiguity Detected → Follow-ups
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "answered" — Q1=A (two shared units), Q2=B (split Admin Hub into U4a/U4b/U4c), Q3=B (dedicated Offline Resilience unit), Q4=A (build order U1→U2→U3→U4→U5/U6), Q5=B (payment stub its own unit).
+**AI Response**: Analyzed answers (Step 7). Detected a genuine ownership overlap: Q2=B's U4c (Hub Resilience: replication/backup/recovery) conflicts with Q3=B's dedicated Offline Resilience unit claiming the same cross-cutting behavior end-to-end; also the reusable sync primitives' home (shared libs vs resilience unit) is ambiguous, and Q4=A's build order predates the new units (U4a/b/c split, dedicated resilience unit U7, payment unit U8). Per Step 8, did NOT proceed to generation; added Part 1b follow-up questions to unit-of-work-plan.md: Q6 (reconcile U4c vs U7 + primitives location; recommended A = U7 subsumes hub resilience, drop U4c, primitives stay in U1/U2) and Q7 (confirm expanded build order for the ~9-unit set). Awaiting answers.
+**Context**: INCEPTION - Units Generation, Part 1b (awaiting ambiguity-resolution answers)
+
+---
+
+## Units Generation — Follow-ups Resolved & Artifacts Generated (Part 2)
+**Timestamp**: 2026-07-24T00:00:00Z
+**User Input**: "answered" — Q6=A (U7 subsumes hub resilience, drop U4c, primitives stay in U1/U2), Q7=A (build order U1→U2→U8→U3→U4a→U4b→U7→U5→U6).
+**AI Response**: Overlap resolved — final 9-unit set: U1 Shared Core (Domain+Sync), U2 Contracts & ClientSync, U3 Cloud Backend, U4a Hub Core, U4b Hub Competition, U5 Judge App, U6 Check-In App, U7 Offline Resilience (cross-cutting integration; primitives remain in U1/U2), U8 Payment Stub. Generated unit-of-work.md (definitions + greenfield code-org strategy), unit-of-work-dependency.md (acyclic dependency graph + matrix + build-order rationale, Mermaid + text), and unit-of-work-story-map.md (all 56 stories mapped to a primary unit with enables/supports; coverage table verifies 56/56). Marked plan checkboxes complete; updated aidlc-state.md. Presenting Units Generation completion. Per the active constraint, this is the PAUSE point — will stop for user direction before CONSTRUCTION.
+**Context**: INCEPTION - Units Generation approval gate; planned PAUSE before CONSTRUCTION
+
+---
