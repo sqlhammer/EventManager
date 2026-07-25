@@ -653,3 +653,10 @@
 **Context**: R1 complete; next fast-track U7 Offline Resilience
 
 ---
+
+## CONSTRUCTION — U7 Offline Resilience — fast-track code complete + merge
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Fast-tracked U7: admin/EventManager.Hub/Resilience — ICloudReplicationTransport seam + StoreBackedReplicationTransport, ReplicationClient (U1 IReplicationProtocol, retry/backoff, per-device cloud HWM, VerifyCompletenessAsync US-602), BackupService (AES-CBC+PBKDF2, SHA-256 integrity) + RecoveryService (verify + idempotent replay). Integrates U2 LocalEventQueue for spoke offline queue. All under CS-1 (no ternaries). dotnet test => 17 hub tests (5 U4a + 7 U4b + 5 U7): outage replay+completeness, backup/restore, tampered-backup integrity, zero-internet full-event PBT, spoke queue drain. DI-wired IReplicationProtocol/BackupService/RecoveryService; cloud transport HTTP adapter deferred seam. End-of-unit: architecture-overview U7 as-built (View 2 event-flow now real) + code-summary.md. Committing + merging to main."
+**Context**: CONSTRUCTION - U7 fast-track complete; merging
+
+---
