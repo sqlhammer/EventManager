@@ -1,8 +1,12 @@
 <Solution>
   <Folder Name="/tests/">
+    <Project Path="tests/EventManager.ClientSync.Tests/EventManager.ClientSync.Tests.csproj" />
+    <Project Path="tests/EventManager.Contracts.Tests/EventManager.Contracts.Tests.csproj" />
     <Project Path="tests/EventManager.Domain.Tests/EventManager.Domain.Tests.csproj" />
     <Project Path="tests/EventManager.Sync.Tests/EventManager.Sync.Tests.csproj" />
   </Folder>
+  <Project Path="EventManager.ClientSync/EventManager.ClientSync.csproj" />
+  <Project Path="EventManager.Contracts/EventManager.Contracts.csproj" />
   <Project Path="EventManager.Domain/EventManager.Domain.csproj" />
   <Project Path="EventManager.Sync/EventManager.Sync.csproj" />
 </Solution>
