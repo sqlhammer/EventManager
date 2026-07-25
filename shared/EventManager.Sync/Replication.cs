@@ -26,7 +26,8 @@ public sealed class ReplicationProtocol : IReplicationProtocol
         var batch = new List<TournamentEvent>();
         foreach (var deviceId in await store.ListDeviceIdsAsync(ct))
         {
-            long from = peerHighWaterMarks.TryGetValue(deviceId, out var hwm) ? hwm : 0;
+            long from = 0;
+            if (peerHighWaterMarks.TryGetValue(deviceId, out var hwm)) from = hwm;
             var pending = await store.ReadStreamAsync(deviceId, from, ct);
             foreach (var e in pending.OrderBy(e => e.SequenceNumber))
             {

@@ -6,11 +6,17 @@ namespace EventManager.Hub.Controllers;
 [ApiController]
 public abstract class HubControllerBase : ControllerBase
 {
-    protected IActionResult Respond<T>(ErrorOr<T> result, Func<T, IActionResult> onSuccess) =>
-        result.IsError ? Problem(result.Errors) : onSuccess(result.Value);
+    protected IActionResult Respond<T>(ErrorOr<T> result, Func<T, IActionResult> onSuccess)
+    {
+        if (result.IsError) return Problem(result.Errors);
+        return onSuccess(result.Value);
+    }
 
-    protected IActionResult Respond(ErrorOr<Success> result) =>
-        result.IsError ? Problem(result.Errors) : Ok();
+    protected IActionResult Respond(ErrorOr<Success> result)
+    {
+        if (result.IsError) return Problem(result.Errors);
+        return Ok();
+    }
 
     protected IActionResult Problem(List<Error> errors)
     {

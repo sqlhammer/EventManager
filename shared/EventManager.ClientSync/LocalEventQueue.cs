@@ -43,6 +43,10 @@ public sealed class LocalEventQueue
 
     public long LastAckedSequence()
     {
-        lock (_gate) return _ackedHwm.Count == 0 ? 0 : _ackedHwm.Values.Max();
+        lock (_gate)
+        {
+            if (_ackedHwm.Count == 0) return 0;
+            return _ackedHwm.Values.Max();
+        }
     }
 }

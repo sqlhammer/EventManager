@@ -15,7 +15,8 @@ public sealed class IdempotencyStore(AppDbContext db)
     public async Task<T?> TryGetAsync<T>(string key, CancellationToken ct = default) where T : class
     {
         var row = await db.IdempotencyKeys.AsNoTracking().FirstOrDefaultAsync(x => x.Key == key, ct);
-        return row is null ? null : JsonSerializer.Deserialize<T>(row.ResultJson);
+        if (row is null) return null;
+        return JsonSerializer.Deserialize<T>(row.ResultJson);
     }
 
     public void Record<T>(string key, T result)

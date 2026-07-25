@@ -63,8 +63,9 @@ public sealed class EventService(AppDbContext db, EventWriter writer, EventManag
     {
         if (!await authz.IsPermittedAsync(accountId, eventId, OrganizerAction.ManageRoster, ct))
             return Error.Forbidden("Event.Forbidden", "Not an organizer on this event.");
-        await writer.AppendAsync(eventId, open ? EventTypes.RegistrationOpened : EventTypes.RegistrationClosed,
-            new RegistrationWindowPayload(eventId), ct);
+        var windowEventType = EventTypes.RegistrationClosed;
+        if (open) windowEventType = EventTypes.RegistrationOpened;
+        await writer.AppendAsync(eventId, windowEventType, new RegistrationWindowPayload(eventId), ct);
         await db.SaveChangesAsync(ct);
         return Result.Success;
     }

@@ -22,9 +22,11 @@ var builder = WebApplication.CreateBuilder(args);
 var jwt = new JwtOptions();
 builder.Configuration.GetSection("Jwt").Bind(jwt);
 if (string.IsNullOrEmpty(jwt.SigningKey))
-    jwt.SigningKey = builder.Environment.IsDevelopment()
-        ? "dev-only-signing-key-change-me-please-32chars"
-        : throw new InvalidOperationException("Jwt:SigningKey must be provided via secrets in non-Development environments.");
+{
+    if (!builder.Environment.IsDevelopment())
+        throw new InvalidOperationException("Jwt:SigningKey must be provided via secrets in non-Development environments.");
+    jwt.SigningKey = "dev-only-signing-key-change-me-please-32chars";
+}
 builder.Services.AddSingleton(jwt);
 
 // ---- Persistence ----

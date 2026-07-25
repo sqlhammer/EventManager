@@ -30,8 +30,9 @@ public sealed class OfflineOrganizerAuth(HubDbContext db, IRoleAuthorizationPoli
     {
         var cred = await db.OrganizerCredentials.AsNoTracking()
             .FirstOrDefaultAsync(c => c.EventId == eventId && c.AccountId == accountId, ct);
-        var assignment = cred is null ? null
-            : new OrganizerRoleAssignment((Snowflake)accountId, (Snowflake)eventId, (Snowflake)accountId, Enum.Parse<OrganizerRole>(cred.Role));
+        OrganizerRoleAssignment? assignment = null;
+        if (cred is not null)
+            assignment = new OrganizerRoleAssignment((Snowflake)accountId, (Snowflake)eventId, (Snowflake)accountId, Enum.Parse<OrganizerRole>(cred.Role));
         return policy.IsPermitted(assignment, action);
     }
 
