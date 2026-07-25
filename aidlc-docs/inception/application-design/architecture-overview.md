@@ -168,3 +168,54 @@ U8 stood up the **`backend/`** solution (ahead of U3) with the payment-provider 
 - `backend/EventManager.Payments` — `IPaymentProvider` (D-06 seam) + `StubPaymentProvider` (idempotent, no external call, injectable outcome for decline/timeout/error).
 - Self-contained (BCL only); U3's registration flow will consume it and map `PaymentOutcome → PaymentStatus`. A real Stripe adapter replaces the stub post-MVP behind the same interface.
 - Text alt: `backend/EventManager.Payments` is a standalone library; no cross-package edges yet (U3 will reference it).
+
+## As-built: U3 Cloud Backend (updated 2026-07-25, end-of-unit)
+
+U3 delivered `backend/EventManager.Api` — the first real API layer (ASP.NET Core Web API + EF Core/PostgreSQL + Docker), consuming U1/U2/U8. Builds green; 20 tests pass (PBT-1..4 + examples).
+
+```mermaid
+flowchart TB
+    subgraph API["backend/EventManager.Api (U3 delivered)"]
+        Ctrls["Controllers<br/>Account · Event · Organizer<br/>Registration · EventIngest · Results"]
+        Svcs["Services<br/>Account/Token · Event · Registration<br/>OrganizerRole · Ingest · ResultsQuery"]
+        Auth["Auth<br/>JWT + EventAuthorizer<br/>(deny-by-default)"]
+        Writer["EventWriter<br/>(validate→append→project)"]
+        Proj["CloudProjectionHost<br/>Event/Division/Roster/<br/>Organizer/Results read models"]
+        Store["PostgresEventStore : IEventStore<br/>+ Identity + idempotency + refresh tokens"]
+        Ctrls --> Svcs
+        Svcs --> Auth
+        Svcs --> Writer
+        Writer --> Proj
+        Writer --> Store
+        Proj --> Store
+    end
+    Domain["U1 EventManager.Domain<br/>(RoleAuthorizationPolicy reused)"]
+    Sync["U1 EventManager.Sync<br/>(IEventStore, IIdGenerator, serializer)"]
+    Contracts["U2 EventManager.Contracts<br/>(EventEnvelope for ingest)"]
+    Payments["U8 EventManager.Payments<br/>(IPaymentProvider stub)"]
+    PG[("PostgreSQL")]
+    Auth --> Domain
+    Store --> Sync
+    Ctrls --> Contracts
+    Svcs --> Payments
+    Store --- PG
+
+    style Ctrls fill:#42A5F5,stroke:#0D47A1,color:#fff
+    style Svcs fill:#42A5F5,stroke:#0D47A1,color:#fff
+    style Auth fill:#42A5F5,stroke:#0D47A1,color:#fff
+    style Writer fill:#90CAF9,stroke:#0D47A1,color:#000
+    style Proj fill:#90CAF9,stroke:#0D47A1,color:#000
+    style Store fill:#90CAF9,stroke:#0D47A1,color:#000
+    style Domain fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style Sync fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style Contracts fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style Payments fill:#C8E6C9,stroke:#1B5E20,color:#000
+    style PG fill:#90CAF9,stroke:#0D47A1,color:#000
+```
+
+**As-built notes:**
+- **Two persistence planes (Q1=C)**: ASP.NET Identity tables (accounts/MFA/lockout) + the event-sourced domain plane (events/divisions/registrations/roles) via `PostgresEventStore` — a cloud Npgsql implementation of U1's `IEventStore`. Read models are projections folded synchronously (Q2=A).
+- **Authorization does not diverge from the hub**: the cloud reuses U1's exact `RoleAuthorizationPolicy` instance behind `EventAuthorizer` (deny-by-default).
+- **Replication ingest** (`EventIngestController`) accepts the hub's replicated log via U2 `EventEnvelope`, event-scoped-authorized (Q7=A) and idempotent; the cloud is a mirror.
+- **Deployment**: Docker Compose (Caddy TLS proxy · api · PostgreSQL · backup sidecar); provider-agnostic, no IaC (NFR-6.4).
+- Text alt: Controllers → Services → {Auth→U1 Domain policy; EventWriter→CloudProjectionHost→PostgresEventStore→U1 Sync + PostgreSQL}; Controllers→U2 Contracts (ingest); Services→U8 Payments. The topology View 1 `cloud-backend` box is now realized by this internal structure.
