@@ -456,3 +456,12 @@
 
 ---
 
+## U8 — End-of-Unit Approved & Merged to Main
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "Merge U8 now, then clear context, then resume"
+**AI Response**: U8 approved. Merged unit/u8-payment-stub into main --no-ff (merge commit c858173). Now on main with U1+U2+U8 all merged; working tree clean. Updated aidlc-state.md RESUME POINTER to reflect U8 done and U3 as the clean starting point (create branch unit/u3-cloud-backend, run stage-by-stage). Updated memory eventmanager-aidlc-orientation.md. User will clear context and resume; next action on resume = start U3 Cloud Backend.
+**Status**: U8 COMPLETE & MERGED; ready for context clear; U3 is next
+**Context**: CONSTRUCTION - U3 Cloud Backend (not started) — resume point
+
+---
+
