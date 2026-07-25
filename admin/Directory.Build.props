@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- Admin hub. U4a builds the Hub Core (embedded server, pairing, device mgmt, projections).
+         MAUI UI shell is deferred (workload absent); Hub Core is host/library logic. -->
+  </PropertyGroup>
+</Project>
