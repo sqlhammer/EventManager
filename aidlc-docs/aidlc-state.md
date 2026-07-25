@@ -4,7 +4,7 @@
 - **Project Name**: EventManager
 - **Project Type**: Greenfield
 - **Start Date**: 2026-07-22T00:00:00Z
-- **Current Stage**: CONSTRUCTION - U2 Contracts & ClientSync - Code Generation complete (fast-tracked); awaiting end-of-unit approval → merge (branch `unit/u2-contracts-clientsync`). U1 merged to main 2026-07-24.
+- **Current Stage**: CONSTRUCTION - U8 Payment Stub (fast-tracked, branch `unit/u8-payment-stub`). U1 merged 2026-07-24; U2 merged 2026-07-25.
 - **User Constraint (2026-07-22)**: LIFTED 2026-07-24 — user directed "proceed to construction" (approves Units Generation, ends the INCEPTION-only pause)
 - **Process Requirement (2026-07-24)**: Each unit is built on its own git branch (`unit/<id>-<slug>`); all per-unit work stays on the branch until end-of-unit approval, then merges into `main`. Build order: U1 → U2 → U8 → U3 → U4a → U4b → U7 → U5 → U6
 - **End-of-Unit Deliverables (2026-07-24)**: Every unit must, before end-of-unit approval/merge, (1) update architecture-overview diagrams to as-built and (2) author/update a user testing guide (manual walkthrough for UI units; developer verification guide for library units). Environment has .NET 10 SDK 10.0.302.
@@ -53,5 +53,7 @@
   - [x] Functional Design (approved 2026-07-25)
   - [x] NFR Requirements / NFR Design (fast-tracked, AI-recommended) / Infrastructure Design (SKIPPED — libraries)
   - [x] Code Generation (generated + built + 42 tests passing total)
-- [ ] CONSTRUCTION: U8, U3, U4a, U4b, U7, U5, U6 (per build order, each on its own branch)
+- [x] CONSTRUCTION: U2 Contracts & ClientSync — **COMPLETE & MERGED** to main 2026-07-25 (42 tests total)
+- [ ] CONSTRUCTION: U8 Payment Stub — branch `unit/u8-payment-stub` (fast-tracked; IN PROGRESS) — stands up backend/ solution
+- [ ] CONSTRUCTION: U3, U4a, U4b, U7, U5, U6 (per build order, each on its own branch)
 - [ ] CONSTRUCTION: Build and Test (after all units)

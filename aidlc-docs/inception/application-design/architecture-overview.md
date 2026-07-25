@@ -161,3 +161,10 @@ flowchart TD
 - `Contracts` maps `TournamentEvent` ⇄ `EventEnvelopeDto` (so it references `Sync`, not `Domain`).
 - `ClientSync` reuses U1's `IEventStore` (durable queue) and `ProjectionHost` (push apply); the concrete SignalR/WSS transport is injected at app wiring via `ISyncTransport`.
 - Text alt: Contracts → Sync; ClientSync → Sync, Contracts.
+
+## As-built: U8 Payment Stub (updated 2026-07-25, end-of-unit)
+
+U8 stood up the **`backend/`** solution (ahead of U3) with the payment-provider seam:
+- `backend/EventManager.Payments` — `IPaymentProvider` (D-06 seam) + `StubPaymentProvider` (idempotent, no external call, injectable outcome for decline/timeout/error).
+- Self-contained (BCL only); U3's registration flow will consume it and map `PaymentOutcome → PaymentStatus`. A real Stripe adapter replaces the stub post-MVP behind the same interface.
+- Text alt: `backend/EventManager.Payments` is a standalone library; no cross-package edges yet (U3 will reference it).
