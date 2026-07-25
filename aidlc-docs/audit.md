@@ -465,3 +465,148 @@
 
 ---
 
+
+## CONSTRUCTION — U3 Cloud Backend — Functional Design (Part 1: Plan + Questions)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "Resume..." (context-clear resume; RESUME POINTER directed starting U3 Cloud Backend stage-by-stage)
+**AI Response**: "Resumed on main (clean). Created branch `unit/u3-cloud-backend` from main. Analyzed U3 context: 20 primary stories (US-101–109, US-201–207, US-209–211, US-603); consumed seams U1 IEventStore/Domain, U2 Contracts/EventEnvelope, U8 IPaymentProvider; approved orchestration S-1/S-2/S-7. Entered Functional Design stage-by-stage. Wrote plan `aidlc-docs/construction/plans/u3-cloud-backend-functional-design-plan.md` with 8 embedded design questions (Q1 persistence model for pre-event entities [rec hybrid event-sourced domain + Identity tables]; Q2 bulk-registration atomicity; Q3 division assignment vs self-selection; Q4 event-edit window; Q5 email delivery stub; Q6 results read-model scope; Q7 replication-ingest auth; Q8 free-form scope). Awaiting answers."
+**Context**: CONSTRUCTION - U3 Functional Design - plan created, awaiting user answers to design questions
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Functional Design (answers received)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "Answered" — plan file `[Answer]:` tags filled: Q1=C (hybrid: domain entities event-sourced via IEventStore, ASP.NET Identity accounts in Identity tables), Q2=A (bulk validate-then-commit atomic w/ idempotent resubmit), Q3=A (auto-compute eligible set → registrant confirms → mismatches flagged to organizer), Q4=A (all event edits are events; window state is a business rule), Q5=A (IEmailSender seam + stub/log impl), Q6=A (build results projection + read API now over ingest path), Q7=A (hub authenticates as organizer-scoped JWT service principal, event-scoped RBAC), Q8=N/A.
+**AI Response**: "All answers match recommendations; no ambiguity — no follow-ups. Generating functional-design artifacts: domain-entities.md, business-logic-model.md, business-rules.md."
+**Context**: CONSTRUCTION - U3 Functional Design - answers captured, generating artifacts
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Functional Design (Part 2: artifacts generated)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: (answers captured in prior entry)
+**AI Response**: "Generated 3 functional-design artifacts under aidlc-docs/construction/u3-cloud-backend/functional-design/: (1) domain-entities.md — two persistence planes per Q1=C (Identity plane for accounts/MFA; event-sourced domain plane for events/divisions/registrations/roles), reuses U1 Domain records as projection shapes, defines U3 event vocabulary + ResultsProjection contract (Q6=A); (2) business-logic-model.md — flow groups A (auth) / B (event+division setup) / C (RBAC) / D (registration incl. bulk atomic Q2=A, eligibility Q3=A) / E (ingest Q7=A + results), universal validate→append→project write path, 4 PBT invariants; (3) business-rules.md — enumerated BR families (AUTH/EVT/DIV/RBAC/REG/PAY/ING/RES/X) with sources + enforcement points, security 🔒 + resiliency carry-forward. frontend-components.md correctly skipped (backend service, no UI). Presented Functional Design completion message; awaiting explicit approval to proceed to NFR Requirements."
+**Context**: CONSTRUCTION - U3 Functional Design complete - awaiting approval
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Functional Design APPROVED
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "approved and proceed"
+**AI Response**: "Functional Design approved. Marking stage complete; proceeding to NFR Requirements (stage-by-stage)."
+**Context**: CONSTRUCTION - U3 Functional Design approved → NFR Requirements
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Requirements (Part 1: Plan + Questions)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: (proceeding from Functional Design approval)
+**AI Response**: "Entered NFR Requirements. Noted the project-level NFR baseline (NFR-1..6 in requirements.md) already binds U3 (availability 99.5%, RTO 4h/RPO 24h, TLS, deny-by-default RBAC, JWT, breached-password/lockout/MFA, rate limiting, FsCheck PBT, scale 300 athletes / hundreds concurrent registration burst, Docker Compose, EF Npgsql). Wrote plan `construction/plans/u3-cloud-backend-nfr-requirements-plan.md` mapping those to U3 and asking only 6 open unit-level parameters: Q1 breached-password source (rec offline local dataset), Q2 JWT lifetimes/refresh (rec 60m access + 14d rotating refresh + revocation), Q3 rate-limit/lockout values (rec login 5/min, reg 10/hr, lockout 5→15m), Q4 idempotency-key store (rec PostgreSQL table 30d), Q5 at-rest encryption layer (rec volume-level), Q6 free-form. Awaiting answers."
+**Context**: CONSTRUCTION - U3 NFR Requirements - plan created, awaiting answers
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Requirements (answers received)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "answereed" — plan `[Answer]:` tags: Q1=A (offline local breached-password dataset), Q2=A (60m access + 14d rotating refresh + revocation list), Q3=A (login 5/min IP+account, reg 10/hr IP, lockout 5→15m escalating), Q4=A (PostgreSQL idempotency table, 30d, in-transaction), Q5=A (volume/storage-level at-rest encryption), Q6=N/A.
+**AI Response**: "All answers = recommendations; no ambiguity. Generating nfr-requirements.md + tech-stack-decisions.md."
+**Context**: CONSTRUCTION - U3 NFR Requirements - answers captured, generating artifacts
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Requirements (Part 2: artifacts generated)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Generated nfr-requirements/nfr-requirements.md (U3 NFR tables — Security S1-S14, Resiliency R1-R9, Performance P1-P3, Testing T1-T4 incl. PBT-1..4, Platform X1-X3; extension compliance: Security/PBT/Resiliency Compliant, LAN + warm-standby N/A) and nfr-requirements/tech-stack-decisions.md (fixed baseline confirmed + 10 library decisions TSD-1..10: PostgresEventStore, Identity TOTP, offline breached-password dataset, built-in rate limiter, FluentValidation, JWT rotating refresh + PG revocation, PG idempotency table, IEmailSender stub, volume-level at-rest, standard health checks). Presented completion message; awaiting approval to proceed to NFR Design."
+**Context**: CONSTRUCTION - U3 NFR Requirements complete - awaiting approval
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Requirements APPROVED
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed"
+**AI Response**: "NFR Requirements approved. Proceeding to NFR Design (stage-by-stage)."
+**Context**: CONSTRUCTION - U3 NFR Requirements approved → NFR Design
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Design (Part 1: Plan + Questions)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Entered NFR Design. Most patterns determined by NFR-Req/TSD; wrote plan `construction/plans/u3-cloud-backend-nfr-design-plan.md` with 4 design-shaping questions: Q1 API instance model vs single-writer contract (rec single container, DB-enforced idempotent append keeps horizontal-scale-ready), Q2 projection update timing (rec synchronous inline), Q3 outbound-call resilience depth (rec timeouts+bounded retry only, no circuit breakers against stubs), Q4 free-form. Awaiting answers."
+**Context**: CONSTRUCTION - U3 NFR Design - plan created, awaiting answers
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Design (answers received)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed" (plan tags: Q1=A single container/DB-enforced idempotent append, Q2=A synchronous inline projections, Q3=A timeouts+bounded retry only, Q4=N/A)
+**AI Response**: "All answers = recommendations; generating nfr-design-patterns.md + logical-components.md."
+**Context**: CONSTRUCTION - U3 NFR Design - answers captured, generating artifacts
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Design (Part 2: artifacts generated)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Generated nfr-design/nfr-design-patterns.md (SP-1..7 security, PP-1..4 performance, RP-1..6 resilience, SC-1 scalability, OB-1 observability; traceability + extension compliance) and nfr-design/logical-components.md (component map, PostgresEventStore/IdempotencyStore/RefreshTokenStore/CloudProjectionHost+5 projections/6 app services/TokenService/authz filter/BreachedPasswordValidator/validators/rate-limit/exception+health/IEmailSender stub; S-1/S-2/S-7 wiring; consumes U1/U2/U8). Presented completion message; awaiting approval to proceed to Infrastructure Design."
+**Context**: CONSTRUCTION - U3 NFR Design complete - awaiting approval
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — NFR Design APPROVED
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed"
+**AI Response**: "NFR Design approved. Proceeding to Infrastructure Design (stage-by-stage)."
+**Context**: CONSTRUCTION - U3 NFR Design approved → Infrastructure Design
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Infrastructure Design (Part 1: Plan + Questions)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Entered Infrastructure Design. Infra largely fixed (Docker Compose API+PostgreSQL, provider-agnostic, no IaC; volume encryption; daily encrypted backups; health checks; no messaging tier). Wrote plan with 6 open deployment-parameter questions: Q1 TLS termination (rec Caddy reverse-proxy in Compose, doc LB/Kestrel variants), Q2 backup mechanism (rec pg_dump sidecar + optional provider snapshots), Q3 secrets injection (rec env vars: .env dev / secret-manager prod), Q4 environments (rec dev+prod), Q5 log/metrics destination (rec stdout logs + /metrics, no bundled stack), Q6 free-form. Cloud-provider selection out of scope by mandate. Awaiting answers."
+**Context**: CONSTRUCTION - U3 Infrastructure Design - plan created, awaiting answers
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Infrastructure Design (answers received)
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed" (plan tags: Q1=A Caddy reverse-proxy TLS, Q2=A pg_dump backup sidecar, Q3=A env-var secrets, Q4=A dev+prod, Q5=A stdout logs+/metrics no bundled stack, Q6=N/A)
+**AI Response**: "All answers = recommendations. Confirmed backend/ has only U8 Payments module + solution, no Dockerfile/compose yet — U3 adds API project + infra to the same backend solution. Generating infrastructure-design.md + deployment-architecture.md."
+**Context**: CONSTRUCTION - U3 Infrastructure Design - answers captured, generating artifacts
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Infrastructure Design (Part 2: artifacts generated)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Generated infrastructure-design/infrastructure-design.md (component→infra mapping; 4-service Compose inventory proxy/api/db/backup; networking, storage lifecycle, sizing, dev+prod envs, provider-agnostic host variations, relationship to existing backend/ tree; extension compliance) and infrastructure-design/deployment-architecture.md (topology, GitHub Actions build/test/scan/SBOM pipeline, in-place deploy + safe rollback via expand/contract migrations, health-check wiring, backup/restore runbook, secrets, observability, infra artifacts list). Presented completion message; awaiting approval to proceed to Code Generation (final per-unit stage)."
+**Context**: CONSTRUCTION - U3 Infrastructure Design complete - awaiting approval
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Infrastructure Design APPROVED
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "proceed. Author the plan but then assume consent and continue."
+**AI Response**: "Infrastructure Design approved. Entering Code Generation: will author the code-generation plan (Part 1) then, per explicit user authorization, assume consent and continue to Part 2 (generation) without a separate approval gate."
+**Context**: CONSTRUCTION - U3 Infrastructure Design approved → Code Generation (plan + generate, consent pre-granted)
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Code Generation (Part 1 plan authored; consent pre-granted)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Authored `construction/plans/u3-cloud-backend-code-generation-plan.md` (10 steps: project setup, persistence, event payloads, projections, services, API layer, migration, PBT tests, deployment artifacts, build & docs; full story traceability). Per user instruction 'author the plan but then assume consent and continue', proceeding to Part 2 generation without a separate approval gate. Code → backend/EventManager.Api + backend/tests/EventManager.Api.Tests + backend/ infra files; docs → construction/u3-cloud-backend/code/."
+**Context**: CONSTRUCTION - U3 Code Generation - plan done, generating (consent pre-granted)
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Code Generation (Part 2 COMPLETE)
+**Timestamp**: 2026-07-25T00:00:00Z
+**AI Response**: "Generated the U3 cloud backend under backend/EventManager.Api (31 source files across Persistence/Events/Projections/Services/Controllers/Contracts/Validation/Auth/Infrastructure + Program.cs), EF Core InitialCreate migration (installed dotnet-ef 10.0.0), and backend/tests/EventManager.Api.Tests. Verified: `dotnet restore` OK on .NET 10 packages (Npgsql/EF/Identity/JwtBearer 10.0.0); `dotnet build backend/EventManager.Backend.slnx` => Build succeeded; `dotnet test EventManager.Api.Tests` => 20 passed (PBT-1 eligibility determinism/order-independence, PBT-2 no double-registration + atomic bulk + idempotent resubmit + decline->Owed + window-closed, PBT-3 RBAC deny-by-default + co-org blocked + last-admin guard, PBT-4 ingest idempotency + scope authz + order-independent fold, breached-password accept/reject). Added API + test projects to slnx. Generated infra: Dockerfile (multi-stage/pinned/non-root), docker-compose.yml (proxy/api/db/backup), Caddyfile, backup/backup.sh, .env.example, .github/workflows/backend.yml; gitignored .env. Wrote code-summary.md. All 20 U3 stories implemented. STILL on branch unit/u3-cloud-backend; NOT merged. End-of-unit deliverables pending: architecture-overview diagram update + user testing guide (per memory end-of-unit-deliverables)."
+**Context**: CONSTRUCTION - U3 Code Generation complete - awaiting review; end-of-unit deliverables + merge pending
+
+---
+
+## CONSTRUCTION — U3 Cloud Backend — Code Generation APPROVED + end-of-unit directive
+**Timestamp**: 2026-07-25T00:00:00Z
+**User Input**: "Approved. Proceed and then fast-track the next unit"
+**AI Response**: "U3 code approved. Completing end-of-unit deliverables (architecture-overview as-built update + user testing guide), then committing branch unit/u3-cloud-backend and merging to main. Then fast-tracking U4a Hub Core (next in build order)."
+**Context**: CONSTRUCTION - U3 approved → end-of-unit deliverables + merge → U4a fast-track
+
+---
