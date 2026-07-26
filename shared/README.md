@@ -17,6 +17,22 @@ dotnet test  shared/EventManager.Shared.slnx
 ```
 Requires the .NET 10 SDK. Runtime deps: IdGen (Snowflake), ErrorOr (result type), System.Text.Json. Test deps: xUnit, FsCheck.Xunit.
 
+## Dependency versions (Central Package Management)
+
+The whole repo uses [Central Package Management](https://learn.microsoft.com/nuget/consume-packages/central-package-management). **Every NuGet version is declared once** in the root [`Directory.Packages.props`](../Directory.Packages.props), and `.csproj` files reference packages *without* a `Version`:
+
+```xml
+<!-- Directory.Packages.props (root) -->
+<PackageVersion Include="xunit" Version="2.9.3" />
+
+<!-- any .csproj -->
+<PackageReference Include="xunit" />
+```
+
+- **To add a package:** add a `<PackageVersion>` to the root file, then a version-less `<PackageReference>` in the project that needs it.
+- **To bump/patch a version (incl. security pins):** edit the one line in `Directory.Packages.props` — it applies to every project and every solution.
+- Projects specifying their own `Version` will fail the build (`CentralPackageVersionOverrideEnabled` is off). `NuGetAudit` runs in `all` mode, so transitive advisories surface at restore time.
+
 ## Conventions
 - Immutable records; pure engines return `ErrorOr<T>` for expected failures.
 - Identities are 64-bit Snowflakes (`Snowflake` in Domain; `long` on the wire in Sync).
