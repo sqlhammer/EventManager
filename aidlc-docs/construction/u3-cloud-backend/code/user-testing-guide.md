@@ -25,6 +25,8 @@ docker compose up --build
 ```
 Services: `proxy` (Caddy TLS on :443) → `api` (:8080 internal) → `db` (PostgreSQL) + `backup` sidecar. Migrations apply automatically in Development; for Production run `dotnet ef database update` (or the container entrypoint) once.
 
+`docker-compose.override.yml` (committed, dev-only — merges automatically, no extra flags) publishes `db` on `localhost:5432` so you can connect an IDE/GUI client (DBeaver, pgAdmin, etc.) directly using the credentials in your `.env`. Prod does not expose this port — its deploy commands pin `-f docker-compose.yml` explicitly (see deployment-architecture.md §3/4).
+
 Health checks:
 ```bash
 curl -k https://localhost/health          # liveness → Healthy

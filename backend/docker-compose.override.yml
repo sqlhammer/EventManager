@@ -1,0 +1,14 @@
+# Committed dev-only overrides, per the code-gen artifact list in
+# deployment-architecture.md §9. Docker Compose merges this automatically with
+# docker-compose.yml — no extra -f flags needed, so it's zero-setup for every
+# developer after `git clone`.
+#
+# Publishes the db port so you can connect from an IDE / GUI client (DBeaver,
+# pgAdmin, etc.) at localhost:5432. docker-compose.yml alone stays the prod-safe
+# reference topology (only the proxy is exposed, per deployment-architecture.md
+# §1) — prod protection comes from this file never being deployed to prod
+# hosts/CI, not from keeping it out of git.
+services:
+  db:
+    ports:
+      - "5432:5432"

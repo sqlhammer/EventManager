@@ -43,18 +43,19 @@ Only `:443` is published. Deploy artifact = the Compose file + built API image; 
 ```
 1. pull eventmanager-backend:<new-version>
 2. run EF migrations (expand phase — backward compatible)   ── RP-5
-3. docker compose up -d api        (brief downtime acceptable by design)
+3. docker compose -f docker-compose.yml up -d api   (brief downtime acceptable by design)
 4. health gate: wait /health/ready == healthy
 5. smoke check (auth + a read endpoint)
 6. (later, after verification) contract phase of migration on next release
 ```
+**Always pass `-f docker-compose.yml` explicitly on prod hosts/CI.** This pins the compose file set so `docker-compose.override.yml` (dev-only, publishes the db port — §9) is never picked up even if it happens to be present, rather than relying on it simply not being deployed there.
 
 **Migration ordering (expand/contract, RP-5/R7):** a release only adds/backfills (expand); columns/tables are dropped one release later (contract), so the previous image still runs against the new schema → **safe rollback**.
 
 ## 4. Rollback flow (NFR-3.5)
 
 ```
-1. re-deploy previous pinned image tag  (docker compose up -d api)
+1. re-deploy previous pinned image tag  (docker compose -f docker-compose.yml up -d api)
 2. schema is backward-compatible one version → no DB rollback needed
 3. verify /health/ready + smoke check
 ```
