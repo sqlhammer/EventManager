@@ -1,4 +1,5 @@
 $kind: collection
+name: EventManager — System Test (all units)
 description: |-
   End-to-end HTTP coverage for the EventManager MVP, mirroring aidlc-docs/testing-guide.md.
 

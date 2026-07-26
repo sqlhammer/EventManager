@@ -682,3 +682,11 @@
 **Context**: DOCS - testing guides current for all 9 units + system-level
 
 ---
+
+## RETROACTIVE LOG — Account self-deletion (US-110) — untracked work backfilled
+**Timestamp**: 2026-07-26T00:00:00Z
+**User Input**: "Is this aidlc-docs\aidlc-state.md accurate? I believe that we built all of the units."
+**AI Response**: "Audit review found commit 7159038 ('Created a new DELETE /api/accounts/me endpoint', merged to main via PR #1 / 56b2c3e on 2026-07-25) implemented US-110 account self-deletion — DELETE /api/accounts/me, AccountDeletionService/AccountDeletionGuard, EF migration AccountSoftDelete, AccountDeletionTests, postman coverage — directly on main with no unit branch, no per-unit stage gates, and no audit.md entry at the time, bypassing the per-unit git branch process requirement. Work is functionally complete and already merged; backfilling this entry for traceability per user direction rather than unwinding it. aidlc-state.md updated with a 'Post-MVP Untracked Work' section noting this plus the separate untracked 'web portal' tech-stack change (commit d9aa82c), and the stale U7 checkbox (was still unchecked despite being merged) was corrected."
+**Context**: Post-MVP audit/state reconciliation — retroactive backfill, no code changes
+
+---
