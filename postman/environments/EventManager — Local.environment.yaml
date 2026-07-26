@@ -12,29 +12,11 @@ values:
     value: ''
   - key: totp
     value: ''
-  - key: accessToken
-    value: ''
-  - key: refreshToken
-    value: ''
-  - key: eventId
-    value: ''
-  - key: divisionId
-    value: ''
-  - key: athleteId
-    value: ''
-  - key: registrationId
-    value: ''
   - key: coOrganizerAccountId
     value: ''
   - key: idempotencyKey
     value: batch-001
-  - key: enrollmentToken
-    value: ''
-  - key: deviceId
-    value: ''
   - key: matchId
     value: ''
   - key: winnerId
-    value: ''
-  - key: disputeId
     value: ''
