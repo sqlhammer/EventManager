@@ -15,6 +15,7 @@ and marks the manual UI walkthrough as pending.
 
 ## 1. Build & test everything (no infra needed)
 ```bash
+cd C:\repos\EventManager
 dotnet test shared/EventManager.Shared.slnx        # 42  (U1 Domain/Sync, U2 Contracts/ClientSync)
 dotnet test backend/EventManager.Backend.slnx      # 26  (U8 Payments 6, U3 Api 20)
 dotnet test admin/EventManager.Admin.slnx          # 17  (U4a hub 5, U4b competition 7, U7 resilience 5)

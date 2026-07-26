@@ -1,0 +1,551 @@
+{
+  "info": {
+    "name": "EventManager — System Test (all units)",
+    "_postman_id": "e5d1a6c2-8b40-4f7e-9a11-eventmanager0001",
+    "description": "End-to-end HTTP coverage for the EventManager MVP, mirroring aidlc-docs/testing-guide.md.\n\nTwo hosts:\n- **Cloud backend** (U3 + U8) at {{cloudBaseUrl}} — behind the TLS proxy from `docker compose up` (see backend/.env). Bearer-auth; register/confirm/login/refresh are anonymous.\n- **Admin hub** (U4a + U4b) at {{hubBaseUrl}} — `dotnet run --project admin/EventManager.Hub`. No auth on the LAN surface.\n\nRun order matters: Login captures the token; Create Event / Configure Division / Athlete Profile / Register capture ids into collection variables that later requests reuse. Test scripts do the capturing automatically.\n\nUnits with no HTTP surface (U7 resilience, U5/U6 spoke app-cores) are verified via `dotnet test` — see §4/§5 of the testing guide; there is nothing to call here for them.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "variable": [
+    { "key": "cloudBaseUrl", "value": "https://localhost", "type": "string" },
+    { "key": "hubBaseUrl", "value": "http://localhost:5000", "type": "string" },
+    { "key": "email", "value": "organizer@example.com", "type": "string" },
+    { "key": "password", "value": "Str0ng-Passphrase-92!", "type": "string" },
+    { "key": "confirmToken", "value": "", "type": "string" },
+    { "key": "totp", "value": "", "type": "string" },
+    { "key": "accessToken", "value": "", "type": "string" },
+    { "key": "refreshToken", "value": "", "type": "string" },
+    { "key": "eventId", "value": "", "type": "string" },
+    { "key": "divisionId", "value": "", "type": "string" },
+    { "key": "athleteId", "value": "", "type": "string" },
+    { "key": "registrationId", "value": "", "type": "string" },
+    { "key": "coOrganizerAccountId", "value": "", "type": "string" },
+    { "key": "idempotencyKey", "value": "batch-001", "type": "string" },
+    { "key": "enrollmentToken", "value": "", "type": "string" },
+    { "key": "deviceId", "value": "", "type": "string" },
+    { "key": "matchId", "value": "", "type": "string" },
+    { "key": "winnerId", "value": "", "type": "string" },
+    { "key": "disputeId", "value": "", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Cloud Backend (U3 + U8)",
+      "description": "REST walkthrough from testing-guide.md §2. Base URL is the TLS proxy ({{cloudBaseUrl}}). Disable TLS verification in Postman settings for the self-signed dev cert (equivalent to `curl -k`).",
+      "item": [
+        {
+          "name": "Health — liveness",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{cloudBaseUrl}}/health", "host": ["{{cloudBaseUrl}}"], "path": ["health"] }
+          }
+        },
+        {
+          "name": "Health — readiness (deep DB probe)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{cloudBaseUrl}}/health/ready", "host": ["{{cloudBaseUrl}}"], "path": ["health", "ready"] }
+          }
+        },
+        {
+          "name": "Accounts & Auth",
+          "item": [
+            {
+              "name": "1. Register organizer",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "pm.test('registration accepted (200)', () => pm.expect(pm.response.code).to.eql(200));",
+                  "console.log('Confirmation token is written to the EmailOutbox table (email is stubbed). Copy it into the {{confirmToken}} variable.');"
+                ] } }
+              ],
+              "request": {
+                "auth": { "type": "noauth" },
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/register", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "register"] },
+                "description": "US-101. A breached password (e.g. `password`) is rejected. Success is a generic 200 (non-enumerating)."
+              }
+            },
+            {
+              "name": "Register — breached password (negative)",
+              "request": {
+                "auth": { "type": "noauth" },
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"email\": \"breach@example.com\",\n  \"password\": \"password\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/register", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "register"] },
+                "description": "Expect a rejection — the common-password check blocks `password`."
+              }
+            },
+            {
+              "name": "2. Confirm email",
+              "request": {
+                "auth": { "type": "noauth" },
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"token\": \"{{confirmToken}}\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/confirm-email", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "confirm-email"] },
+                "description": "US-101. Gate for event creation (BR-AUTH-4). Set {{confirmToken}} from the EmailOutbox row first."
+              }
+            },
+            {
+              "name": "3. Login",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  if (j.mfaRequired) { console.log('MFA required — run MFA Enroll/Confirm, then login again with {{totp}}.'); }",
+                  "  if (j.accessToken) { pm.collectionVariables.set('accessToken', j.accessToken); console.log('accessToken captured'); }",
+                  "  if (j.refreshToken) { pm.collectionVariables.set('refreshToken', j.refreshToken); }",
+                  "  pm.test('login ok', () => pm.expect(pm.response.code).to.eql(200));",
+                  "} catch (e) { console.log('Login: no JSON body', e); }"
+                ] } }
+              ],
+              "request": {
+                "auth": { "type": "noauth" },
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"totp\": null\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/login", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "login"] },
+                "description": "US-102. Returns {accessToken, refreshToken, accessExpiresAt}, or {mfaRequired:true} if MFA is enrolled. If MFA is on, set {{totp}} and resend."
+              }
+            },
+            {
+              "name": "4. MFA — enroll (optional)",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/mfa/enroll", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "mfa", "enroll"] },
+                "description": "US-103. Returns sharedKey, otpauth URI (QR), and recovery codes. Requires a valid access token."
+              }
+            },
+            {
+              "name": "4. MFA — confirm (optional)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"totp\": \"{{totp}}\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/mfa/confirm", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "mfa", "confirm"] },
+                "description": "US-103. Confirms enrollment with a current TOTP code. Subsequent logins then require {{totp}}."
+              }
+            },
+            {
+              "name": "Refresh tokens",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "try { const j = pm.response.json();",
+                  "  if (j.accessToken) pm.collectionVariables.set('accessToken', j.accessToken);",
+                  "  if (j.refreshToken) pm.collectionVariables.set('refreshToken', j.refreshToken);",
+                  "} catch (e) {}"
+                ] } }
+              ],
+              "request": {
+                "auth": { "type": "noauth" },
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"email\": \"{{email}}\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/refresh", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "refresh"] },
+                "description": "Rotates the token pair. 401 if the refresh token is invalid/expired."
+              }
+            },
+            {
+              "name": "Logout",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/logout", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "logout"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Events & Divisions",
+          "item": [
+            {
+              "name": "5. Create event",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('eventId', String(j.id)); console.log('eventId =', j.id); } } catch (e) {}"
+                ] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Autumn Open\",\n  \"venue\": \"City Dojo\",\n  \"date\": \"2026-09-12\",\n  \"registrationStart\": \"2026-07-01\",\n  \"registrationEnd\": \"2026-09-05\",\n  \"entryFee\": 75.00,\n  \"weighInPolicyMode\": \"Strict\",\n  \"weighInTolerancePercent\": null\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/events", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events"] },
+                "description": "US-104. Creator becomes Full Admin. Requires a confirmed email. weighInPolicyMode ∈ {Strict, AutoMove, Tolerance}; tolerancePercent required only for Tolerance."
+              }
+            },
+            {
+              "name": "Edit event",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Autumn Open (updated)\",\n  \"venue\": \"City Dojo — Mat Hall B\",\n  \"date\": \"2026-09-12\",\n  \"registrationStart\": \"2026-07-01\",\n  \"registrationEnd\": \"2026-09-05\",\n  \"entryFee\": 80.00\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}"] }
+              }
+            },
+            {
+              "name": "6. Configure division",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('divisionId', String(j.id)); console.log('divisionId =', j.id); } } catch (e) {}"
+                ] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"weightLower\": 70.0,\n  \"weightUpper\": 80.0,\n  \"minRank\": 1,\n  \"maxRank\": 3,\n  \"minAge\": 18,\n  \"maxAge\": 34,\n  \"gender\": \"Male\",\n  \"format\": \"SingleElimination\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/divisions", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "divisions"] },
+                "description": "US-105. An overlapping weight/rank/age/gender slice returns 409. format ∈ {SingleElimination, RoundRobin}."
+              }
+            },
+            {
+              "name": "7. Weigh-in policy",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"mode\": \"Tolerance\",\n  \"tolerancePercent\": 5.0\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/weigh-in-policy", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "weigh-in-policy"] },
+                "description": "mode ∈ {Strict, AutoMove, Tolerance}. tolerancePercent applies to Tolerance."
+              }
+            },
+            {
+              "name": "7. Payment options",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"cardEnabled\": true\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/payment-options", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "payment-options"] }
+              }
+            },
+            {
+              "name": "8. Open registration",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registration/open", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "registration", "open"] }
+              }
+            },
+            {
+              "name": "Close registration",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registration/close", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "registration", "close"] },
+                "description": "After close, registration attempts return 409 (window closed)."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Registration",
+          "item": [
+            {
+              "name": "9. Athlete profile",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('athleteId', String(j.id)); console.log('athleteId =', j.id); } } catch (e) {}"
+                ] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Alex Athlete\",\n  \"dateOfBirth\": \"2000-04-15\",\n  \"rank\": 2,\n  \"weight\": 77.5,\n  \"academy\": \"North BJJ\",\n  \"gender\": \"Male\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/registration/profiles", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "profiles"] },
+                "description": "US-201. Upsert an athlete profile. Add `?athleteId={{athleteId}}` as a query param to update an existing one."
+              }
+            },
+            {
+              "name": "10. Register athlete",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  const id = j.registrationId || j.id || (Array.isArray(j.registrationIds) && j.registrationIds[0]) || (Array.isArray(j.registrations) && j.registrations[0] && (j.registrations[0].id || j.registrations[0].registrationId));",
+                  "  if (id) { pm.collectionVariables.set('registrationId', String(id)); console.log('registrationId =', id); }",
+                  "  else { console.log('registrationId not auto-detected — inspect the response and set it manually.'); }",
+                  "} catch (e) {}"
+                ] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"eventId\": {{eventId}},\n  \"athleteId\": {{athleteId}},\n  \"divisionIds\": [{{divisionId}}],\n  \"payByCard\": false\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/registration", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration"] },
+                "description": "US-202/203. Returns fee + paymentStatus (Owed/Paid). Registering the same athlete into the same division twice is rejected."
+              }
+            },
+            {
+              "name": "11. Coach bulk register (idempotent)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"eventId\": {{eventId}},\n  \"entries\": [\n    { \"athleteId\": {{athleteId}}, \"divisionIds\": [{{divisionId}}] }\n  ],\n  \"payByCard\": false,\n  \"idempotencyKey\": \"{{idempotencyKey}}\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/registration/batch", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "batch"] },
+                "description": "US-204. All-or-nothing; conflicts are itemized. Resubmitting with the same idempotencyKey is a no-op."
+              }
+            },
+            {
+              "name": "Edit registration",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"divisionIds\": [{{divisionId}}]\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/registration/{{registrationId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "{{registrationId}}"] }
+              }
+            },
+            {
+              "name": "12. Roster payment status",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"status\": \"Paid\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/registration/{{registrationId}}/payment-status", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "{{registrationId}}", "payment-status"] },
+                "description": "US-205. status ∈ {Paid, Owed, Waived} — mark Paid (cash at door) or Waived."
+              }
+            },
+            {
+              "name": "Withdraw registration",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": { "raw": "{{cloudBaseUrl}}/api/registration/{{registrationId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "{{registrationId}}"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Organizers (RBAC)",
+          "item": [
+            {
+              "name": "13. Add co-organizer (by email)",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"accountId\": null,\n  \"email\": \"coorg@example.com\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "organizers"] },
+                "description": "US-108. Full-Admin only. Provide either accountId (existing account) or email (invite)."
+              }
+            },
+            {
+              "name": "Change organizer role",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"targetAccountId\": {{coOrganizerAccountId}},\n  \"newRole\": \"CoOrganizer\"\n}" },
+                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers/role", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "organizers", "role"] },
+                "description": "US-109. newRole ∈ {FullAdmin, CoOrganizer}. Demoting the last Full Admin is refused."
+              }
+            },
+            {
+              "name": "Remove organizer",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers/{{coOrganizerAccountId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "organizers", "{{coOrganizerAccountId}}"] }
+              }
+            }
+          ]
+        },
+        {
+          "name": "14. Ingest (replication sink)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": { "mode": "raw", "raw": "{\n  \"events\": [\n    {\n      \"eventId\": {{eventId}},\n      \"deviceId\": 1001,\n      \"sequenceNumber\": 1,\n      \"eventType\": \"MatchScored\",\n      \"schemaVersion\": 1,\n      \"payloadBase64\": \"e30=\",\n      \"occurredAt\": \"2026-09-12T10:00:00Z\",\n      \"eventScopeId\": {{eventId}}\n    }\n  ]\n}" },
+            "url": { "raw": "{{cloudBaseUrl}}/api/ingest/batch", "host": ["{{cloudBaseUrl}}"], "path": ["api", "ingest", "batch"] },
+            "description": "US-504. Event-scoped JWT authz, idempotent, sequence-ordered. payloadBase64 `e30=` = `{}`. Returns AcceptedCount + per-device high-water marks. Replaying the same batch accepts 0."
+          }
+        },
+        {
+          "name": "15. Results — athlete history",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{cloudBaseUrl}}/api/results/athletes/{{athleteId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "results", "athletes", "{{athleteId}}"] },
+            "description": "US-603. Owner/manager only. Empty until event-day events are ingested."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin Hub (U4a + U4b)",
+      "description": "LAN hub walkthrough from testing-guide.md §3. Base URL {{hubBaseUrl}} (`dotnet run --project admin/EventManager.Hub`; default Kestrel http port 5000 — adjust if ASPNETCORE_URLS differs). No auth on this surface (LAN trust model).",
+      "auth": { "type": "noauth" },
+      "item": [
+        {
+          "name": "Health — connected devices",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{hubBaseUrl}}/health", "host": ["{{hubBaseUrl}}"], "path": ["health"] },
+            "description": "Returns { status, connectedDevices }."
+          }
+        },
+        {
+          "name": "Pairing & Devices (U4a)",
+          "item": [
+            {
+              "name": "Issue pairing token (organizer)",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "try {",
+                  "  const j = pm.response.json();",
+                  "  const t = j.enrollmentToken || j.token || j.oneTimeToken || (j.qr && (j.qr.token || j.qr.enrollmentToken));",
+                  "  if (t) { pm.collectionVariables.set('enrollmentToken', t); console.log('enrollmentToken captured'); }",
+                  "  else { console.log('enrollmentToken not auto-detected — inspect the QR payload and set it manually.'); }",
+                  "} catch (e) {}"
+                ] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"eventId\": {{eventId}},\n  \"roleDescriptor\": \"Judge\"\n}" },
+                "url": { "raw": "{{hubBaseUrl}}/api/pairing/tokens", "host": ["{{hubBaseUrl}}"], "path": ["api", "pairing", "tokens"] },
+                "description": "US-303. Returns the QR payload (hub address + cert fingerprint + one-time token + role)."
+              }
+            },
+            {
+              "name": "Redeem pairing token (spoke)",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "try { const j = pm.response.json(); if (j.deviceId) { pm.collectionVariables.set('deviceId', String(j.deviceId)); console.log('deviceId =', j.deviceId, 'workerId =', j.workerId); } } catch (e) {}"
+                ] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"enrollmentToken\": \"{{enrollmentToken}}\",\n  \"devicePublicInfo\": \"judge-tablet-01\"\n}" },
+                "url": { "raw": "{{hubBaseUrl}}/api/pairing/redeem", "host": ["{{hubBaseUrl}}"], "path": ["api", "pairing", "redeem"] },
+                "description": "US-304. Returns device credential + Snowflake worker id + pinned cert. Re-redeeming the same token → 409 (single-use)."
+              }
+            },
+            {
+              "name": "List devices",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/devices", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "devices"] }
+              }
+            },
+            {
+              "name": "Change device role",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"roleDescriptor\": \"CheckIn\"\n}" },
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/devices/{{deviceId}}/role", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "devices", "{{deviceId}}", "role"] }
+              }
+            },
+            {
+              "name": "Revoke device",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/devices/{{deviceId}}", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "devices", "{{deviceId}}"] },
+                "description": "US-305/508. Revoke frees the worker id. A later sync from that device → 403."
+              }
+            },
+            {
+              "name": "Sync batch (spoke → hub)",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "X-Device-Id", "value": "{{deviceId}}" }
+                ],
+                "body": { "mode": "raw", "raw": "{\n  \"events\": [\n    {\n      \"eventId\": {{eventId}},\n      \"deviceId\": {{deviceId}},\n      \"sequenceNumber\": 1,\n      \"eventType\": \"MatchScored\",\n      \"schemaVersion\": 1,\n      \"payloadBase64\": \"e30=\",\n      \"occurredAt\": \"2026-09-12T10:05:00Z\",\n      \"eventScopeId\": {{eventId}}\n    }\n  ]\n}" },
+                "url": { "raw": "{{hubBaseUrl}}/api/sync/batch", "host": ["{{hubBaseUrl}}"], "path": ["api", "sync", "batch"] },
+                "description": "US-407. Device id comes from the X-Device-Id header (pinned credential). A revoked device → 403. Idempotent, sequence-ordered."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Competition (U4b)",
+          "item": [
+            {
+              "name": "Assign device to mat/division",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"deviceId\": {{deviceId}},\n  \"divisionId\": {{divisionId}}\n}" },
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/mat-assignments", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "mat-assignments"] },
+                "description": "US-404. Mat authority (US-406): a score from a device not assigned to the match's division is rejected."
+              }
+            },
+            {
+              "name": "Start division bracket",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/bracket:start", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "divisions", "{{divisionId}}", "bracket:start"] },
+                "description": "US-311. After start, bracket regeneration is blocked."
+              }
+            },
+            {
+              "name": "Advance a match",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"matchId\": {{matchId}},\n  \"winnerId\": {{winnerId}},\n  \"method\": \"Points\"\n}" },
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/bracket:advance", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "divisions", "{{divisionId}}", "bracket:advance"] },
+                "description": "US-312. Winner recorded; standings updated. method ∈ {Points, Forfeit, Disqualification, Decision}. Set {{matchId}}/{{winnerId}} from bracket state."
+              }
+            },
+            {
+              "name": "Standings",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/standings", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "divisions", "{{divisionId}}", "standings"] },
+                "description": "Ordered by wins (then losses)."
+              }
+            },
+            {
+              "name": "Finalize division",
+              "request": {
+                "method": "POST",
+                "header": [],
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}:finalize", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "divisions", "{{divisionId}}:finalize"] },
+                "description": "US-313. Placements by wins."
+              }
+            },
+            {
+              "name": "Flag a dispute",
+              "event": [
+                { "listen": "test", "script": { "type": "text/javascript", "exec": [
+                  "try { const j = pm.response.json(); if (j.disputeId) { pm.collectionVariables.set('disputeId', String(j.disputeId)); console.log('disputeId =', j.disputeId); } } catch (e) {}"
+                ] } }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"divisionId\": {{divisionId}},\n  \"matchId\": {{matchId}},\n  \"reason\": \"Scorekeeper contested the final point.\"\n}" },
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/disputes", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "disputes"] },
+                "description": "US-314. Recorded as an event."
+              }
+            },
+            {
+              "name": "Resolve a dispute",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "body": { "mode": "raw", "raw": "{\n  \"resolution\": \"Upheld — original result stands.\"\n}" },
+                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/disputes/{{disputeId}}", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "disputes", "{{disputeId}}"] }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

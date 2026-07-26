@@ -7,8 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="ErrorOr" Version="2.1.1" />
-    <PackageReference Include="IdGen" Version="3.0.7" />
+    <PackageReference Include="ErrorOr" />
+    <PackageReference Include="IdGen" />
   </ItemGroup>
 
 </Project>

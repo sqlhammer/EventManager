@@ -1,0 +1,64 @@
+<Project>
+
+  <!--
+    Central Package Management (CPM) for the EventManager repo.
+    https://learn.microsoft.com/nuget/consume-packages/central-package-management
+
+    All NuGet package versions live here. Individual .csproj files reference packages
+    WITHOUT a Version attribute, e.g. <PackageReference Include="xunit" />.
+    This is the single place to bump a version or apply a security pin across every
+    project and every solution (admin / backend / checkin / judge / shared).
+  -->
+
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <!-- Fail the build if a project tries to specify its own package version. -->
+    <CentralPackageVersionOverrideEnabled>false</CentralPackageVersionOverrideEnabled>
+    <!-- Audit transitive dependencies too, so advisories like GHSA-2m69-gcr7-jv3q surface early. -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+  </PropertyGroup>
+
+  <!-- Framework / runtime libraries (aligned on the .NET 10 wave). -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <PackageVersion Include="Microsoft.Extensions.Logging.Debug" Version="10.0.0" />
+    <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
+  </ItemGroup>
+
+  <!-- MAUI: version flows from the installed MAUI workload via the $(MauiVersion) property. -->
+  <ItemGroup>
+    <PackageVersion Include="Microsoft.Maui.Controls" Version="$(MauiVersion)" />
+  </ItemGroup>
+
+  <!-- Third-party libraries. -->
+  <ItemGroup>
+    <PackageVersion Include="ErrorOr" Version="2.1.1" />
+    <PackageVersion Include="FluentValidation" Version="12.1.1" />
+    <PackageVersion Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
+    <PackageVersion Include="IdGen" Version="3.0.7" />
+  </ItemGroup>
+
+  <!--
+    Security pin: EF Core 10.0.0 pulls SQLitePCLRaw 2.1.11 transitively, which carries
+    GHSA-2m69-gcr7-jv3q (high severity, native SQLite). Pinning the bundle to the patched
+    2.1.12 flows the fixed lib/provider to every project that uses SQLite.
+    Remove this pin once EF Core ships a patch that references 2.1.12 or newer.
+  -->
+  <ItemGroup>
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
+  </ItemGroup>
+
+  <!-- Test tooling. -->
+  <ItemGroup>
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="FsCheck.Xunit" Version="3.3.3" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+  </ItemGroup>
+
+</Project>
