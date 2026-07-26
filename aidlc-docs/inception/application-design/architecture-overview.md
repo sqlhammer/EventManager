@@ -365,4 +365,62 @@ U6 delivered the Check-In spoke with the same shape as U5: testable **app-core**
 
 ---
 
+## As-built: U9 Read/Query API (updated 2026-07-26, end-of-unit) — post-MVP
+
+U9 is the first **post-MVP** unit. It turns `backend/EventManager.Api` from a write-only surface —
+whose only GET was `GET /api/results/athletes/{athleteId}` — into one that can be read from, adding
+nine GET endpoints over the read models U3 already projects. It adds **no persistence, no event
+type, no projection, and no migration**; its substance is a new authorization model.
+
+```mermaid
+flowchart TD
+    Caller["Any authenticated caller<br/>(P1 Organizer · P2 Coach · P3 Registrant)"]
+    Ctrl["EventReadController<br/>9 GET endpoints under /api/events"]
+    Auth["ReadAuthorizer (API-local, U9-CON-1)<br/>resolves AccessTier per event"]
+    Etag["ReadEtagProvider<br/>watermark = MAX(EventId) per EventScopeId"]
+    Q["Query services<br/>Event · Division · WeighInPolicy<br/>Registrant · OrganizerAccount"]
+    RM[("U3 read models<br/>EventRow · DivisionRow · RegistrationRow<br/>AthleteProfileRow · OrganizerRow")]
+    Log[("Event log<br/>EventRecord")]
+
+    Caller --> Ctrl
+    Ctrl --> Auth
+    Ctrl --> Etag
+    Ctrl --> Q
+    Auth --> RM
+    Q --> RM
+    Etag --> Log
+
+    style Ctrl fill:#C8E6C9,stroke:#2E7D32,stroke-width:2px,color:#000
+    style Auth fill:#FFA726,stroke:#E65100,stroke-width:2px,color:#000
+    style Etag fill:#BBDEFB,stroke:#1565C0,stroke-width:2px,color:#000
+    style Q fill:#C8E6C9,stroke:#2E7D32,stroke-width:2px,color:#000
+```
+
+**Text alternative**: an authenticated caller reaches `EventReadController`, which first asks
+`ReadAuthorizer` for the caller's access tier on the target event, optionally asks
+`ReadEtagProvider` for the event's log watermark to build a conditional response, then delegates to
+one of five query services. The authorizer and query services read U3's read-model tables; the ETag
+provider reads only the event log.
+
+- **Three-tier access model** — `Public` (any authenticated caller, registration Open) →
+  `Registrant` (holds a non-withdrawn registration) → `Organizer` (holds an organizer role).
+  Cumulative and resolved **per event**, so the same caller is `Organizer` on events they run and
+  `Public` on a stranger's. Response shape follows from the tier, never from a client parameter.
+- **`ReadAuthorizer` is API-local by decision (U9-CON-1)** — the shared U1 `OrganizerAction` policy
+  was deliberately **not** extended, because tiers `Public` and `Registrant` are not organizer roles
+  and extending the shared enum would have reached `admin/EventManager.Hub`'s `OfflineOrganizerAuth`.
+  Nothing outside `backend/` changed.
+- **Watermark ETags** — `MAX(EventId)` per `EventScopeId` is an exact version token because
+  projection is synchronous and inline. The token hashes `(endpoint, eventId, watermark, tier,
+  flags)`, not the watermark alone: otherwise a caller who gained a tier would get a 304 over their
+  stale narrower body. Two endpoints carry no ETag — the cross-scope event list, and registrant
+  detail (whose profile fields are mutated by athlete-scoped events the event watermark cannot see).
+- **Non-disclosure** — no read endpoint returns 403. Insufficient tier is 404, identical to
+  "does not exist", so resource-id probing reveals nothing.
+- 57 new tests; 153 green across all five solutions. Under CS-1.
+
+---
+
 **MVP unit set COMPLETE** (all 9 units): U1 Shared Core · U2 Contracts & ClientSync · U3 Cloud Backend · U4a Hub Core · U4b Hub Competition · U5 Judge · U6 Check-In · U7 Offline Resilience · U8 Payment Stub. Cross-cutting refactor R1 (ternary elimination, CS-1) applied. The two topology worlds (View 1) and the event-flow backbone (View 2) are realized end-to-end, with MAUI UI shells shipped as compiling Windows heads (other platform heads deferred on toolchain availability).
+
+**Post-MVP**: U9 Read/Query API (2026-07-26) — the cloud API is now readable as well as writable.

@@ -3,7 +3,7 @@
 **Organization**: Epic-based hybrid — epics follow the product's journey phases; each story is tagged with persona and requirement IDs.
 **Acceptance criteria**: Given/When/Then for behavioral/event-day flows; checklists for CRUD/setup stories.
 **Prioritization**: Delivery-dependency ordering (see "Dependency ordering" note per epic and §Ordering Summary at the end). No MoSCoW labels per user decision.
-**Count**: 56 stories across 6 epics.
+**Count**: 66 stories across 7 epics — 56 MVP (Epics 1–6) plus 10 in Epic 7 (unit U9 Read/Query API, added 2026-07-26).
 
 Personas: P1 Organizer · P2 Coach · P3 Registrant · P4 Judge · P5 Check-In Staff (see `personas.md`)
 
@@ -429,6 +429,226 @@ As a registrant or coach, I want to see results and registration history in my a
 
 ---
 
+# EPIC 7 — Reading Event Data
+*Unit U9. Any signed-in user reads event data through a three-tier access model. Read-only — no story in this epic changes state.*
+**Dependency ordering**: Requires E1 and E2 data to exist. US-701/702/703 are **authoritative** for authorization and must be implemented before the resource stories US-704..708, which describe response shape only (plan decision C2=C).
+
+**Tiers**: **T0 Public** — any authenticated caller, event registration Open · **T1 Registrant** — caller has a non-withdrawn registration in the event · **T2 Organizer** — caller holds an organizer role on the event. Tiers are cumulative and evaluated per event; a caller matching no tier has no access.
+
+## Tier stories (authoritative for authorization)
+
+### US-701 — Public tier access to an open event (P2, P3) [U9-FR-2, U9-FR-3]
+As any signed-in user, I want to see events that are open for registration so that I can find a tournament to enter.
+
+**Given** an event whose registration status is Open
+**When** any authenticated caller requests that event
+**Then** they are granted tier T0 and receive the event **summary** — name, venue, date, registration window, entry fee, registration status
+
+**Given** a T0 caller
+**When** they request the event
+**Then** detail-tier fields (card-enabled, check-in-started, created-by) are absent from the response
+
+**Given** an event whose registration status is Draft or Closed, and a caller holding no higher tier
+**When** they request that event
+**Then** the response is 404 — the event is not discoverable
+
+**Given** a T0 caller
+**When** they request the registrant roster or the organizer roster for that event
+**Then** the response is 404
+
+**Given** an unauthenticated request
+**When** it reaches any endpoint in this epic
+**Then** the response is 401 — there is no anonymous access at any tier
+
+### US-702 — Registrant tier access to an event I am in (P3, P2) [U9-FR-2, U9-FR-6]
+As a registrant or coach, I want full detail of the events I have entered so that I can check what I signed up for.
+
+**Given** a caller with a non-withdrawn registration in an event
+**When** they request that event
+**Then** they are granted tier T1 and receive the event **detail** — the summary plus card-enabled, check-in-started, weigh-in policy, and created-by
+
+**Given** a T1 caller
+**When** they request a registration record whose managing account is their own
+**Then** the full registrant detail is returned, including date of birth, weight, rank, and gender
+
+**Given** a T1 caller
+**When** they request a registration record managed by a different account
+**Then** the response is 404
+
+**Given** a T1 caller
+**When** they request the full registrant roster for the event
+**Then** the response is 404 — T1 grants access to own records only, never to other registrants
+
+**Given** a caller whose only registration in an event has been withdrawn
+**When** they request that event
+**Then** T1 is not granted; they fall back to T0 if registration is Open, and otherwise receive 404
+
+### US-703 — Organizer tier access to an event I administer (P1) [U9-FR-2, U9-FR-7]
+As an organizer, I want complete read access to every event I administer so that I can review my roster and co-organizers at any time.
+
+**Given** a caller holding Full Admin or Co-Organizer on an event
+**When** they request that event
+**Then** they are granted tier T2 and receive the event detail **regardless of registration status** — including Draft and Closed events
+
+**Given** a T2 caller
+**When** they request the registrant roster
+**Then** every non-withdrawn registration for the event is returned
+
+**Given** a T2 caller
+**When** they request the organizer roster
+**Then** every account holding an organizer role on the event is returned with its role
+
+**Given** a caller holding an organizer role on event A but not on event B
+**When** they request any resource of event B
+**Then** the response is 404 — organizer authority never spans events
+
+**Given** two callers on the same event, one Full Admin and one Co-Organizer
+**When** each performs the same read
+**Then** both receive identical data — read access is not differentiated by organizer role
+
+## Resource stories (response shape)
+
+### US-704 — Read event summary and detail (P1, P2, P3) [U9-FR-1, U9-FR-3, U9-FR-9]
+As a signed-in user, I want a single list of every event I can see so that I do not have to know an event id in advance.
+
+**Given** a caller with any tier on one or more events
+**When** they request the event collection
+**Then** the union of their T0, T1, and T2 events is returned, each tagged with the caller's effective tier and, where held, their organizer role
+
+**Given** the event collection
+**When** it is returned
+**Then** it is complete — no pagination, no page size limit, and no general-purpose filter or sort parameters are accepted
+
+**Given** an event returned at summary level
+**When** the response is inspected
+**Then** it carries exactly: name, venue, date, registration start, registration end, entry fee, registration status
+
+**Given** an event returned at detail level
+**When** the response is inspected
+**Then** it carries the summary fields plus card-enabled, check-in-started, weigh-in policy, and created-by account
+
+### US-705 — Read divisions (P1, P2, P3) [U9-FR-1, U9-FR-10]
+As a signed-in user, I want to see an event's divisions so that I can choose which ones to enter or review how the event is structured.
+
+**Given** a caller with at least tier T0 on an event
+**When** they request its divisions
+**Then** each division is returned with its weight range, rank range, age range, gender, bracket format, and status
+
+**Given** divisions whose status is Complete
+**When** the collection is requested without an inclusion flag
+**Then** they are excluded
+
+**Given** the same request with `?includeCompleted=true`
+**When** the collection is returned
+**Then** completed divisions are included
+
+**Given** a division id that exists but belongs to a different event
+**When** it is requested under this event's path
+**Then** the response is 404
+
+### US-706 — Read the weigh-in policy (P1, P2, P3) [U9-FR-8]
+As a prospective registrant, I want to know an event's missed-weight policy before I enter so that I can judge the risk of competing at my current weight.
+
+**Given** a caller with at least tier T0 on an event
+**When** they request the weigh-in policy
+**Then** the policy mode (Strict, AutoMove, or Tolerance) is returned
+
+**Given** a policy whose mode is Tolerance
+**When** the policy is returned
+**Then** the tolerance percentage is included
+
+**Given** a policy whose mode is Strict or AutoMove
+**When** the policy is returned
+**Then** no tolerance percentage is present
+
+**Given** an event
+**When** the weigh-in policy is requested
+**Then** exactly one policy is returned — there is no collection form of this resource
+
+### US-707 — Read registrants (P1, P3) [U9-FR-1, U9-FR-5, U9-FR-10]
+As an organizer, I want to review who has registered for my event so that I can check the roster before event day.
+
+**Given** a T2 caller
+**When** they request the registrant collection
+**Then** each entry carries athlete name, academy, assigned division ids, payment status, and the assignment-mismatch flag
+
+**Given** the registrant collection
+**When** it is returned
+**Then** date of birth, weight, rank, and gender are absent from every entry
+
+**Given** a caller reading a single registration they are entitled to
+**When** the record is returned
+**Then** it adds date of birth, weight, rank, and gender to the collection fields
+
+**Given** withdrawn registrations exist
+**When** the collection is requested without an inclusion flag
+**Then** they are excluded
+
+**Given** the same request with `?includeWithdrawn=true`
+**When** the collection is returned
+**Then** withdrawn registrations are included and identifiable as withdrawn
+
+### US-708 — Read organizer accounts and roles (P1) [U9-FR-1, U9-FR-7]
+As a Full Admin, I want to see who administers my event and at what level so that I can verify the right people hold the right authority.
+
+**Given** a T2 caller
+**When** they request the account collection for the event
+**Then** one entry is returned per account holding an organizer role, each carrying the account id, contact email, and role
+
+**Given** any account entry
+**When** it is returned
+**Then** it carries no password data, MFA secret, recovery code, or session token
+
+**Given** an account id that exists but holds no organizer role on this event
+**When** it is requested under this event's path
+**Then** the response is 404 — this endpoint never confirms the existence of unrelated accounts
+
+## Cross-cutting stories
+
+### US-709 — Non-disclosure and resource-id probing resistance (P1, P2, P3) [U9-FR-4, U9-FR-12]
+As a user of the system, I want the API to refuse unauthorized reads without revealing what exists so that nobody can map the system's data by probing ids.
+
+**Given** an event id that does not exist, and an event id that exists but on which the caller holds no tier
+**When** each is requested
+**Then** both return 404 with the same body — the two cases are indistinguishable to the caller
+
+**Given** a resource id that is valid in its own right but belongs to a different event
+**When** it is requested under an event the caller can read
+**Then** the response is 404 — never 403, and never the resource
+
+**Given** a caller systematically probing account, division, or registration ids
+**When** they compare responses
+**Then** status code and response body do not distinguish "exists but forbidden" from "does not exist"
+
+**Given** any authorization failure on a read endpoint
+**When** it occurs
+**Then** it is logged with the acting account, event id, and endpoint, and the log entry contains no personal data
+
+### US-710 — Conditional requests for cheap repeat reads (P1, P2, P3) [U9-FR-11]
+As an API client, I want conditional requests so that polling an event I already hold does not re-transfer unchanged data.
+
+**Given** any event-scoped read the caller is entitled to
+**When** the response is returned
+**Then** it carries a strong ETag derived from the event's log watermark
+
+**Given** a request carrying `If-None-Match` equal to the current ETag
+**When** it is handled
+**Then** the response is 304 with no body, and no read-model tables are queried to produce it
+
+**Given** any write that appends an event to that event's log
+**When** the same read is repeated
+**Then** the ETag differs from the previous value
+
+**Given** the cross-event collection endpoint
+**When** it is requested
+**Then** no ETag is issued — its results span multiple event scopes and share no single watermark
+
+**Given** an athlete updates their profile weight, and a client holds a prior ETag for a registrant detail record naming that athlete
+**When** the client re-requests that record conditionally
+**Then** it must not receive a 304 carrying the pre-update weight — this is the U9-CON-2 gap, and the design must close it either by excluding registrant detail from ETag coverage or by extending the watermark to cover the referenced athlete scopes
+
+---
+
 # Traceability Matrix (FR → Stories)
 
 | Requirement | Stories |
@@ -472,6 +692,27 @@ As a registrant or coach, I want to see results and registration history in my a
 | FR-6.5 | US-409, US-601 |
 | FR-6.6 | US-411 |
 
+## Unit U9 — Read/Query API (U9-FR → Stories)
+
+| Requirement | Stories |
+|---|---|
+| U9-FR-1 Nine GET endpoints | US-704, US-705, US-706, US-707, US-708 |
+| U9-FR-2 Three-tier access model | US-701, US-702, US-703 |
+| U9-FR-3 Event collection spans tiers | US-701, US-704 |
+| U9-FR-4 Tier verified before resource returned | US-709 |
+| U9-FR-5 Minimal list / full detail | US-707 |
+| U9-FR-6 T1 own-registration only | US-702, US-707 |
+| U9-FR-7 Organizer roster only | US-703, US-708 |
+| U9-FR-8 Weigh-in policy read-only, single | US-706 |
+| U9-FR-9 No pagination or general filtering | US-704 |
+| U9-FR-10 Inclusion flags for excluded rows | US-705, US-707 |
+| U9-FR-11 ETag / conditional requests | US-710 |
+| U9-FR-12 Denial indistinguishable from absence | US-709 |
+
+All twelve U9 requirements map to at least one story. **INVEST note for Epic 7**: US-704..708 are
+independent of one another but depend on US-701..703, which own the authorization criteria — a
+deliberate consequence of the plan decision C2=C, not an oversight.
+
 Every FR maps to ≥1 story (or a documented rationale); every story maps to ≥1 FR. INVEST reviewed per story: stories are independently deliverable within epic dependency order, negotiable in detail, valuable to a named persona, estimable at medium granularity, small (single capability/scenario), and testable via their criteria.
 
 # Ordering Summary (delivery dependencies)
@@ -483,6 +724,7 @@ E1 Pre-Event Setup
             -> E4 Competition (needs paired devices + brackets)
 E5 Offline Resilience: designed first (sync core), verified across E3/E4
 E6 Results & Wrap-Up: after E4 per division; cloud completeness after E5 replication
+E7 Reading Event Data: after E1/E2 data exists; US-701..703 (tiers) precede US-704..710
 ```
 
 The sync/event-log core underpinning E5 is the deepest dependency in the system and should be the first unit built — this will drive Units Generation.

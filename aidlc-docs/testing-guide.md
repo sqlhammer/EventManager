@@ -1,7 +1,7 @@
 # EventManager — System Testing Guide (end-to-end)
 
-**Scope**: the whole MVP across all 9 units — cloud backend, admin hub, and the judge/check-in spokes.
-**Status**: 2026-07-25 · all units merged to `main`; 96 automated tests green. Per-unit guides are linked
+**Scope**: the whole MVP across all 9 units — cloud backend, admin hub, and the judge/check-in spokes — plus post-MVP unit U9 (Read/Query API).
+**Status**: 2026-07-26 · MVP units merged to `main`; U9 on `unit/u9-read-api`; **153 automated tests green**. Per-unit guides are linked
 at the end. Where a real UI does not yet exist (MAUI shells), the guide covers the tested app-core flow
 and marks the manual UI walkthrough as pending.
 
@@ -17,13 +17,14 @@ and marks the manual UI walkthrough as pending.
 ```bash
 cd C:\repos\EventManager
 dotnet test shared/EventManager.Shared.slnx        # 42  (U1 Domain/Sync, U2 Contracts/ClientSync)
-dotnet test backend/EventManager.Backend.slnx      # 26  (U8 Payments 6, U3 Api 20)
+dotnet test backend/EventManager.Backend.slnx      # 83  (U8 Payments 6, U3 Api 20, U9 read API 57)
 dotnet test admin/EventManager.Admin.slnx          # 17  (U4a hub 5, U4b competition 7, U7 resilience 5)
 dotnet test judge/tests/EventManager.Judge.Core.Tests/EventManager.Judge.Core.Tests.csproj      # 6  (U5)
 dotnet test checkin/tests/EventManager.Checkin.Core.Tests/EventManager.Checkin.Core.Tests.csproj # 5  (U6)
 ```
-Expected: **96 passing**, 0 failing. These cover the four PBT invariants (cloud) + hub pairing/scoring/
-resilience properties + spoke durable-before-ack.
+Expected: **153 passing**, 0 failing. These cover the four PBT invariants (cloud) + hub pairing/scoring/
+resilience properties + spoke durable-before-ack + the U9 read-tier matrix, non-disclosure, and
+conditional-request properties.
 
 Optional compiling MAUI Windows heads:
 ```bash
@@ -139,3 +140,4 @@ Detail: [U5 guide](construction/u5-judge/user-testing-guide.md) · [U6 guide](co
 - Hub: [U4a](construction/u4a-hub-core/user-testing-guide.md) · [U4b](construction/u4b-hub-competition/user-testing-guide.md)
 - Resilience: [U7](construction/u7-offline-resilience/user-testing-guide.md)
 - Spokes: [U5](construction/u5-judge/user-testing-guide.md) · [U6](construction/u6-checkin/user-testing-guide.md)
+- Post-MVP read API: [U9](construction/u9-read-api/code/user-testing-guide.md) — three-tier read access, non-disclosure, conditional requests
