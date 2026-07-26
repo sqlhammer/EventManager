@@ -16,7 +16,14 @@ This creates two compounding failures for the dojo owner: financial risk (opaque
 | Tournament organizer (dojo owner) | Run a 50–300 athlete tournament with a fast setup, transparent free-to-paid pricing, and confidence the event won't fail if venue WiFi does |
 | Judges/scorekeepers | Enter scores and outcomes on their assigned mat with zero cloud dependency, even fully offline |
 | Check-in/weigh-in staff | Mark athletes present, record weight, and get automatic validation without needing internet |
-| Athletes & spectators (parents, coaches) | Follow brackets and live results on their own phone, on the venue LAN or cellular |
+| Athletes & spectators (parents, coaches) | Sign up and register online before the event from any browser, then follow brackets and live results on their own phone, on the venue LAN or cellular |
+
+## Delivery Surfaces
+EventManager meets each user on the right kind of client — an online web portal for everything before and around the event, and native apps for the offline event day itself:
+- **Online web portal (browser, zero-install):** the public and pre-event front door. Organizers create and manage events, divisions, registration windows, roles, and roster/payment; registrants and coaches sign up, build athlete profiles, register (including coach bulk entry), pay, and view results. No install — works from any laptop or phone browser. Built in Blazor and served by the cloud backend.
+- **Native operational apps (offline-first):** the venue-day tools — the Admin **hub host** (the local server that runs the event on the LAN) plus the Judge, Check-In, and Spectator apps. These are native precisely because they must keep working with zero internet, sync over the venue LAN, and pair to devices.
+
+The offline-first flagship — the whole reason EventManager exists — lives entirely in the native venue-day plane. The web portal is the online plane for the work that happens before and around the event, where connectivity is a given.
 
 ## Success Metrics
 | Metric | Target |
@@ -28,7 +35,7 @@ This creates two compounding failures for the dojo owner: financial risk (opaque
 ## Full Scope Vision
 
 ### Feature area: Registration & Payments
-Online registration, Stripe payment collection, coach bulk registration, coupons, early-bird pricing.
+Delivered through the web portal: online registration, Stripe payment collection, coach bulk registration, coupons, early-bird pricing.
 
 ### Feature area: Divisions, Brackets & Seeding
 Division configuration by weight/rank/age/gender, automatic bracket generation, seeding, academy separation.
@@ -68,3 +75,4 @@ Multi-event umbrella management for organizers running a season or circuit of to
 - mDNS device discovery can be blocked by some venue networks — needs a documented fallback (manual IP entry / QR code pairing) before launch
 - Admin hub device failing mid-event is a critical-impact risk — requires a hot-standby design from day one, not retrofitted later
 - Small-team/solo-dev support scalability is a risk every competitor in this market shares — worth deciding early how much organizer support capacity the team can realistically offer
+- The web portal is a public, internet-facing surface, which shifts two current stubs onto the critical path for a public launch: transactional email (confirmation/reset — today an outbox stub) and live payment processing (today a no-op stub), plus signup bot mitigation. Open question on timing — scope these alongside the web-portal work rather than assuming the stubs suffice for public users.
