@@ -30,7 +30,7 @@ variables:
   winnerId: ""
   disputeId: ""
 auth:
-  - id: f5f8e98e-6aed-474d-9a9e-a36be6fbc33a
+  - id: 7787a565-44e4-428d-bbd0-39bf88a2c5fc
     type: bearer
     name: bearer auth
     credentials:

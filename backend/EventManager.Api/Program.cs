@@ -65,6 +65,8 @@ builder.Services.AddScoped<EventAuthorizer>();
 builder.Services.AddScoped<CurrentUser>();
 builder.Services.AddScoped<IEmailSender, OutboxEmailSender>();
 builder.Services.AddScoped<AccountService>();
+builder.Services.AddScoped<AccountDeletionGuard>();
+builder.Services.AddScoped<AccountDeletionService>();
 builder.Services.AddScoped<EventService>();
 builder.Services.AddScoped<RegistrationService>();
 builder.Services.AddScoped<OrganizerRoleService>();

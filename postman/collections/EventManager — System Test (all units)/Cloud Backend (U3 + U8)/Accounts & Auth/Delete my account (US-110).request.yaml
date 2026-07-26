@@ -1,0 +1,17 @@
+$kind: http-request
+description: |-
+  Self-service account deletion. Re-authenticates with the current password (add `totp` if MFA is enrolled), then soft-deletes + anonymizes the caller's own account, detaches its organizer roles, and revokes all tokens. Returns 200 on success.
+
+  Negative cases: wrong password → 401; MFA enrolled but no/invalid totp → 401; caller is the SOLE Full Admin of one or more events → 409 (Account.SoleFullAdmin) listing those events — add or promote another Full Admin first. After deletion, Login with the old credentials returns 401 (non-enumerating).
+url: "{{cloudBaseUrl}}/api/accounts/me"
+method: DELETE
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "password": "{{password}}",
+      "totp": null
+    }
+order: 9000

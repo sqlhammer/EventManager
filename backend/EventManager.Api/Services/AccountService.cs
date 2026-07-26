@@ -44,6 +44,7 @@ public sealed class AccountService(
     {
         var user = await users.FindByEmailAsync(emailAddress);
         if (user is null) return Error.Unauthorized("Account.Login", "Invalid credentials."); // non-enumerating
+        if (user.DeletedAt is not null) return Error.Unauthorized("Account.Login", "Invalid credentials."); // deleted account (US-110)
 
         if (await users.IsLockedOutAsync(user))
             return Error.Forbidden("Account.Lockout", "Account temporarily locked. Try again later.");

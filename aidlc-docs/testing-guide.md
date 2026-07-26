@@ -47,6 +47,8 @@ Use `Authorization: Bearer <accessToken>` after login for every authenticated ca
 | # | Step | Endpoint | Expect |
 |---|---|---|---|
 | 1 | Register organizer | `POST /api/accounts/register` | 200; confirmation token in the **EmailOutbox** table (email stubbed). A breached password (`password`) is rejected. |
+| 1.a. | Get confirmation token | BASH `docker compose exec -T db psql -U postgres -d eventmanager -c "SELECT \"Token\" FROM \"EmailOutbox\" WHERE \"Kind\"='confirmation' AND \"ToAddress\"='organizer@example.com' ORDER BY \"Id\" DESC LIMIT 1;"` | Column: Token - Row: 1 |
+  | 1.a. | Get confirmation token | PWSH `docker compose exec -T db psql -U postgres -d eventmanager -c 'SELECT "Token" FROM "EmailOutbox" WHERE "Kind"=''confirmation'' AND "ToAddress"=''organizer@example.com'' ORDER BY "Id" DESC LIMIT 1;'` | Column: Token - Row: 1 |
 | 2 | Confirm email | `POST /api/accounts/confirm-email` | 200 (gate for event creation) |
 | 3 | Login | `POST /api/accounts/login` | `{accessToken, refreshToken, accessExpiresAt}` |
 | 4 | (opt) MFA | `POST /api/accounts/mfa/enroll` → `/mfa/confirm` | QR/`otpauth` + recovery codes; later logins need `totp` |
@@ -63,6 +65,8 @@ Use `Authorization: Bearer <accessToken>` after login for every authenticated ca
 | 15 | Results | `GET /api/results/athletes/{athleteId}` | empty until event-day events ingested |
 
 **Negative checks**: repeated bad logins → lockout; generic (non-enumerating) errors; window-closed registration → 409; Co-Organizer doing a Full-Admin-only action → 403; >5 logins/min or >10 registrations/hr per IP → 429.
+
+**Account self-deletion (US-110)**: `DELETE /api/accounts/me` with `{ "password": "...", "totp": "..." }` (totp only when MFA is enrolled). Re-authenticates, then soft-deletes + anonymizes the caller's own account, detaches its organizer roles, and revokes all tokens → 200. A subsequent login with the old credentials returns 401. Guardrails: wrong password / bad MFA → 401; if the caller is the **sole Full Admin** of any event → **409 (Account.SoleFullAdmin)** listing those events (add or promote another Full Admin first — mirrors the last-admin rule). There is no delete endpoint for *other* accounts (no global admin role by design).
 
 Stubbed by design: **email** (outbox), **card payments** (U8 stub, no live charge).
 

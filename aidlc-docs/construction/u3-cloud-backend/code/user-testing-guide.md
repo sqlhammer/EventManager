@@ -71,3 +71,13 @@ Base URL below assumes the proxy; adjust for local `dotnet run` (http://localhos
 
 ## 8. MFA (optional)
 `POST /api/accounts/mfa/enroll` (authenticated) → shared key + `otpauth://` URI + recovery codes; scan into an authenticator, then `POST /api/accounts/mfa/confirm` `{ "totp": "123456" }`. Subsequent logins then require the `totp` field.
+
+## 9. Delete your account (US-110)
+`DELETE /api/accounts/me` (authenticated) `{ "password": "<current password>", "totp": "123456" }` — `totp` only when MFA is enrolled. On success (200) the account is **soft-deleted and anonymized**: its email/name are scrubbed to `deleted-<accountId>@deleted.invalid`, the password hash is cleared, all refresh tokens are revoked, and its organizer roles are detached from every event. The `AccountId` bridge is kept so the immutable event log stays consistent.
+
+Verify:
+- **Login is dead** — `POST /api/accounts/login` with the old credentials → 401 (non-enumerating).
+- **Re-auth is enforced** — a wrong `password` (or bad/missing `totp` when MFA is on) → 401; nothing is deleted.
+- **Sole-admin guard** — if you are the only Full Admin of any event, deletion is refused with **409 `Account.SoleFullAdmin`** naming those events. Add or promote another Full Admin (US-108/109), then retry. This mirrors the last-admin guard so no event is ever orphaned.
+
+There is **no** endpoint to delete *another* user's account — the system has no global admin role (organizer authority is per-event).
