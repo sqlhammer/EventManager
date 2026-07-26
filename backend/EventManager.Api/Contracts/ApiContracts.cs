@@ -8,6 +8,7 @@ public sealed record TokenResponse(string AccessToken, string RefreshToken, Date
 public sealed record RefreshRequest(string RefreshToken, string Email);
 public sealed record MfaEnrollResponse(string SharedKey, string AuthenticatorUri, IReadOnlyList<string> RecoveryCodes);
 public sealed record MfaConfirmRequest(string Totp);
+public sealed record DeleteAccountRequest(string Password, string? Totp);
 
 // Event / division
 public sealed record CreateEventRequest(string Name, string Venue, DateOnly Date, DateOnly RegistrationStart,

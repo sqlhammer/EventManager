@@ -9,7 +9,7 @@ namespace EventManager.Api.Controllers;
 
 /// <summary>Accounts & auth (US-101/102/103). Register/login/MFA + token refresh/logout.</summary>
 [Route("api/accounts")]
-public sealed class AccountController(AccountService accounts, TokenService tokens, CurrentUser currentUser) : ApiControllerBase
+public sealed class AccountController(AccountService accounts, AccountDeletionService deletion, TokenService tokens, CurrentUser currentUser) : ApiControllerBase
 {
     [HttpPost("register")]
     [AllowAnonymous]
@@ -69,4 +69,14 @@ public sealed class AccountController(AccountService accounts, TokenService toke
     [Authorize]
     public async Task<IActionResult> ConfirmMfa(MfaConfirmRequest req, CancellationToken ct) =>
         Respond(await accounts.ConfirmMfaAsync(currentUser.RequireAccountId(), req.Totp, ct));
+
+    /// <summary>Self-service account deletion (US-110). Soft-deletes + anonymizes the caller's own
+    /// account after re-authentication; refused while they are the sole Full Admin of any event.</summary>
+    [HttpDelete("me")]
+    [Authorize]
+    public async Task<IActionResult> DeleteMe(DeleteAccountRequest req, CancellationToken ct)
+    {
+        if (await ValidateAsync(req, ct) is { } bad) return bad;
+        return Respond(await deletion.DeleteOwnAccountAsync(currentUser.RequireAccountId(), req.Password, req.Totp, ct));
+    }
 }

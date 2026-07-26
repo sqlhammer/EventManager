@@ -24,6 +24,14 @@ public sealed class LoginValidator : AbstractValidator<LoginRequest>
     }
 }
 
+public sealed class DeleteAccountValidator : AbstractValidator<DeleteAccountRequest>
+{
+    public DeleteAccountValidator()
+    {
+        RuleFor(x => x.Password).NotEmpty(); // re-authentication is mandatory for this irreversible action
+    }
+}
+
 public sealed class CreateEventValidator : AbstractValidator<CreateEventRequest>
 {
     public CreateEventValidator()

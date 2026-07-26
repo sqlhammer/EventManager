@@ -14,6 +14,7 @@ All application code is under the workspace root (`backend/`); this file is the 
 | File | Responsibility | Stories |
 |---|---|---|
 | `AccountService.cs` | register (breach check + email-confirm gate), login (lockout + MFA), TOTP enroll | US-101/102/103 |
+| `AccountDeletionService.cs` + `AccountDeletionGuard.cs` | self-service delete: re-auth (password/TOTP) → sole-Full-Admin block → soft-delete + anonymize + detach organizer roles + revoke tokens | US-110 |
 | `TokenService.cs` | JWT issue + rotating refresh + revocation (Q2=A) | US-102 |
 | `Security.cs` | `BreachedPasswordValidator` (offline, SP-5), `OutboxEmailSender` stub (Q5), `OutboundRetry` (Q3=A) | US-101/108 |
 | `EventService.cs` | event create/edit, divisions (no-overlap), payment options, weigh-in policy | US-104/105/106/107 |
@@ -33,7 +34,7 @@ All application code is under the workspace root (`backend/`); this file is the 
 `EventManager.Api/Dockerfile` (multi-stage, pinned, non-root), `docker-compose.yml` (proxy/api/db/backup), `Caddyfile`, `backup/backup.sh`, `.env.example`; `.github/workflows/backend.yml` (CI).
 
 ## Story → code traceability
-US-101→AccountController.Register+BreachedPasswordValidator · US-102→Login+TokenService · US-103→mfa/enroll,confirm · US-104→EventController.Create (+auto Full Admin) · US-105→WeighInPolicy · US-106→ConfigureDivision (overlap guard) · US-107→PaymentOptions · US-108→Organizer.Add (existing/invite) · US-109→ChangeRole/Remove (last-admin guard) · US-201/203→UpsertProfile · US-202/207/210→Register+DivisionEligibility · US-205/206→RegisterBatch (atomic+idempotent) · US-209→SetPaymentStatus/roster · US-211→Edit/Withdraw · US-504→EventIngestController · US-603→ResultsController.
+US-101→AccountController.Register+BreachedPasswordValidator · US-102→Login+TokenService · US-103→mfa/enroll,confirm · US-110→AccountController.DeleteMe (self-service soft-delete + anonymize, sole-admin guard) · US-104→EventController.Create (+auto Full Admin) · US-105→WeighInPolicy · US-106→ConfigureDivision (overlap guard) · US-107→PaymentOptions · US-108→Organizer.Add (existing/invite) · US-109→ChangeRole/Remove (last-admin guard) · US-201/203→UpsertProfile · US-202/207/210→Register+DivisionEligibility · US-205/206→RegisterBatch (atomic+idempotent) · US-209→SetPaymentStatus/roster · US-211→Edit/Withdraw · US-504→EventIngestController · US-603→ResultsController.
 
 ## Test summary (20 passing)
 - **PBT-1** eligibility determinism + order-independence (`DivisionEligibilityTests`).
