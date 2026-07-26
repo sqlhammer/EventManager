@@ -1,0 +1,15 @@
+$kind: http-request
+name: Assign device to mat/division
+description: "US-404. Mat authority (US-406): a score from a device not assigned to the match's division is rejected."
+url: "{{hubBaseUrl}}/api/events/{{eventId}}/competition/mat-assignments"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "deviceId": {{deviceId}},
+      "divisionId": {{divisionId}}
+    }
+order: 1000

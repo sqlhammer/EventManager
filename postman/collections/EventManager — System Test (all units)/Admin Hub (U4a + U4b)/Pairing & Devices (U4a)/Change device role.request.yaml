@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{hubBaseUrl}}/api/events/{{eventId}}/devices/{{deviceId}}/role"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "roleDescriptor": "CheckIn"
+    }
+order: 4000

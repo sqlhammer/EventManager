@@ -1,0 +1,28 @@
+$kind: http-request
+description: US-102. Returns {accessToken, refreshToken, accessExpiresAt}, or {mfaRequired:true} if MFA is enrolled. If MFA is on, set {{totp}} and resend.
+url: "{{cloudBaseUrl}}/api/accounts/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "email": "{{email}}",
+      "password": "{{password}}",
+      "totp": null
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      try {
+        const j = pm.response.json();
+        if (j.mfaRequired) { console.log('MFA required — run MFA Enroll/Confirm, then login again with {{totp}}.'); }
+        if (j.accessToken) { pm.collectionVariables.set('accessToken', j.accessToken); console.log('accessToken captured'); }
+        if (j.refreshToken) { pm.collectionVariables.set('refreshToken', j.refreshToken); }
+        pm.test('login ok', () => pm.expect(pm.response.code).to.eql(200));
+      } catch (e) { console.log('Login: no JSON body', e); }
+    language: text/javascript
+order: 4000

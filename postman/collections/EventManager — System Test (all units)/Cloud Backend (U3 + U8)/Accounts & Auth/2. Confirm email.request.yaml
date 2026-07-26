@@ -1,0 +1,16 @@
+$kind: http-request
+description: US-101. Gate for event creation (BR-AUTH-4). Set {{confirmToken}} from the EmailOutbox row first.
+url: "{{cloudBaseUrl}}/api/accounts/confirm-email"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "email": "{{email}}",
+      "token": "{{confirmToken}}"
+    }
+auth:
+  type: noauth
+order: 3000

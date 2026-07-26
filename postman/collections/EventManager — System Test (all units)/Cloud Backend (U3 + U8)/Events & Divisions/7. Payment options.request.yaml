@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/payment-options"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "cardEnabled": true
+    }
+order: 5000

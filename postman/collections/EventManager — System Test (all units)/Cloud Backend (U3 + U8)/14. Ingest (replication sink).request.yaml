@@ -1,0 +1,24 @@
+$kind: http-request
+description: US-504. Event-scoped JWT authz, idempotent, sequence-ordered. payloadBase64 `e30=` = `{}`. Returns AcceptedCount + per-device high-water marks. Replaying the same batch accepts 0.
+url: "{{cloudBaseUrl}}/api/ingest/batch"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "events": [
+        {
+          "eventId": {{eventId}},
+          "deviceId": 1001,
+          "sequenceNumber": 1,
+          "eventType": "MatchScored",
+          "schemaVersion": 1,
+          "payloadBase64": "e30=",
+          "occurredAt": "2026-09-12T10:00:00Z",
+          "eventScopeId": {{eventId}}
+        }
+      ]
+    }
+order: 7000

@@ -1,0 +1,5 @@
+$kind: http-request
+description: US-103. Returns sharedKey, otpauth URI (QR), and recovery codes. Requires a valid access token.
+url: "{{cloudBaseUrl}}/api/accounts/mfa/enroll"
+method: POST
+order: 5000

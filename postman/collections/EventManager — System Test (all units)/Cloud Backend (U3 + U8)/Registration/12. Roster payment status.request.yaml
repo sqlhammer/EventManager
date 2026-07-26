@@ -1,0 +1,13 @@
+$kind: http-request
+description: US-205. status ∈ {Paid, Owed, Waived} — mark Paid (cash at door) or Waived.
+url: "{{cloudBaseUrl}}/api/registration/{{registrationId}}/payment-status"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "status": "Paid"
+    }
+order: 5000

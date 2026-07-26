@@ -1,0 +1,19 @@
+$kind: http-request
+description: US-314. Recorded as an event.
+url: "{{hubBaseUrl}}/api/events/{{eventId}}/competition/disputes"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "divisionId": {{divisionId}},
+      "matchId": {{matchId}},
+      "reason": "Scorekeeper contested the final point."
+    }
+scripts:
+  - type: afterResponse
+    code: try { const j = pm.response.json(); if (j.disputeId) { pm.collectionVariables.set('disputeId', String(j.disputeId)); console.log('disputeId =', j.disputeId); } } catch (e) {}
+    language: text/javascript
+order: 6000

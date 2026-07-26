@@ -1,0 +1,24 @@
+$kind: http-request
+description: Rotates the token pair. 401 if the refresh token is invalid/expired.
+url: "{{cloudBaseUrl}}/api/accounts/refresh"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "refreshToken": "{{refreshToken}}",
+      "email": "{{email}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      try { const j = pm.response.json();
+        if (j.accessToken) pm.collectionVariables.set('accessToken', j.accessToken);
+        if (j.refreshToken) pm.collectionVariables.set('refreshToken', j.refreshToken);
+      } catch (e) {}
+    language: text/javascript
+order: 7000

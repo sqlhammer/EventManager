@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{hubBaseUrl}}/api/events/{{eventId}}/competition/disputes/{{disputeId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "resolution": "Upheld — original result stands."
+    }
+order: 7000

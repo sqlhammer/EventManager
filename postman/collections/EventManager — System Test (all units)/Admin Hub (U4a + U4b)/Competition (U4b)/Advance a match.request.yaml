@@ -1,0 +1,15 @@
+$kind: http-request
+description: US-312. Winner recorded; standings updated. method ∈ {Points, Forfeit, Disqualification, Decision}. Set {{matchId}}/{{winnerId}} from bracket state.
+url: "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/bracket:advance"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "matchId": {{matchId}},
+      "winnerId": {{winnerId}},
+      "method": "Points"
+    }
+order: 3000

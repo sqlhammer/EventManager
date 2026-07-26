@@ -1,0 +1,13 @@
+$kind: http-request
+description: US-103. Confirms enrollment with a current TOTP code. Subsequent logins then require {{totp}}.
+url: "{{cloudBaseUrl}}/api/accounts/mfa/confirm"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "totp": "{{totp}}"
+    }
+order: 6000

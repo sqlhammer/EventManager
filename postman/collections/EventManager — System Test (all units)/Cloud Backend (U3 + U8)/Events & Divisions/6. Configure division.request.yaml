@@ -1,0 +1,24 @@
+$kind: http-request
+description: US-105. An overlapping weight/rank/age/gender slice returns 409. format ∈ {SingleElimination, RoundRobin}.
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/divisions"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "weightLower": 70.0,
+      "weightUpper": 80.0,
+      "minRank": 1,
+      "maxRank": 3,
+      "minAge": 18,
+      "maxAge": 34,
+      "gender": "Male",
+      "format": "SingleElimination"
+    }
+scripts:
+  - type: afterResponse
+    code: try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('divisionId', String(j.id)); console.log('divisionId =', j.id); } } catch (e) {}
+    language: text/javascript
+order: 3000

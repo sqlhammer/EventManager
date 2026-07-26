@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{cloudBaseUrl}}/health/ready"
+method: GET
+auth:
+  type: noauth
+order: 6000

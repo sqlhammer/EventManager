@@ -1,0 +1,24 @@
+$kind: http-request
+description: US-303. Returns the QR payload (hub address + cert fingerprint + one-time token + role).
+url: "{{hubBaseUrl}}/api/pairing/tokens"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "eventId": {{eventId}},
+      "roleDescriptor": "Judge"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      try {
+        const j = pm.response.json();
+        const t = j.enrollmentToken || j.token || j.oneTimeToken || (j.qr && (j.qr.token || j.qr.enrollmentToken));
+        if (t) { pm.collectionVariables.set('enrollmentToken', t); console.log('enrollmentToken captured'); }
+        else { console.log('enrollmentToken not auto-detected — inspect the QR payload and set it manually.'); }
+      } catch (e) {}
+    language: text/javascript
+order: 1000

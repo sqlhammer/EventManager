@@ -1,0 +1,22 @@
+$kind: http-request
+description: US-201. Upsert an athlete profile. Add `?athleteId={{athleteId}}` as a query param to update an existing one.
+url: "{{cloudBaseUrl}}/api/registration/profiles"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "Alex Athlete",
+      "dateOfBirth": "2000-04-15",
+      "rank": 2,
+      "weight": 77.5,
+      "academy": "North BJJ",
+      "gender": "Male"
+    }
+scripts:
+  - type: afterResponse
+    code: try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('athleteId', String(j.id)); console.log('athleteId =', j.id); } } catch (e) {}
+    language: text/javascript
+order: 1000

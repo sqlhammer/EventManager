@@ -1,0 +1,14 @@
+$kind: http-request
+description: US-108. Full-Admin only. Provide either accountId (existing account) or email (invite).
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "accountId": null,
+      "email": "coorg@example.com"
+    }
+order: 1000

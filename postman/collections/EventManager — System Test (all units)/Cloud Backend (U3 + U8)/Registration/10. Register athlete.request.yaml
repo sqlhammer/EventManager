@@ -1,0 +1,26 @@
+$kind: http-request
+description: US-202/203. Returns fee + paymentStatus (Owed/Paid). Registering the same athlete into the same division twice is rejected.
+url: "{{cloudBaseUrl}}/api/registration"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "eventId": {{eventId}},
+      "athleteId": {{athleteId}},
+      "divisionIds": [{{divisionId}}],
+      "payByCard": false
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      try {
+        const j = pm.response.json();
+        const id = j.registrationId || j.id || (Array.isArray(j.registrationIds) && j.registrationIds[0]) || (Array.isArray(j.registrations) && j.registrations[0] && (j.registrations[0].id || j.registrations[0].registrationId));
+        if (id) { pm.collectionVariables.set('registrationId', String(id)); console.log('registrationId =', id); }
+        else { console.log('registrationId not auto-detected — inspect the response and set it manually.'); }
+      } catch (e) {}
+    language: text/javascript
+order: 2000

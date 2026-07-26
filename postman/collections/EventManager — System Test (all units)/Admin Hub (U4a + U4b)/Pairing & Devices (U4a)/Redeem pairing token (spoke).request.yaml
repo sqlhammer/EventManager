@@ -1,0 +1,18 @@
+$kind: http-request
+description: US-304. Returns device credential + Snowflake worker id + pinned cert. Re-redeeming the same token → 409 (single-use).
+url: "{{hubBaseUrl}}/api/pairing/redeem"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "enrollmentToken": "{{enrollmentToken}}",
+      "devicePublicInfo": "judge-tablet-01"
+    }
+scripts:
+  - type: afterResponse
+    code: try { const j = pm.response.json(); if (j.deviceId) { pm.collectionVariables.set('deviceId', String(j.deviceId)); console.log('deviceId =', j.deviceId, 'workerId =', j.workerId); } } catch (e) {}
+    language: text/javascript
+order: 2000

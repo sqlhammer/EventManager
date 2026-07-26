@@ -1,0 +1,25 @@
+$kind: http-request
+description: US-407. Device id comes from the X-Device-Id header (pinned credential). A revoked device → 403. Idempotent, sequence-ordered.
+url: "{{hubBaseUrl}}/api/sync/batch"
+method: POST
+headers:
+  Content-Type: application/json
+  X-Device-Id: "{{deviceId}}"
+body:
+  type: text
+  content: |-
+    {
+      "events": [
+        {
+          "eventId": {{eventId}},
+          "deviceId": {{deviceId}},
+          "sequenceNumber": 1,
+          "eventType": "MatchScored",
+          "schemaVersion": 1,
+          "payloadBase64": "e30=",
+          "occurredAt": "2026-09-12T10:05:00Z",
+          "eventScopeId": {{eventId}}
+        }
+      ]
+    }
+order: 6000
