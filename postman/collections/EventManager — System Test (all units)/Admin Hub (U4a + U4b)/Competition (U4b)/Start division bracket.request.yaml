@@ -1,0 +1,5 @@
+$kind: http-request
+description: US-311. After start, bracket regeneration is blocked.
+url: "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/bracket:start"
+method: POST
+order: 2000

@@ -1,0 +1,7 @@
+$kind: collection
+description: LAN hub walkthrough from testing-guide.md §3. Base URL {{hubBaseUrl}} (`dotnet run --project admin/EventManager.Hub`; default Kestrel http port 5000 — adjust if ASPNETCORE_URLS differs). No auth on this surface (LAN trust model).
+auth:
+  - id: ""
+    type: noauth
+    name: No Auth
+order: 2000

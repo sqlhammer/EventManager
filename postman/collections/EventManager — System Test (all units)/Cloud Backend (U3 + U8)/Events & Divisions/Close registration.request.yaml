@@ -1,0 +1,5 @@
+$kind: http-request
+description: After close, registration attempts return 409 (window closed).
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/registration/close"
+method: POST
+order: 7000

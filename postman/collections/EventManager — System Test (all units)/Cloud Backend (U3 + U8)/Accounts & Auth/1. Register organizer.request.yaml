@@ -1,0 +1,22 @@
+$kind: http-request
+description: US-101. A breached password (e.g. `password`) is rejected. Success is a generic 200 (non-enumerating).
+url: "{{cloudBaseUrl}}/api/accounts/register"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "email": "{{email}}",
+      "password": "{{password}}"
+    }
+auth:
+  type: noauth
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('registration accepted (200)', () => pm.expect(pm.response.code).to.eql(200));
+      console.log('Confirmation token is written to the EmailOutbox table (email is stubbed). Copy it into the {{confirmToken}} variable.');
+    language: text/javascript
+order: 1000

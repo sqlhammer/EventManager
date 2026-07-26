@@ -1,0 +1,37 @@
+$kind: collection
+description: |-
+  End-to-end HTTP coverage for the EventManager MVP, mirroring aidlc-docs/testing-guide.md.
+
+  Two hosts:
+  - **Cloud backend** (U3 + U8) at {{cloudBaseUrl}} — behind the TLS proxy from `docker compose up` (see backend/.env). Bearer-auth; register/confirm/login/refresh are anonymous.
+  - **Admin hub** (U4a + U4b) at {{hubBaseUrl}} — `dotnet run --project admin/EventManager.Hub`. No auth on the LAN surface.
+
+  Run order matters: Login captures the token; Create Event / Configure Division / Athlete Profile / Register capture ids into collection variables that later requests reuse. Test scripts do the capturing automatically.
+
+  Units with no HTTP surface (U7 resilience, U5/U6 spoke app-cores) are verified via `dotnet test` — see §4/§5 of the testing guide; there is nothing to call here for them.
+variables:
+  cloudBaseUrl: https://localhost
+  hubBaseUrl: http://localhost:5000
+  email: organizer@example.com
+  password: Str0ng-Passphrase-92!
+  confirmToken: ""
+  totp: ""
+  accessToken: ""
+  refreshToken: ""
+  eventId: ""
+  divisionId: ""
+  athleteId: ""
+  registrationId: ""
+  coOrganizerAccountId: ""
+  idempotencyKey: batch-001
+  enrollmentToken: ""
+  deviceId: ""
+  matchId: ""
+  winnerId: ""
+  disputeId: ""
+auth:
+  - id: f5f8e98e-6aed-474d-9a9e-a36be6fbc33a
+    type: bearer
+    name: bearer auth
+    credentials:
+      token: "{{accessToken}}"

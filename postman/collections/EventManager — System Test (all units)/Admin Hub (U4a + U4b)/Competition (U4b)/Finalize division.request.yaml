@@ -1,0 +1,5 @@
+$kind: http-request
+description: US-313. Placements by wins.
+url: "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}:finalize"
+method: POST
+order: 5000

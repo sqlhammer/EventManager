@@ -1,0 +1,18 @@
+$kind: http-request
+description: US-204. All-or-nothing; conflicts are itemized. Resubmitting with the same idempotencyKey is a no-op.
+url: "{{cloudBaseUrl}}/api/registration/batch"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "eventId": {{eventId}},
+      "entries": [
+        { "athleteId": {{athleteId}}, "divisionIds": [{{divisionId}}] }
+      ],
+      "payByCard": false,
+      "idempotencyKey": "{{idempotencyKey}}"
+    }
+order: 3000

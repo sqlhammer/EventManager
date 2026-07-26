@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "Autumn Open (updated)",
+      "venue": "City Dojo — Mat Hall B",
+      "date": "2026-09-12",
+      "registrationStart": "2026-07-01",
+      "registrationEnd": "2026-09-05",
+      "entryFee": 80.00
+    }
+order: 2000

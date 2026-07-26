@@ -1,6 +1,8 @@
 # Reference deployment for the EventManager cloud backend (Infra Design, Q1-Q5=A).
 # Provider-agnostic; no cloud IaC (NFR-6.4). Only the proxy :443 is published.
-# Build context is the repo root so the Dockerfile can copy shared/ + backend/.
+# Run from the backend/ directory (per the testing guide): `cd backend && docker compose up --build`.
+# The build context is the repo root (..) so the Dockerfile can copy shared/ + backend/;
+# volume paths are relative to this file's directory (backend/).
 services:
   proxy:
     image: caddy:2.8
@@ -8,20 +10,22 @@ services:
     ports:
       - "443:443"
     volumes:
-      - ./backend/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
       - caddy_config:/config
     restart: unless-stopped
 
   api:
     build:
-      context: .
+      context: ..
       dockerfile: backend/EventManager.Api/Dockerfile
     depends_on:
       db:
         condition: service_healthy
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
+      # Development so the app applies EF migrations at startup (Program.cs) — this local stack has
+      # no other schema-creation path (db port isn't published for a manual `dotnet ef database update`).
+      ASPNETCORE_ENVIRONMENT: Development
       ConnectionStrings__Postgres: "Host=db;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD}"
       Jwt__SigningKey: "${JWT_SIGNING_KEY}"
     expose:
@@ -54,7 +58,7 @@ services:
       POSTGRES_USER: "${POSTGRES_USER}"
       BACKUP_ENCRYPTION_KEY: "${BACKUP_ENCRYPTION_KEY}"
     volumes:
-      - ./backend/backup/backup.sh:/backup.sh:ro
+      - ./backup/backup.sh:/backup.sh:ro
       - backups:/backups
     entrypoint: ["/bin/sh", "-c", "while true; do /backup.sh; sleep 86400; done"]  # daily (NFR-3.10)
     restart: unless-stopped

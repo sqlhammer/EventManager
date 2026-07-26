@@ -1,0 +1,24 @@
+$kind: http-request
+description: US-104. Creator becomes Full Admin. Requires a confirmed email. weighInPolicyMode ∈ {Strict, AutoMove, Tolerance}; tolerancePercent required only for Tolerance.
+url: "{{cloudBaseUrl}}/api/events"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "name": "Autumn Open",
+      "venue": "City Dojo",
+      "date": "2026-09-12",
+      "registrationStart": "2026-07-01",
+      "registrationEnd": "2026-09-05",
+      "entryFee": 75.00,
+      "weighInPolicyMode": "Strict",
+      "weighInTolerancePercent": null
+    }
+scripts:
+  - type: afterResponse
+    code: try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('eventId', String(j.id)); console.log('eventId =', j.id); } } catch (e) {}
+    language: text/javascript
+order: 1000

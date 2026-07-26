@@ -1,0 +1,14 @@
+$kind: http-request
+description: mode ∈ {Strict, AutoMove, Tolerance}. tolerancePercent applies to Tolerance.
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/weigh-in-policy"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "mode": "Tolerance",
+      "tolerancePercent": 5.0
+    }
+order: 4000

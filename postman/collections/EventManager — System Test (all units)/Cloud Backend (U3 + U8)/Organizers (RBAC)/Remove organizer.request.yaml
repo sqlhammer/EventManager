@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers/{{coOrganizerAccountId}}"
+method: DELETE
+order: 3000

@@ -37,8 +37,9 @@ dotnet build checkin/EventManager.Checkin/EventManager.Checkin.csproj  # Build s
 
 Bring it up (see [U3 guide](construction/u3-cloud-backend/code/user-testing-guide.md) for detail):
 ```bash
+cd C:\repos\EventManager
 cd backend && cp .env.example .env   # edit secrets
-docker compose up --build            # proxy(TLS) + api + db + backup
+docker compose up --build -d           # proxy(TLS) + api + db + backup
 curl -k https://localhost/health/ready   # → Healthy (deep DB probe)
 ```
 Use `Authorization: Bearer <accessToken>` after login for every authenticated call.

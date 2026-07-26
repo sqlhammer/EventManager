@@ -1,0 +1,12 @@
+$kind: http-request
+url: "{{cloudBaseUrl}}/api/registration/{{registrationId}}"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "divisionIds": [{{divisionId}}]
+    }
+order: 4000

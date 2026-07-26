@@ -1,0 +1,40 @@
+name: EventManager — Local
+values:
+  - key: cloudBaseUrl
+    value: 'https://localhost'
+  - key: hubBaseUrl
+    value: 'http://localhost:5000'
+  - key: email
+    value: organizer@example.com
+  - key: password
+    value: Str0ng-Passphrase-92!
+  - key: confirmToken
+    value: ''
+  - key: totp
+    value: ''
+  - key: accessToken
+    value: ''
+  - key: refreshToken
+    value: ''
+  - key: eventId
+    value: ''
+  - key: divisionId
+    value: ''
+  - key: athleteId
+    value: ''
+  - key: registrationId
+    value: ''
+  - key: coOrganizerAccountId
+    value: ''
+  - key: idempotencyKey
+    value: batch-001
+  - key: enrollmentToken
+    value: ''
+  - key: deviceId
+    value: ''
+  - key: matchId
+    value: ''
+  - key: winnerId
+    value: ''
+  - key: disputeId
+    value: ''

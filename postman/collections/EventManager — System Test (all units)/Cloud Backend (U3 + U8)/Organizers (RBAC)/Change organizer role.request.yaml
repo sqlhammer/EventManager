@@ -1,0 +1,14 @@
+$kind: http-request
+description: US-109. newRole ∈ {FullAdmin, CoOrganizer}. Demoting the last Full Admin is refused.
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers/role"
+method: PUT
+headers:
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "targetAccountId": {{coOrganizerAccountId}},
+      "newRole": "CoOrganizer"
+    }
+order: 2000

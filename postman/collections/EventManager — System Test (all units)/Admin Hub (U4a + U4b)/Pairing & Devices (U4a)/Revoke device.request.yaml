@@ -1,0 +1,5 @@
+$kind: http-request
+description: US-305/508. Revoke frees the worker id. A later sync from that device → 403.
+url: "{{hubBaseUrl}}/api/events/{{eventId}}/devices/{{deviceId}}"
+method: DELETE
+order: 5000
