@@ -870,3 +870,10 @@ We need to create GET endpoints for:
 **Context**: END-OF-UNIT approval for U9; merging to main
 
 ---
+
+## END-OF-UNIT — U9 MERGED to main
+**Timestamp**: 2026-07-27T00:00:00Z
+**AI Response**: "Merged unit/u9-read-api into main with --no-ff (merge commit 1a0e552); 88 files, +6200/-195. Deleted the merged branch with `git branch -d` (safe form — refuses unless fully merged), matching the repo convention where no prior unit/* branch survives its merge. Noted that commit 13ece8d 'Fixed postman collection errors' on the branch was the USER's, made after my assertion fix — it normalized the directory-format YAML to the Postman extension's canonical layout (single-line descriptions as plain scalars rather than block scalars, block-scalar code indented 6 not 8). Content was unchanged, and the merge preserved it since it was a linear branch ancestor. Verified post-merge that the two Postman representations still agree: 15 requests each, URLs identical, test scripts identical after whitespace normalization. Re-ran the full suite on main: 153 passing (shared 42, backend 83, admin 17, judge 6, checkin 5) — no regression. Updated the eventmanager-aidlc-orientation memory with U9 as-merged, the three key design decisions, and a new Postman note (two representations must both be updated; the YAML is the extension's canonical format; use headers.has() not headers.get() for absent-header assertions). Local main is 8 commits ahead of origin/main — NOT pushed, as pushing was not requested."
+**Context**: U9 complete and merged; awaiting direction on push and on remaining optional work
+
+---
