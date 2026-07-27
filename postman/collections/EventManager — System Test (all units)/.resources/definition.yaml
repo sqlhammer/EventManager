@@ -33,7 +33,7 @@ variables:
   eventEtag: ""
   otherDivisionId: ""
 auth:
-  - id: 4547636a-10e0-4830-8af3-7f17e945f356
+  - id: 54966991-5bd7-452c-b35e-6bc36688c3f9
     type: bearer
     name: bearer auth
     credentials:
