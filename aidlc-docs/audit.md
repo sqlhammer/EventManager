@@ -877,3 +877,13 @@ We need to create GET endpoints for:
 **Context**: U9 complete and merged; awaiting direction on push and on remaining optional work
 
 ---
+
+## CONSTRUCTION — Build and Test stage COMPLETE (project-level)
+**Timestamp**: 2026-07-27T00:00:00Z
+**User Input**: "The web portal is not ready because I have not finished deciding how to go about design. If the other work is ready, we can execute that."
+**Build Status**: Success — 5 solutions, 0 errors, 0 warnings, .NET SDK 10.0.302
+**Test Status**: Unit PASS (153/153). Integration MANUAL-ONLY. Performance NOT EXECUTED. Security PARTIAL. Contract N/A. E2E BLOCKED.
+**AI Response**: "Assessed the three remaining work items for readiness before acting, and verified the blockers rather than trusting memory: MAUI Android/iOS/Mac heads are genuinely blocked (confirmed `java` not on PATH, ANDROID_HOME unset, no Android SDK; iOS/Mac need a Mac); SMTP and real payments are blocked on provider decisions; SQLCipher needs a key-management decision. Two items were READY: the project-level Build-and-Test stage (aidlc-docs/construction/build-and-test/ did not exist and state line 72 was still unchecked) and the hub->cloud HTTP replication adapter (both ends already exist — ReplicationClient, EventIngestController, and the shared ReplicationBatchDto). Executed Build-and-Test. Also corrected a possible misreading in my earlier summary: the 'Build and Test COMPLETE' line under U9 was that unit's per-unit build/test, not this project-level stage. Generated six artifacts with measured data rather than template placeholders — real per-assembly test counts (Domain 20, Sync 11, Contracts 4, ClientSync 7, Payments 6, Api 77, Hub 17, Judge 6, Checkin 5 = 153), real NFR targets (U3-NFR-P1 p95 <500ms, NFR-5.1 300 athletes/~8 mats/~20 devices, NFR-4.1 80% coverage), and real troubleshooting entries drawn from defects actually hit this session (the stale-container 405; the dotnet-new-maui cwd drift). Stated plainly what has NOT been done rather than implying coverage: no load test has ever been run so no performance pass/fail is claimed; integration is manual with two scenarios blocked on the missing HTTP adapter; the CI coverage gate and SBOM/dependency-scan steps are placeholders, not controls; logging is console-only with no alerting or retention. Concluded 'Not ready for Operations' despite all tests passing, because the gaps are operational rather than functional. Prioritized five unblocked next steps, led by the HTTP replication adapter."
+**Files Generated**: build-instructions.md, unit-test-instructions.md, integration-test-instructions.md, performance-test-instructions.md, security-test-instructions.md, build-and-test-summary.md
+
+---

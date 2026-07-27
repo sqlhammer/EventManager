@@ -69,7 +69,7 @@
 - [x] CONSTRUCTION: U5 Judge — **COMPLETE & MERGED** to main 2026-07-25 (merge 5b992db); `judge/EventManager.Judge.Core` + compiling MAUI Windows head + 6 tests.
 - [x] CONSTRUCTION: U6 Check-In — **COMPLETE & MERGED** to main 2026-07-25 (merge 29487fd); `checkin/EventManager.Checkin.Core` + compiling MAUI Windows head + 5 tests. FINAL unit — MVP unit set complete.
 - [x] REFACTOR SUB-UNIT **R1 — Ternary Elimination** — **COMPLETE & MERGED** 2026-07-25. Removed all 30 ternary `?:` occurrences across shared/backend/admin (21 files) per CS-1; kept `??`/`?.`. All 80 tests green (shared 42, backend 26, admin 12). Branch `refactor/r1-ternary`.
-- [ ] CONSTRUCTION: Build and Test (after all units)
+- [x] CONSTRUCTION: Build and Test (after all units) — **COMPLETE 2026-07-27**. Artifacts in `construction/build-and-test/`: build-instructions, unit-test-instructions, integration-test-instructions, performance-test-instructions, security-test-instructions, build-and-test-summary. Build 0 warnings; **153 unit tests pass**. Integration = manual only (post-MVP per NFR-4.4), 2 scenarios blocked on the missing HTTP replication adapter. **Performance NOT executed** (no load test run). Contract tests N/A (shared library, not a versioned service API). E2E blocked (MAUI heads are template shells). **Not ready for Operations** — SBOM, CI dependency scan, coverage gate, centralized logging + alerting all outstanding.
 
 ## Post-MVP Increment — Unit U9 Read/Query API (started 2026-07-26)
 - **Request**: GET endpoints for event, division, weigh-in policy, registrant, and account-with-roles (single + collection; **9 endpoints** — the weigh-in-policy collection form was removed from scope 2026-07-26, so that resource is single-only)
