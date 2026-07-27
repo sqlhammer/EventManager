@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  US-706. Public tier and above — a prospective registrant needs the policy to judge the risk of competing at their current weight.
+
+  `tolerancePercent` is present **only** when `mode` is Tolerance. There is no collection form of this resource: an event has exactly one policy.
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/weigh-in-policy"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+        pm.test('200 OK', () => pm.response.to.have.status(200));
+        const p = pm.response.json();
+        pm.test('tolerance only under Tolerance mode', () => {
+          if (p.mode === 'Tolerance') pm.expect(p.tolerancePercent).to.not.be.null;
+          else pm.expect(p.tolerancePercent).to.be.null;
+        });
+    language: text/javascript
+order: 7000

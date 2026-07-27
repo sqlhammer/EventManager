@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  US-710. Replays the ETag captured by request 17. A match returns **304 with no body**, and no read-model table is queried to produce it.
+
+  Set the `If-None-Match` header to `{{eventEtag}}` (already configured below).
+
+  The ETag covers `(endpoint, eventId, watermark, tier, flags)` — not the watermark alone. If you register for this event and re-run request 17, the ETag **changes**, because your tier changed. That is deliberate: a watermark-only tag would return 304 here and silently withhold the detail fields you just earned.
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}"
+method: GET
+headers:
+  If-None-Match: "{{eventEtag}}"
+scripts:
+  - type: afterResponse
+    code: |-
+        pm.test('304 Not Modified', () => pm.response.to.have.status(304));
+        pm.test('no body', () => pm.expect((pm.response.text() || '').length).to.eql(0));
+    language: text/javascript
+order: 3000

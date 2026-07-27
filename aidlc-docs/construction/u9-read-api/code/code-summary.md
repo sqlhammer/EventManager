@@ -39,6 +39,12 @@
 | `ReadEtagTests.cs` | US-710 — watermark advance, tier sensitivity, flag sensitivity, opacity, `If-None-Match`, and the U9-CON-2 demonstration |
 | `ReadPropertyTests.cs` | PBT properties P1–P6 |
 
+### API collection — `postman/`
+| Path | Change |
+|---|---|
+| `EventManager.postman_collection.json` | New **Read API (U9)** folder: 12 endpoint requests (incl. `includeCompleted` / `includeWithdrawn` variants and the conditional-GET pair) + 3 negative requests asserting 404-not-403. New variables `eventEtag`, `otherDivisionId`. Parent folder renamed to *Cloud Backend (U3 + U8 + U9)* |
+| `collections/…/Cloud Backend (U3 + U8 + U9)/Read API (U9)/` | Same 15 requests in Postman directory format, **generated from the JSON** so the two representations cannot drift |
+
 ## Files modified
 | File | Change |
 |---|---|

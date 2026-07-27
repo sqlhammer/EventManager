@@ -77,6 +77,18 @@ property `Etag_is_tier_sensitive_at_a_fixed_watermark`.
 
 ## 3. Live API walkthrough
 
+### Easiest path — Postman
+Import `postman/EventManager.postman_collection.json` (or open the directory-format copy under
+`postman/collections/`) and use **Cloud Backend (U3 + U8 + U9) → Read API (U9)**. It has all nine
+endpoints plus the inclusion-flag variants, a conditional-request pair that captures and replays the
+ETag, and three negative requests that assert 404-not-403. Run requests 1–13 in the sibling folders
+first so `eventId`, `divisionId`, and `registrationId` are populated.
+
+The tier model needs two accounts: register a second one, log in as it, and re-run **NEG 3** — the
+roster must return 404.
+
+### Manual path — curl
+
 ```bash
 cd backend
 cp .env.example .env          # if not already present

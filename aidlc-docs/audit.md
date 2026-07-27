@@ -830,3 +830,11 @@ We need to create GET endpoints for:
 **Context**: CONSTRUCTION - U9 code complete, 153 tests green; awaiting end-of-unit approval before merge to main
 
 ---
+
+## CONSTRUCTION — U9 Postman collection updated (gap caught by user)
+**Timestamp**: 2026-07-26T00:00:00Z
+**User Input**: "You did not update the postman collection"
+**AI Response**: "Correct — I missed it. The repo carries the API collection in TWO representations and both were stale: postman/EventManager.postman_collection.json and a Postman directory-format copy under postman/collections/EventManager - System Test (all units)/ (52 files). Added a 'Read API (U9)' folder to both with 15 requests: the 9 endpoints, includeCompleted/includeWithdrawn variants, a conditional-GET pair that captures the ETag into a new eventEtag variable and replays it expecting 304, and 3 negative requests (unknown event id, cross-event division id, roster as non-organizer) that assert 404 AND explicitly assert never-403. Test scripts assert the tier-visible behaviours: every collection item carries accessTier, the cross-scope collection has no ETag, the registrant LIST omits profile fields, registrant DETAIL has no ETag (U9-CON-2), tolerance present only under Tolerance mode, and no credential material in account responses. Added variables eventEtag and otherDivisionId; renamed the parent folder 'Cloud Backend (U3 + U8)' to 'Cloud Backend (U3 + U8 + U9)' in both representations (git recorded pure renames). The directory-format files are GENERATED FROM THE JSON so the two cannot drift. Verified: JSON re-serialization preserved all 43 pre-existing requests unchanged (name+method+url compared before/after — zero altered or lost), all 16 new YAML files parse, and their name+url set matches the JSON exactly. Also reverted an unrelated stray modification to postman/collections/.../.resources/definition.yaml that had dropped the collection 'name:' field and regenerated the auth id — not my change and a regression, so restored to the committed version. Updated user-testing-guide.md section 3 to lead with the Postman path, and code-summary.md to list the collection changes."
+**Context**: CONSTRUCTION - U9 deliverable gap closed; still awaiting end-of-unit approval before merge
+
+---
