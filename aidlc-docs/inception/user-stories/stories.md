@@ -3,7 +3,7 @@
 **Organization**: Epic-based hybrid — epics follow the product's journey phases; each story is tagged with persona and requirement IDs.
 **Acceptance criteria**: Given/When/Then for behavioral/event-day flows; checklists for CRUD/setup stories.
 **Prioritization**: Delivery-dependency ordering (see "Dependency ordering" note per epic and §Ordering Summary at the end). No MoSCoW labels per user decision.
-**Count**: 66 stories across 7 epics — 56 MVP (Epics 1–6) plus 10 in Epic 7 (unit U9 Read/Query API, added 2026-07-26).
+**Count**: 76 stories across 8 epics — 56 MVP (Epics 1–6), 10 in Epic 7 (unit U9 Read/Query API, added 2026-07-26), 10 in Epic 8 (unit U10 HTTP Replication Adapter, added 2026-07-27).
 
 Personas: P1 Organizer · P2 Coach · P3 Registrant · P4 Judge · P5 Check-In Staff (see `personas.md`)
 
@@ -376,6 +376,8 @@ As an organizer, I want the hub to mirror its event log to the cloud whenever in
 **Then** the hub replicates pending events to the cloud in sequence order with bounded retry/backoff (NFR-3.8)
 **And** after an outage of any length, replay resumes from the last acknowledged sequence number with no gaps and no duplicates (cloud `AppendIfNotExists` idempotence)
 
+> **Delivery note (2026-07-27)**: U7 satisfied this story only through the **in-process** `StoreBackedReplicationTransport`. Over a real network it was not yet true — the HTTP transport, credential, and failure handling arrive with unit U10; see Epic 8 (US-802, US-803, US-804, US-805).
+
 ### US-505 — Hub local backup export (P1) [FR-4.9]
 As an organizer, I want automatic periodic and on-demand local backups of the event log so that I have a recovery path even with zero internet.
 - [ ] Automatic snapshot at a configurable interval during a live event; manual "Export backup now"
@@ -421,6 +423,8 @@ As an organizer, I want confirmation that the cloud mirror holds 100% of the eve
 **Given** an ended event and eventual internet connectivity
 **When** replication completes
 **Then** the hub verifies cloud sequence completeness per device stream and shows "fully replicated — N events"; the success metric is zero data loss (NFR-1.1)
+
+> **Delivery note (2026-07-27)**: verified in-process by U7 only. The close-out flush that makes this reachable over a real network — and the reporting when the cloud is short — arrive with unit U10; see US-807.
 
 ### US-603 — Registrant results & history (P2, P3) [FR-1.2]
 As a registrant or coach, I want to see results and registration history in my account so that the event has a permanent record.
@@ -649,6 +653,188 @@ As an API client, I want conditional requests so that polling an event I already
 
 ---
 
+# EPIC 8 — Hub Identity & Cloud Replication
+*Unit U10 (post-MVP, added 2026-07-27). The hub earns its own cloud identity and replicates over a real network — the seam U7 left deferred.*
+**Dependency ordering**: E8 follows E3 (a hub exists and holds an event). US-801 precedes US-802, which precedes every other story in the epic; US-807 closes the arc.
+**Organization**: journey-based (plan decision Q2=A). Every story is P1 Organizer. Behaviour with no human actor — failure classification, circuit breaker, batch splitting, cursor seeding — is expressed as acceptance criteria on the outcome it produces (Q4=B), so criteria describe *observable* behaviour rather than mechanism.
+
+### US-801 — Issue a hub credential for my event (P1) [U10-FR-2]
+As an organizer, I want to issue a credential that lets my hub — and only my hub, and only for this event — send its log to the cloud, so that replication does not depend on my personal login living on a venue laptop.
+
+**Given** I am signed in as an organizer with rights on an event
+**When** I issue a hub credential for that event
+**Then** I am shown the credential value exactly once and told it cannot be retrieved again
+**And** it is bound to that one event, carries an expiry I can see, and permits only sending event batches and reading replication progress — nothing else
+**And** the cloud stores only a hash of it, so no one holding database access can read back a working credential
+
+**Given** I hold an organizer role on event A but not event B
+**When** I attempt to issue a hub credential for event B
+**Then** the request is refused
+
+### US-802 — Get the credential onto the hub (P1) [U10-FR-5, U10-CON-5]
+As an organizer setting up for event day, I want to install the credential on my hub so replication starts working, without needing to understand how it is stored.
+
+**Given** a hub with no credential installed
+**When** I start it
+**Then** it runs the event normally and simply does not replicate, reporting "no cloud credential" rather than failing, erroring, or retrying in a loop
+
+**Given** I install a valid credential
+**When** replication next runs
+**Then** it succeeds, without the hub needing to be restarted
+
+**Given** a credential is installed
+**When** a copy of the hub's database is taken to another machine
+**Then** the credential in that copy cannot be used to replicate
+
+*Delivery mechanism is deliberately unspecified here (plan decision Q5=A). U10-CON-5 records that the hub has no UI to receive a credential; Functional Design chooses between a hub admin endpoint, a first-run config bootstrap, and hub-initiated enrolment.*
+
+### US-803 — Replicate to the cloud while the event runs (P1) [U10-FR-1, U10-FR-10, U10-FR-13, U10-FR-19, U10-NFR-1, U10-NFR-8]
+As an organizer, I want the cloud copy to stay close to live while the event is running, so that an off-site copy exists at all times without anyone tending it.
+
+**Given** a hub with a valid credential and working internet
+**When** events are recorded during the event
+**Then** they are present in the cloud within 5 minutes of being recorded locally
+
+**Given** no new events have been recorded for some time but a backlog remains
+**Then** the backlog is still drained — progress does not wait for the next event to happen to be recorded
+
+**Given** a backlog larger than one batch
+**When** replication runs
+**Then** it continues until the backlog is empty, splitting batches that would be too large rather than failing on them
+
+**Given** the same events are sent twice
+**Then** the cloud gains nothing from the second send and reports the same progress
+
+**Given** replication is running during a live event
+**Then** check-in, weigh-in, scoring, and bracket operations remain responsive (NFR-5.1)
+
+### US-804 — An internet outage costs me nothing (P1) [U10-FR-6, U10-FR-7, U10-FR-8, U10-FR-9, U10-NFR-3, U10-NFR-4]
+As an organizer at a venue with unreliable internet, I want an outage to be a non-event, so that nobody running the tournament ever has to think about the cloud.
+
+**Given** venue internet drops mid-event
+**When** the hub attempts to replicate
+**Then** nothing is interrupted and no error is surfaced to the people running the event
+**And** after repeated connection failures the hub stops attempting for a cool-down period rather than retrying continuously against a dead link
+
+**Given** connectivity returns
+**When** the hub next attempts replication
+**Then** it resumes from the last acknowledged position with no gaps and no duplicates
+
+**Given** a failure that can never succeed on retry — for example the credential has been revoked
+**Then** the hub does not retry it
+**And** it is reported distinctly from an outage, because the operator's response differs: an outage needs waiting, a revoked credential needs a new credential
+
+**Given** the cloud is throttling the hub
+**Then** the hub waits as instructed and continues, rather than treating throttling as a failure
+
+**Given** any single attempt hangs
+**Then** it is abandoned after a bounded time rather than blocking replication indefinitely
+
+**Failure classification** (which conditions are retried):
+
+| Condition | Retried |
+|---|---|
+| No network / connection refused / DNS failure | Yes — and repeated failures open the cool-down |
+| Request timeout | Yes |
+| Cloud unavailable or erroring (server-side failure) | Yes |
+| Throttled (rate limit) | Yes, after the wait the cloud asks for |
+| Credential missing, invalid, expired, or revoked | **No** |
+| Credential valid but not for this event | **No** |
+| Batch rejected as malformed or oversized | **No** |
+| Response cannot be understood | **No** |
+
+### US-805 — Restarting the hub does not re-send the whole event (P1) [U10-FR-12, U10-FR-19]
+As an organizer whose hub was restarted mid-event, I want replication to pick up where the cloud actually is, so that a restart does not cause a long, pointless re-upload during a live event.
+
+**Given** a hub that has already replicated most of an event
+**When** the hub process restarts
+**Then** replication resumes from the cloud's actual position rather than from the beginning of the event
+
+**Given** the cloud cannot be reached at the moment the hub starts
+**Then** the hub still starts and still replicates correctly once the cloud is reachable — re-sending already-stored events is wasteful but never incorrect
+
+### US-806 — See whether the cloud is current, at the venue (P1) [U10-FR-16, U10-FR-17, U10-FR-18, U10-CON-2]
+As an organizer, I want to see at a glance whether the cloud copy is keeping up, so that I find out about a replication problem during the event rather than after it.
+
+**Given** the hub is running
+**When** I check hub status
+**Then** I can see when replication last succeeded, how many events are still pending, and whether replication is currently in a cool-down
+
+**Given** there is no internet at the venue
+**Then** that status is still available locally — knowing whether the cloud is current must not itself require reaching the cloud
+
+**Given** cloud-side metrics are being collected
+**Then** it is explicit that they stop arriving during an outage: silence in the cloud view means "the hub cannot report right now", never "the hub is fine" (U10-CON-2)
+
+### US-807 — Close the event knowing everything is mirrored (P1) [U10-FR-11, U10-NFR-2]
+As an organizer packing up, I want confirmation that the cloud holds 100% of the event log before I retire the hub, so that I never discard the only copy of something.
+
+**Given** an ended event and internet connectivity
+**When** I close out the event
+**Then** replication is driven to completion and I am told whether the cloud holds every locally recorded event
+
+**Given** the cloud is short of the local log
+**Then** I am told how much is outstanding and the event is **not** reported as fully replicated
+
+**Given** no new events are being recorded — which is always true at close-out
+**Then** the close-out still completes, because it does not depend on new activity to trigger replication
+
+### US-808 — Revoke a hub credential (P1) [U10-FR-4]
+As an organizer whose hub was lost, stolen, or retired, I want to revoke its credential immediately, so that a device I no longer control cannot write to my event.
+
+**Given** a hub whose credential I revoke
+**When** that hub next attempts to replicate
+**Then** it is refused, and it does not retry
+
+**Given** the revoked hub is still at a venue running an event
+**Then** it keeps its local event log and keeps running the event locally — revocation removes cloud access, it does not disable the hub mid-event
+
+**Given** data that hub had already replicated
+**Then** it is unaffected by the revocation
+
+**Given** a credential whose expiry has passed
+**Then** it stops working exactly as a revoked one does
+
+### US-809 — A hub credential cannot be misused (P1, cross-cutting security) [U10-FR-3, U10-FR-4, U10-FR-14, U10-NFR-5, U10-NFR-6]
+As an organizer, I want a hub credential to be useless for anything except its own event, so that a leaked or stolen credential has a bounded, recoverable blast radius.
+
+*This story is deliberately cross-cutting rather than a journey moment (plan decision Q8=A) — it owns every negative case for the epic, so no other story restates them.*
+
+**Given** a credential issued for event A
+**When** it is used to send events for event B
+**Then** the request is refused and nothing from the batch is stored
+
+**Given** a revoked or expired credential
+**Then** every request made with it is refused
+
+**Given** the hub is configured with an unencrypted cloud address
+**When** it starts
+**Then** it refuses to replicate, unless a development override has been explicitly enabled
+
+**Given** any log line, metric, status response, or error message produced by the hub or the cloud
+**Then** no credential value appears in it, in whole or in part
+
+**Given** someone with read access to the cloud's database
+**Then** they cannot recover a usable credential from it
+
+**Given** a credential is used to attempt anything beyond sending batches and reading replication progress
+**Then** it is refused — it carries no ability to read event data, manage roster, or administer accounts
+
+### US-810 — Ingest survives abuse and oversized batches (P1) [U10-FR-15, U10-FR-8, U10-FR-13]
+As an organizer, I want the cloud's ingest endpoint to stay available under a flood or a malformed oversized batch, so that one misbehaving hub cannot break replication for every other event.
+
+**Given** a batch larger than the accepted request size
+**When** it is sent
+**Then** it is rejected without consuming server resources, and the rejection is not retried — and a well-behaved hub never produces one, because it splits first (US-803)
+
+**Given** a caller sending far above the expected rate
+**Then** requests are throttled
+
+**Given** my own hub is throttled while draining a large backlog after an outage
+**Then** it slows down and still completes the drain rather than failing it (see US-804)
+
+---
+
 # Traceability Matrix (FR → Stories)
 
 | Requirement | Stories |
@@ -713,6 +899,45 @@ All twelve U9 requirements map to at least one story. **INVEST note for Epic 7**
 independent of one another but depend on US-701..703, which own the authorization criteria — a
 deliberate consequence of the plan decision C2=C, not an oversight.
 
+| U10 Requirement (unit U10) | Stories |
+|---|---|
+| U10-FR-1 HTTP transport implementation | US-803 |
+| U10-FR-2 Cloud issues hub credentials | US-801 |
+| U10-FR-3 Per-event authorization of hub credentials | US-809 |
+| U10-FR-4 Revoked/expired refused, never retried | US-808, US-809 |
+| U10-FR-5 Hub stores credential protected | US-802 |
+| U10-FR-6 Failure classification | US-804 (table) |
+| U10-FR-7 Retry only transient | US-804 |
+| U10-FR-8 Honour throttling instruction | US-804, US-810 |
+| U10-FR-9 Circuit breaker | US-804 |
+| U10-FR-10 Three replication triggers | US-803, US-807 |
+| U10-FR-11 Close-out flush + completeness | US-807 |
+| U10-FR-12 Cursor seeding from the cloud | US-805 |
+| U10-FR-13 Batch caps and splitting | US-803, US-810 |
+| U10-FR-14 TLS enforced | US-809 |
+| U10-FR-15 Body cap and rate limit on ingest | US-810 |
+| U10-FR-16 Structured logging, no secrets | US-806, US-809 |
+| U10-FR-17 Replication status on hub health | US-806 |
+| U10-FR-18 Metrics export | US-806 |
+| U10-FR-19 Idempotent and gap-free end to end | US-803, US-805 |
+| U10-NFR-1 5-minute lag | US-803 |
+| U10-NFR-2 Completeness before close | US-807 |
+| U10-NFR-3 Bounded call time | US-804 |
+| U10-NFR-4 Outage is a no-op | US-804 |
+| U10-NFR-5 No credential in output | US-809 |
+| U10-NFR-6 TLS in transit | US-809 |
+| U10-NFR-8 No degradation during an event | US-803 |
+
+All nineteen U10-FR and seven of eight U10-NFR map to at least one story. **U10-NFR-7 has no story
+by design** — it inherits U3's availability/RTO/RPO targets unchanged and adds no new cloud workload,
+so there is nothing new for an organizer to observe.
+
+**INVEST note for Epic 8**: journey ordering makes these stories sequentially dependent — US-802
+needs a credential from US-801, US-807 needs replication from US-803 — so *Independent* holds in the
+"separately deliverable and testable" sense, not the "any order" sense. That is an accepted
+consequence of plan decision Q2=A, recorded rather than glossed. US-809 and US-810 are genuinely
+independent of the journey.
+
 Every FR maps to ≥1 story (or a documented rationale); every story maps to ≥1 FR. INVEST reviewed per story: stories are independently deliverable within epic dependency order, negotiable in detail, valuable to a named persona, estimable at medium granularity, small (single capability/scenario), and testable via their criteria.
 
 # Ordering Summary (delivery dependencies)
@@ -725,6 +950,8 @@ E1 Pre-Event Setup
 E5 Offline Resilience: designed first (sync core), verified across E3/E4
 E6 Results & Wrap-Up: after E4 per division; cloud completeness after E5 replication
 E7 Reading Event Data: after E1/E2 data exists; US-701..703 (tiers) precede US-704..710
+E8 Hub Identity & Cloud Replication: after E3 (a hub exists holding an event);
+   US-801 -> US-802 -> US-803/804/805/806 -> US-807; US-809/810 independent of that chain
 ```
 
 The sync/event-log core underpinning E5 is the deepest dependency in the system and should be the first unit built — this will drive Units Generation.

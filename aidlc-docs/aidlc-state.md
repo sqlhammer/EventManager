@@ -94,6 +94,32 @@
 - [x] CONSTRUCTION: **U9 Read/Query API — COMPLETE & MERGED** to main 2026-07-27. `backend/EventManager.Api` gains 9 GET endpoints under a three-tier read model (Public/Registrant/Organizer), an API-local `ReadAuthorizer` (U9-CON-1 — shared enum deliberately NOT extended, so `shared/` and `admin/` are untouched), watermark ETags hashing `(endpoint, eventId, watermark, tier, flags)`, and 404-never-403 non-disclosure. **153 tests green** (shared 42, backend 83, admin 17, judge 6, checkin 5). Postman collection updated in both representations. Not pushed to any remote.
 - **Process for U9**: branch `unit/u9-read-api` from main; end-of-unit deliverables = as-built architecture diagrams + developer verification guide before merge ✅ both done
 
+## Post-MVP Increment — Unit U10 HTTP Replication Adapter (started 2026-07-27)
+- **Request**: implement the deferred hub→cloud HTTP replication seam (`ICloudReplicationTransport`), unblocking integration Scenarios 2 and 4
+- **Branch**: not yet created — will be `unit/u10-http-replication` per the per-unit git branch process requirement
+- [x] INCEPTION: Requirements Analysis — **APPROVED 2026-07-27** (`inception/requirements/u10-http-replication-requirements.md`)
+  - Verification answers: Q1=C, Q2=C, Q3=A, Q4=C, Q5=D, Q6=B, Q7=B, Q8=C, Q9=C, Q10=D (5 min), Q11=D
+  - Clarification answers: F1=B (DPAPI-wrap the credential), F2=C (append-driven + drain timer + close-out flush), F3=B (OTLP collector in the cloud Compose stack), F4=B (one in-process credential-path E2E test)
+  - F1=B **closed a blocking SECURITY-12/SECURITY-01 finding** (Q1=C long-lived credential + Q2=C plaintext `hub.db` row)
+  - F2=C closed a functional gap: Q5=D append-driven alone could not satisfy Q4=C breaker recovery or Q10=D close-out completeness
+  - **Scope is larger than the request implied** — three surfaces (`admin/`, `backend/`, Compose stack) + modification of merged U7 code. `shared/` untouched.
+  - Decisions D-U10-01..15; requirements U10-FR-1..19, U10-NFR-1..8
+  - Open design constraints carried forward: U10-CON-1 (DPAPI makes the hub library Windows-only in code — needs an `ISecretProtector` seam), U10-CON-2 (cloud-side collector is blind during the outages the unit exists to survive), U10-CON-3 (rate limit points at our own hub — needs a concrete number), U10-CON-4 (first `admin/`→`backend/` project reference), U10-CON-5 (**credential has no delivery path** — hub MAUI UI is still a seam; Functional Design must choose), U10-CON-6 (modifies merged U7 `ReplicationClient`)
+  - **Infrastructure Design is NOT skippable** for this unit (F3=B adds a Compose service)
+- [x] INCEPTION: User Stories — **AWAITING APPROVAL**. Assessment `inception/plans/u10-user-stories-assessment.md` (Execute = Yes, three High Priority criteria). Plan `inception/plans/u10-story-generation-plan.md`, all 26 Part 2 checklist items [x]
+  - Planning answers chosen by the AI at user direction ("proceed with your recommendations"): Q1=A, Q2=A, Q3=B, Q4=B, Q5=A, Q6=B, Q7=C, Q8=A, Q9=A, Q10=A — each recorded with reasoning in the plan's PART 1b table so any can be reversed
+  - Part 2 generated **Epic 8 "Hub Identity & Cloud Replication" — US-801..US-810** in `inception/user-stories/stories.md` (76 stories / 8 epics total) + a U10-FR/NFR traceability matrix
+  - **US-504 and US-602 amended** with delivery notes: both were satisfied by U7 only in-process, never over a real network (Q6=B)
+  - No new persona (Q9=A); `personas.md` gained a U10 note and an extended Story Map
+  - U10-NFR-7 deliberately maps to no story (inherits U3 targets, nothing new for an organizer to observe)
+- [x] INCEPTION: Workflow Planning — **AWAITING APPROVAL** (`inception/plans/u10-execution-plan.md`). Risk **High**; rollback **Moderate** (EF migration); testing **Complex**
+  - EXECUTE (7): Application Design, Functional Design, NFR Requirements (minimal — tech-stack selection only), NFR Design, Infrastructure Design, Code Generation, Build and Test
+  - SKIP (1): Units Generation (one coherent unit; the hub half is useless without the cloud half)
+  - **Application Design EXECUTES** (unlike U9) — new components in both solutions, and U10-CON-5 is a component-interaction decision this stage owns
+  - **Infrastructure Design is mandatory** — F3=B adds a Compose collector service (SECURITY-07/02, RESILIENCY-05)
+  - 10-step package change sequence; `shared/` explicitly unchanged; the `ReplicationClient` edit is isolated as its own step because it is the only change to merged U7 code
+  - Fast-track option documented (collapse Application Design + NFR Requirements + NFR Design into Functional Design → 4 stages), matching the U4a/U4b/U5/U6/U7 pattern; stage-by-stage still recommended
+
 ## Post-MVP Untracked Work (backfilled 2026-07-26)
 - **Account self-deletion (US-110)** — `DELETE /api/accounts/me` endpoint, `AccountDeletionService`/`AccountDeletionGuard`, EF migration `AccountSoftDelete`, `AccountDeletionTests` — implemented directly on `main` (commit 7159038, merged via PR #1 / 56b2c3e) on 2026-07-25, **without** a `unit/<id>-<slug>` branch, per-unit stage gates, or audit.md logging, in violation of the per-unit git branch process requirement (line 10 above). Functionally complete and merged; retroactively logged here for traceability. No further action taken.
 - **"Web portal" tech-stack update** (commit d9aa82c, 2026-07-26) — edits to `aidlc-inputs/vision.md` and `aidlc-inputs/tech-env.md` introducing a new Blazor web portal (`EventManager.Web`) as a second delivery surface. This is an input-document change only — no unit exists for it yet, no code generated. **Not** registered as a unit in the Unit set / build order above; flagged here so it isn't mistaken for tracked scope. Left as-is per user direction (2026-07-26) — registering it as a formal unit is a separate future decision.
