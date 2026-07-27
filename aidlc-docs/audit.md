@@ -862,3 +862,11 @@ We need to create GET endpoints for:
 **Context**: CONSTRUCTION - U9 Postman assertion fix; API behaviour confirmed correct
 
 ---
+
+## END-OF-UNIT APPROVAL — U9 Read/Query API
+**Timestamp**: 2026-07-27T00:00:00Z
+**User Input**: "This unit is approved"
+**AI Response**: "U9 approved at the end-of-unit gate. Merging branch unit/u9-read-api into main with --no-ff per the per-unit git branch process requirement. Both end-of-unit deliverables were completed before this gate: as-built architecture diagrams (inception/application-design/architecture-overview.md, U9 section) and a developer verification guide (construction/u9-read-api/code/user-testing-guide.md). Will re-run the full suite on main after the merge to confirm 153 tests still green. NOT pushing to any remote — that is a separate outward-facing action and was not requested."
+**Context**: END-OF-UNIT approval for U9; merging to main
+
+---

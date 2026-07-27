@@ -90,7 +90,8 @@
 - [x] CONSTRUCTION: Code Generation — **COMPLETE**. 9 files created + 2 modified in `backend/`; nothing outside `backend/` touched (U9-CON-1 held). Plan `construction/plans/u9-read-api-code-generation-plan.md` all 22 steps [x]
 - [x] CONSTRUCTION: Build and Test — **COMPLETE**. `dotnet build backend/EventManager.Backend.slnx` green, 0 warnings. **153 tests green** across all five solutions (shared 42, backend 83, admin 17, judge 6, checkin 5) — up from the 96 baseline, **+57 new**, zero regressions. CS-1 verified (no ternaries)
 - [x] End-of-unit deliverables — as-built architecture (`inception/application-design/architecture-overview.md`, U9 section + diagram) and developer verification guide (`construction/u9-read-api/code/user-testing-guide.md`); consolidated `testing-guide.md` updated to 153
-- [ ] **END-OF-UNIT APPROVAL + MERGE to `main`** — awaiting user approval on branch `unit/u9-read-api`
+- [x] **END-OF-UNIT APPROVAL + MERGE** — approved 2026-07-27; branch `unit/u9-read-api` merged to `main`
+- [x] CONSTRUCTION: **U9 Read/Query API — COMPLETE & MERGED** to main 2026-07-27. `backend/EventManager.Api` gains 9 GET endpoints under a three-tier read model (Public/Registrant/Organizer), an API-local `ReadAuthorizer` (U9-CON-1 — shared enum deliberately NOT extended, so `shared/` and `admin/` are untouched), watermark ETags hashing `(endpoint, eventId, watermark, tier, flags)`, and 404-never-403 non-disclosure. **153 tests green** (shared 42, backend 83, admin 17, judge 6, checkin 5). Postman collection updated in both representations. Not pushed to any remote.
 - **Process for U9**: branch `unit/u9-read-api` from main; end-of-unit deliverables = as-built architecture diagrams + developer verification guide before merge ✅ both done
 
 ## Post-MVP Untracked Work (backfilled 2026-07-26)
