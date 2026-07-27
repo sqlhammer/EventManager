@@ -8,11 +8,11 @@ method: GET
 scripts:
   - type: afterResponse
     code: |-
-        pm.test('200 OK', () => pm.response.to.have.status(200));
-        const p = pm.response.json();
-        pm.test('tolerance only under Tolerance mode', () => {
-          if (p.mode === 'Tolerance') pm.expect(p.tolerancePercent).to.not.be.null;
-          else pm.expect(p.tolerancePercent).to.be.null;
-        });
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const p = pm.response.json();
+      pm.test('tolerance only under Tolerance mode', () => {
+        if (p.mode === 'Tolerance') pm.expect(p.tolerancePercent).to.not.be.null;
+        else pm.expect(p.tolerancePercent).to.be.null;
+      });
     language: text/javascript
 order: 7000

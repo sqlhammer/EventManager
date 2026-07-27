@@ -1,11 +1,9 @@
 $kind: http-request
-description: |-
-  US-708. Returns 404 for an account that exists but holds **no organizer role on this event** — this endpoint never confirms the existence of unrelated accounts (BR-READ-10). Set `coOrganizerAccountId` from the 'Add co-organizer' request first.
+description: US-708. Returns 404 for an account that exists but holds **no organizer role on this event** — this endpoint never confirms the existence of unrelated accounts (BR-READ-10). Set `coOrganizerAccountId` from the 'Add co-organizer' request first.
 url: "{{cloudBaseUrl}}/api/events/{{eventId}}/accounts/{{coOrganizerAccountId}}"
 method: GET
 scripts:
   - type: afterResponse
-    code: |-
-        pm.test('200 for a real co-organizer, 404 otherwise', () => pm.expect([200, 404]).to.include(pm.response.code));
+    code: pm.test('200 for a real co-organizer, 404 otherwise', () => pm.expect([200, 404]).to.include(pm.response.code));
     language: text/javascript
 order: 12000

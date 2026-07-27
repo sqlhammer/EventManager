@@ -92,8 +92,14 @@ roster must return 404.
 ```bash
 cd backend
 cp .env.example .env          # if not already present
-docker compose up -d
+docker compose up -d --build  # --build matters: see below
 ```
+
+> **If `GET /api/events` returns 405 Method Not Allowed, your API container is stale.** The route
+> exists on the old image only as `POST` (event creation), so a GET matches the route but finds no
+> method. `docker compose up -d` alone reuses the existing image. Check with
+> `docker ps --format '{{.Names}}\t{{.CreatedAt}}'` — if `backend-api-1` predates the U9 code,
+> rebuild with `docker compose up -d --build api`.
 
 Register and log in two accounts — an organizer and a stranger — using the existing endpoints
 (`POST /api/accounts/register`, `POST /api/accounts/confirm-email` with the token from the email

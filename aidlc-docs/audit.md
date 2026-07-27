@@ -838,3 +838,11 @@ We need to create GET endpoints for:
 **Context**: CONSTRUCTION - U9 deliverable gap closed; still awaiting end-of-unit approval before merge
 
 ---
+
+## CONSTRUCTION — U9 405 report diagnosed as stale container (not a defect)
+**Timestamp**: 2026-07-26T00:00:00Z
+**User Input**: "/api/events error" [screenshot: 405 Method Not Allowed] -> "I fixed it by rebuilding"
+**AI Response**: "Diagnosed via docker ps: backend-api-1 was created 2026-07-26 13:26 and had been up ~10 hours, predating the U9 code written this session. The deployed image contained only EventController's POST /api/events, so a GET matched the route but found no method -> 405. Not a code defect; no source change was needed. User rebuilt the container themselves and it resolved. Added a callout to construction/u9-read-api/code/user-testing-guide.md section 3 — the walkthrough now uses `docker compose up -d --build` and documents the 405-means-stale-image symptom plus the `docker ps` check, so the next person does not lose time to it. Saved a feedback memory: diagnose stale containers but let the user run compose rebuilds/restarts against their own dev stack."
+**Context**: CONSTRUCTION - U9 verification; no code change; guide hardened
+
+---

@@ -3,4 +3,4 @@ url: "{{cloudBaseUrl}}/health/ready"
 method: GET
 auth:
   type: noauth
-order: 6000
+order: 7000

@@ -12,4 +12,4 @@ description: |-
   2. Response *shape* follows from the resolved tier, not from anything you send.
 
   Run 5-13 in the Cloud Backend folder first so `eventId`, `divisionId`, and `registrationId` are populated. To exercise the tier model properly, log in as a second account that is neither an organizer nor a registrant of {{eventId}} and re-run — the roster and account requests must return 404.
-order: 9000
+order: 5000
