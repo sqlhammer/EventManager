@@ -1,0 +1,18 @@
+$kind: http-request
+description: |-
+  US-707. **Organizer tier only** — Public and Registrant callers get 404, not 403.
+
+  The list shape carries no date of birth, weight, rank, or gender; those appear only on the detail endpoint (request 23). Withdrawn registrations are excluded unless `?includeWithdrawn=true`.
+
+  Note: registrations whose managing account has been **deleted** are still returned. Account deletion anonymizes the identity record only — the athlete is still competing and must appear on the roster.
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/registrants"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK for an organizer', () => pm.response.to.have.status(200));
+      const rows = pm.response.json();
+      pm.test('list shape omits profile fields', () => pm.expect(rows.every(r => r.weight === undefined && r.dateOfBirth === undefined)).to.be.true);
+      if (rows.length) { pm.collectionVariables.set('registrationId', String(rows[0].registrationId)); }
+    language: text/javascript
+order: 8000

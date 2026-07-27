@@ -1,0 +1,14 @@
+$kind: http-request
+description: |-
+  US-709. An event id that does not exist and an event you hold no tier on return the **same 404 with the same body** — the two cases are indistinguishable, so probing reveals nothing.
+
+  To see the other half: close registration on an event you do not administer, then request it. The response must be byte-identical to this one.
+url: "{{cloudBaseUrl}}/api/events/999999999999"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('404 Not Found', () => pm.response.to.have.status(404));
+      pm.test('never 403 — a 403 would confirm existence', () => pm.expect(pm.response.code).to.not.eql(403));
+    language: text/javascript
+order: 13000

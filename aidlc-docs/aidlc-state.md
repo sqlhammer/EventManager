@@ -71,6 +71,29 @@
 - [x] REFACTOR SUB-UNIT **R1 — Ternary Elimination** — **COMPLETE & MERGED** 2026-07-25. Removed all 30 ternary `?:` occurrences across shared/backend/admin (21 files) per CS-1; kept `??`/`?.`. All 80 tests green (shared 42, backend 26, admin 12). Branch `refactor/r1-ternary`.
 - [ ] CONSTRUCTION: Build and Test (after all units)
 
+## Post-MVP Increment — Unit U9 Read/Query API (started 2026-07-26)
+- **Request**: GET endpoints for event, division, weigh-in policy, registrant, and account-with-roles (single + collection; **9 endpoints** — the weigh-in-policy collection form was removed from scope 2026-07-26, so that resource is single-only)
+- **Branch**: not yet created — will be `unit/u9-read-api` per the per-unit git branch process requirement
+- [x] INCEPTION: Requirements Analysis — **AWAITING APPROVAL** (`inception/requirements/u9-read-api-requirements.md`)
+  - Verification answers: Q1=D, Q2=C, Q3=A, Q4=A, Q5=C, Q6=B, Q7=A, Q8=A, Q9=X, Q10=A
+  - Clarification answers: C1=C (three-tier reads), C2=B (organizer roster only), C3=D (watermark ETags)
+  - Q3=A superseded by C1=C (contradicted Q2=C and blocked registrant division discovery); Q5=C superseded by C2=B (blocking SECURITY-08 enumeration/IDOR finding)
+  - Open design constraints carried forward: U9-CON-1 (RBAC has no read action; shared-enum change would touch U4a), U9-CON-2 (watermark ETag misses athlete-profile changes on registrant detail), U9-CON-3 (watermark validity depends on inline projection), U9-CON-4/5 (stated assumptions)
+- [x] INCEPTION: User Stories — **AWAITING APPROVAL**. Part 1 planning answers Q1=A, Q2=A, Q3=B, Q4=C, Q5=B, Q6=C, Q7=C, Q8=A; clarifications C1=A (US-7xx numbering), C2=C (tier stories authoritative, resource stories shape-only). Part 2 generated **Epic 7 "Reading Event Data" — US-701..US-710** in `inception/user-stories/stories.md` (66 stories / 7 epics total) + U9-FR traceability matrix; `personas.md` gained a Persona → Read Access Tier table (no new personas; P4/P5 hold no tier). Plan: `inception/plans/u9-story-generation-plan.md` (all checklist items [x])
+- [x] INCEPTION: Workflow Planning — **AWAITING APPROVAL** (`inception/plans/u9-execution-plan.md`). Risk **Medium**; rollback Easy (additive endpoints, no migration); testing Moderate
+  - SKIP Application Design (no new component; U9-CON-1 bounded — **reconsider if** U9-CON-1 resolves toward extending the shared `OrganizerAction` enum, which would touch U4a)
+  - SKIP Units Generation (single unit, single component)
+- [x] CONSTRUCTION: Functional Design — **COMPLETE** (answers Q1=A, Q2=A, Q3=A, Q4=C). Artifacts in `construction/u9-read-api/functional-design/`: domain-entities.md, business-logic-model.md, business-rules.md (BR-READ-1..31). U9-FR-10 amended per Q3=A (inert soft-deleted-accounts clause withdrawn)
+- [ ] CONSTRUCTION: NFR Requirements — **SKIP** (tech stack fixed by U3; U9-NFR-1..9 already approved; PBT-09 satisfied — FsCheck in use)
+- [ ] CONSTRUCTION: NFR Design — **SKIP** (reuses U3 patterns unchanged)
+- [ ] CONSTRUCTION: Infrastructure Design — **SKIP** (zero infrastructure change; U9-NFR-6 inherits U3 targets)
+- [x] CONSTRUCTION: Code Generation — **COMPLETE**. 9 files created + 2 modified in `backend/`; nothing outside `backend/` touched (U9-CON-1 held). Plan `construction/plans/u9-read-api-code-generation-plan.md` all 22 steps [x]
+- [x] CONSTRUCTION: Build and Test — **COMPLETE**. `dotnet build backend/EventManager.Backend.slnx` green, 0 warnings. **153 tests green** across all five solutions (shared 42, backend 83, admin 17, judge 6, checkin 5) — up from the 96 baseline, **+57 new**, zero regressions. CS-1 verified (no ternaries)
+- [x] End-of-unit deliverables — as-built architecture (`inception/application-design/architecture-overview.md`, U9 section + diagram) and developer verification guide (`construction/u9-read-api/code/user-testing-guide.md`); consolidated `testing-guide.md` updated to 153
+- [x] **END-OF-UNIT APPROVAL + MERGE** — approved 2026-07-27; branch `unit/u9-read-api` merged to `main`
+- [x] CONSTRUCTION: **U9 Read/Query API — COMPLETE & MERGED** to main 2026-07-27. `backend/EventManager.Api` gains 9 GET endpoints under a three-tier read model (Public/Registrant/Organizer), an API-local `ReadAuthorizer` (U9-CON-1 — shared enum deliberately NOT extended, so `shared/` and `admin/` are untouched), watermark ETags hashing `(endpoint, eventId, watermark, tier, flags)`, and 404-never-403 non-disclosure. **153 tests green** (shared 42, backend 83, admin 17, judge 6, checkin 5). Postman collection updated in both representations. Not pushed to any remote.
+- **Process for U9**: branch `unit/u9-read-api` from main; end-of-unit deliverables = as-built architecture diagrams + developer verification guide before merge ✅ both done
+
 ## Post-MVP Untracked Work (backfilled 2026-07-26)
 - **Account self-deletion (US-110)** — `DELETE /api/accounts/me` endpoint, `AccountDeletionService`/`AccountDeletionGuard`, EF migration `AccountSoftDelete`, `AccountDeletionTests` — implemented directly on `main` (commit 7159038, merged via PR #1 / 56b2c3e) on 2026-07-25, **without** a `unit/<id>-<slug>` branch, per-unit stage gates, or audit.md logging, in violation of the per-unit git branch process requirement (line 10 above). Functionally complete and merged; retroactively logged here for traceability. No further action taken.
 - **"Web portal" tech-stack update** (commit d9aa82c, 2026-07-26) — edits to `aidlc-inputs/vision.md` and `aidlc-inputs/tech-env.md` introducing a new Blazor web portal (`EventManager.Web`) as a second delivery surface. This is an input-document change only — no unit exists for it yet, no code generated. **Not** registered as a unit in the Unit set / build order above; flagged here so it isn't mistaken for tracked scope. Left as-is per user direction (2026-07-26) — registering it as a formal unit is a separate future decision.

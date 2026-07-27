@@ -2,55 +2,168 @@
   "info": {
     "name": "EventManager — System Test (all units)",
     "_postman_id": "e5d1a6c2-8b40-4f7e-9a11-eventmanager0001",
-    "description": "End-to-end HTTP coverage for the EventManager MVP, mirroring aidlc-docs/testing-guide.md.\n\nTwo hosts:\n- **Cloud backend** (U3 + U8) at {{cloudBaseUrl}} — behind the TLS proxy from `docker compose up` (see backend/.env). Bearer-auth; register/confirm/login/refresh are anonymous.\n- **Admin hub** (U4a + U4b) at {{hubBaseUrl}} — `dotnet run --project admin/EventManager.Hub`. No auth on the LAN surface.\n\nRun order matters: Login captures the token; Create Event / Configure Division / Athlete Profile / Register capture ids into collection variables that later requests reuse. Test scripts do the capturing automatically.\n\nUnits with no HTTP surface (U7 resilience, U5/U6 spoke app-cores) are verified via `dotnet test` — see §4/§5 of the testing guide; there is nothing to call here for them.",
+    "description": "End-to-end HTTP coverage for the EventManager MVP plus post-MVP unit U9 (Read/Query API), mirroring aidlc-docs/testing-guide.md.\n\nTwo hosts:\n- **Cloud backend** (U3 + U8) at {{cloudBaseUrl}} — behind the TLS proxy from `docker compose up` (see backend/.env). Bearer-auth; register/confirm/login/refresh are anonymous.\n- **Admin hub** (U4a + U4b) at {{hubBaseUrl}} — `dotnet run --project admin/EventManager.Hub`. No auth on the LAN surface.\n\nRun order matters: Login captures the token; Create Event / Configure Division / Athlete Profile / Register capture ids into collection variables that later requests reuse. Test scripts do the capturing automatically.\n\nUnits with no HTTP surface (U7 resilience, U5/U6 spoke app-cores) are verified via `dotnet test` — see §4/§5 of the testing guide; there is nothing to call here for them.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "auth": {
     "type": "bearer",
-    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{accessToken}}",
+        "type": "string"
+      }
+    ]
   },
   "variable": [
-    { "key": "cloudBaseUrl", "value": "https://localhost", "type": "string" },
-    { "key": "hubBaseUrl", "value": "http://localhost:5000", "type": "string" },
-    { "key": "email", "value": "organizer@example.com", "type": "string" },
-    { "key": "password", "value": "Str0ng-Passphrase-92!", "type": "string" },
-    { "key": "confirmToken", "value": "", "type": "string" },
-    { "key": "totp", "value": "", "type": "string" },
-    { "key": "accessToken", "value": "", "type": "string" },
-    { "key": "refreshToken", "value": "", "type": "string" },
-    { "key": "eventId", "value": "", "type": "string" },
-    { "key": "divisionId", "value": "", "type": "string" },
-    { "key": "athleteId", "value": "", "type": "string" },
-    { "key": "registrationId", "value": "", "type": "string" },
-    { "key": "coOrganizerAccountId", "value": "", "type": "string" },
-    { "key": "idempotencyKey", "value": "batch-001", "type": "string" },
-    { "key": "enrollmentToken", "value": "", "type": "string" },
-    { "key": "deviceId", "value": "", "type": "string" },
-    { "key": "matchId", "value": "", "type": "string" },
-    { "key": "winnerId", "value": "", "type": "string" },
-    { "key": "disputeId", "value": "", "type": "string" }
+    {
+      "key": "cloudBaseUrl",
+      "value": "https://localhost",
+      "type": "string"
+    },
+    {
+      "key": "hubBaseUrl",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "email",
+      "value": "organizer@example.com",
+      "type": "string"
+    },
+    {
+      "key": "password",
+      "value": "Str0ng-Passphrase-92!",
+      "type": "string"
+    },
+    {
+      "key": "confirmToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "totp",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "accessToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refreshToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "eventId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "divisionId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "athleteId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "registrationId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "coOrganizerAccountId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "idempotencyKey",
+      "value": "batch-001",
+      "type": "string"
+    },
+    {
+      "key": "enrollmentToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "deviceId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "matchId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "winnerId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "disputeId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "eventEtag",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "otherDivisionId",
+      "value": "",
+      "type": "string"
+    }
   ],
   "item": [
     {
-      "name": "Cloud Backend (U3 + U8)",
+      "name": "Cloud Backend (U3 + U8 + U9)",
       "description": "REST walkthrough from testing-guide.md §2. Base URL is the TLS proxy ({{cloudBaseUrl}}). Disable TLS verification in Postman settings for the self-signed dev cert (equivalent to `curl -k`).",
       "item": [
         {
           "name": "Health — liveness",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{cloudBaseUrl}}/health", "host": ["{{cloudBaseUrl}}"], "path": ["health"] }
+            "url": {
+              "raw": "{{cloudBaseUrl}}/health",
+              "host": [
+                "{{cloudBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            }
           }
         },
         {
           "name": "Health — readiness (deep DB probe)",
           "request": {
-            "auth": { "type": "noauth" },
+            "auth": {
+              "type": "noauth"
+            },
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{cloudBaseUrl}}/health/ready", "host": ["{{cloudBaseUrl}}"], "path": ["health", "ready"] }
+            "url": {
+              "raw": "{{cloudBaseUrl}}/health/ready",
+              "host": [
+                "{{cloudBaseUrl}}"
+              ],
+              "path": [
+                "health",
+                "ready"
+              ]
+            }
           }
         },
         {
@@ -59,61 +172,153 @@
             {
               "name": "1. Register organizer",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "pm.test('registration accepted (200)', () => pm.expect(pm.response.code).to.eql(200));",
-                  "console.log('Confirmation token is written to the EmailOutbox table (email is stubbed). Copy it into the {{confirmToken}} variable.');"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('registration accepted (200)', () => pm.expect(pm.response.code).to.eql(200));",
+                      "console.log('Confirmation token is written to the EmailOutbox table (email is stubbed). Copy it into the {{confirmToken}} variable.');"
+                    ]
+                  }
+                }
               ],
               "request": {
-                "auth": { "type": "noauth" },
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/register", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "register"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/accounts/register",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "accounts",
+                    "register"
+                  ]
+                },
                 "description": "US-101. A breached password (e.g. `password`) is rejected. Success is a generic 200 (non-enumerating)."
               }
             },
             {
               "name": "Register — breached password (negative)",
               "request": {
-                "auth": { "type": "noauth" },
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"email\": \"breach@example.com\",\n  \"password\": \"password\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/register", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "register"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"breach@example.com\",\n  \"password\": \"password\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/accounts/register",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "accounts",
+                    "register"
+                  ]
+                },
                 "description": "Expect a rejection — the common-password check blocks `password`."
               }
             },
             {
               "name": "2. Confirm email",
               "request": {
-                "auth": { "type": "noauth" },
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"token\": \"{{confirmToken}}\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/confirm-email", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "confirm-email"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"token\": \"{{confirmToken}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/accounts/confirm-email",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "accounts",
+                    "confirm-email"
+                  ]
+                },
                 "description": "US-101. Gate for event creation (BR-AUTH-4). Set {{confirmToken}} from the EmailOutbox row first."
               }
             },
             {
               "name": "3. Login",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "try {",
-                  "  const j = pm.response.json();",
-                  "  if (j.mfaRequired) { console.log('MFA required — run MFA Enroll/Confirm, then login again with {{totp}}.'); }",
-                  "  if (j.accessToken) { pm.collectionVariables.set('accessToken', j.accessToken); console.log('accessToken captured'); }",
-                  "  if (j.refreshToken) { pm.collectionVariables.set('refreshToken', j.refreshToken); }",
-                  "  pm.test('login ok', () => pm.expect(pm.response.code).to.eql(200));",
-                  "} catch (e) { console.log('Login: no JSON body', e); }"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  if (j.mfaRequired) { console.log('MFA required — run MFA Enroll/Confirm, then login again with {{totp}}.'); }",
+                      "  if (j.accessToken) { pm.collectionVariables.set('accessToken', j.accessToken); console.log('accessToken captured'); }",
+                      "  if (j.refreshToken) { pm.collectionVariables.set('refreshToken', j.refreshToken); }",
+                      "  pm.test('login ok', () => pm.expect(pm.response.code).to.eql(200));",
+                      "} catch (e) { console.log('Login: no JSON body', e); }"
+                    ]
+                  }
+                }
               ],
               "request": {
-                "auth": { "type": "noauth" },
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"totp\": null\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/login", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "login"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\",\n  \"totp\": null\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/accounts/login",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "accounts",
+                    "login"
+                  ]
+                },
                 "description": "US-102. Returns {accessToken, refreshToken, accessExpiresAt}, or {mfaRequired:true} if MFA is enrolled. If MFA is on, set {{totp}} and resend."
               }
             },
@@ -122,7 +327,18 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/mfa/enroll", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "mfa", "enroll"] },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/accounts/mfa/enroll",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "accounts",
+                    "mfa",
+                    "enroll"
+                  ]
+                },
                 "description": "US-103. Returns sharedKey, otpauth URI (QR), and recovery codes. Requires a valid access token."
               }
             },
@@ -130,28 +346,73 @@
               "name": "4. MFA — confirm (optional)",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"totp\": \"{{totp}}\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/mfa/confirm", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "mfa", "confirm"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"totp\": \"{{totp}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/accounts/mfa/confirm",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "accounts",
+                    "mfa",
+                    "confirm"
+                  ]
+                },
                 "description": "US-103. Confirms enrollment with a current TOTP code. Subsequent logins then require {{totp}}."
               }
             },
             {
               "name": "Refresh tokens",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "try { const j = pm.response.json();",
-                  "  if (j.accessToken) pm.collectionVariables.set('accessToken', j.accessToken);",
-                  "  if (j.refreshToken) pm.collectionVariables.set('refreshToken', j.refreshToken);",
-                  "} catch (e) {}"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "try { const j = pm.response.json();",
+                      "  if (j.accessToken) pm.collectionVariables.set('accessToken', j.accessToken);",
+                      "  if (j.refreshToken) pm.collectionVariables.set('refreshToken', j.refreshToken);",
+                      "} catch (e) {}"
+                    ]
+                  }
+                }
               ],
               "request": {
-                "auth": { "type": "noauth" },
+                "auth": {
+                  "type": "noauth"
+                },
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"email\": \"{{email}}\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/refresh", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "refresh"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\",\n  \"email\": \"{{email}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/accounts/refresh",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "accounts",
+                    "refresh"
+                  ]
+                },
                 "description": "Rotates the token pair. 401 if the refresh token is invalid/expired."
               }
             },
@@ -160,16 +421,44 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/logout", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "logout"] }
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/accounts/logout",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "accounts",
+                    "logout"
+                  ]
+                }
               }
             },
             {
               "name": "Delete my account (US-110)",
               "request": {
                 "method": "DELETE",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"password\": \"{{password}}\",\n  \"totp\": null\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/accounts/me", "host": ["{{cloudBaseUrl}}"], "path": ["api", "accounts", "me"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"password\": \"{{password}}\",\n  \"totp\": null\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/accounts/me",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "accounts",
+                    "me"
+                  ]
+                },
                 "description": "Self-service account deletion. Re-authenticates with the current password (add `totp` if MFA is enrolled), then soft-deletes + anonymizes the caller's own account, detaches its organizer roles, and revokes all tokens. Returns 200 on success.\n\nNegative cases: wrong password → 401; MFA enrolled but no/invalid totp → 401; caller is the SOLE Full Admin of one or more events → 409 (Account.SoleFullAdmin) listing those events — add or promote another Full Admin first. After deletion, Login with the old credentials returns 401 (non-enumerating)."
               }
             }
@@ -181,15 +470,38 @@
             {
               "name": "5. Create event",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('eventId', String(j.id)); console.log('eventId =', j.id); } } catch (e) {}"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('eventId', String(j.id)); console.log('eventId =', j.id); } } catch (e) {}"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Autumn Open\",\n  \"venue\": \"City Dojo\",\n  \"date\": \"2026-09-12\",\n  \"registrationStart\": \"2026-07-01\",\n  \"registrationEnd\": \"2026-09-05\",\n  \"entryFee\": 75.00,\n  \"weighInPolicyMode\": \"Strict\",\n  \"weighInTolerancePercent\": null\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/events", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Autumn Open\",\n  \"venue\": \"City Dojo\",\n  \"date\": \"2026-09-12\",\n  \"registrationStart\": \"2026-07-01\",\n  \"registrationEnd\": \"2026-09-05\",\n  \"entryFee\": 75.00,\n  \"weighInPolicyMode\": \"Strict\",\n  \"weighInTolerancePercent\": null\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events"
+                  ]
+                },
                 "description": "US-104. Creator becomes Full Admin. Requires a confirmed email. weighInPolicyMode ∈ {Strict, AutoMove, Tolerance}; tolerancePercent required only for Tolerance."
               }
             },
@@ -197,23 +509,66 @@
               "name": "Edit event",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Autumn Open (updated)\",\n  \"venue\": \"City Dojo — Mat Hall B\",\n  \"date\": \"2026-09-12\",\n  \"registrationStart\": \"2026-07-01\",\n  \"registrationEnd\": \"2026-09-05\",\n  \"entryFee\": 80.00\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}"] }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Autumn Open (updated)\",\n  \"venue\": \"City Dojo — Mat Hall B\",\n  \"date\": \"2026-09-12\",\n  \"registrationStart\": \"2026-07-01\",\n  \"registrationEnd\": \"2026-09-05\",\n  \"entryFee\": 80.00\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}"
+                  ]
+                }
               }
             },
             {
               "name": "6. Configure division",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('divisionId', String(j.id)); console.log('divisionId =', j.id); } } catch (e) {}"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('divisionId', String(j.id)); console.log('divisionId =', j.id); } } catch (e) {}"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"weightLower\": 70.0,\n  \"weightUpper\": 80.0,\n  \"minRank\": 1,\n  \"maxRank\": 3,\n  \"minAge\": 18,\n  \"maxAge\": 34,\n  \"gender\": \"Male\",\n  \"format\": \"SingleElimination\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/divisions", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "divisions"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"weightLower\": 70.0,\n  \"weightUpper\": 80.0,\n  \"minRank\": 1,\n  \"maxRank\": 3,\n  \"minAge\": 18,\n  \"maxAge\": 34,\n  \"gender\": \"Male\",\n  \"format\": \"SingleElimination\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/divisions",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "divisions"
+                  ]
+                },
                 "description": "US-105. An overlapping weight/rank/age/gender slice returns 409. format ∈ {SingleElimination, RoundRobin}."
               }
             },
@@ -221,9 +576,28 @@
               "name": "7. Weigh-in policy",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"mode\": \"Tolerance\",\n  \"tolerancePercent\": 5.0\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/weigh-in-policy", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "weigh-in-policy"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"mode\": \"Tolerance\",\n  \"tolerancePercent\": 5.0\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/weigh-in-policy",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "weigh-in-policy"
+                  ]
+                },
                 "description": "mode ∈ {Strict, AutoMove, Tolerance}. tolerancePercent applies to Tolerance."
               }
             },
@@ -231,9 +605,28 @@
               "name": "7. Payment options",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"cardEnabled\": true\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/payment-options", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "payment-options"] }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"cardEnabled\": true\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/payment-options",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "payment-options"
+                  ]
+                }
               }
             },
             {
@@ -241,7 +634,19 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registration/open", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "registration", "open"] }
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registration/open",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "registration",
+                    "open"
+                  ]
+                }
               }
             },
             {
@@ -249,7 +654,19 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registration/close", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "registration", "close"] },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registration/close",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "registration",
+                    "close"
+                  ]
+                },
                 "description": "After close, registration attempts return 409 (window closed)."
               }
             }
@@ -261,35 +678,82 @@
             {
               "name": "9. Athlete profile",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('athleteId', String(j.id)); console.log('athleteId =', j.id); } } catch (e) {}"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "try { const j = pm.response.json(); if (j.id) { pm.collectionVariables.set('athleteId', String(j.id)); console.log('athleteId =', j.id); } } catch (e) {}"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Alex Athlete\",\n  \"dateOfBirth\": \"2000-04-15\",\n  \"rank\": 2,\n  \"weight\": 77.5,\n  \"academy\": \"North BJJ\",\n  \"gender\": \"Male\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/registration/profiles", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "profiles"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Alex Athlete\",\n  \"dateOfBirth\": \"2000-04-15\",\n  \"rank\": 2,\n  \"weight\": 77.5,\n  \"academy\": \"North BJJ\",\n  \"gender\": \"Male\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/registration/profiles",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "registration",
+                    "profiles"
+                  ]
+                },
                 "description": "US-201. Upsert an athlete profile. Add `?athleteId={{athleteId}}` as a query param to update an existing one."
               }
             },
             {
               "name": "10. Register athlete",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "try {",
-                  "  const j = pm.response.json();",
-                  "  const id = j.registrationId || j.id || (Array.isArray(j.registrationIds) && j.registrationIds[0]) || (Array.isArray(j.registrations) && j.registrations[0] && (j.registrations[0].id || j.registrations[0].registrationId));",
-                  "  if (id) { pm.collectionVariables.set('registrationId', String(id)); console.log('registrationId =', id); }",
-                  "  else { console.log('registrationId not auto-detected — inspect the response and set it manually.'); }",
-                  "} catch (e) {}"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  const id = j.registrationId || j.id || (Array.isArray(j.registrationIds) && j.registrationIds[0]) || (Array.isArray(j.registrations) && j.registrations[0] && (j.registrations[0].id || j.registrations[0].registrationId));",
+                      "  if (id) { pm.collectionVariables.set('registrationId', String(id)); console.log('registrationId =', id); }",
+                      "  else { console.log('registrationId not auto-detected — inspect the response and set it manually.'); }",
+                      "} catch (e) {}"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"eventId\": {{eventId}},\n  \"athleteId\": {{athleteId}},\n  \"divisionIds\": [{{divisionId}}],\n  \"payByCard\": false\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/registration", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"eventId\": {{eventId}},\n  \"athleteId\": {{athleteId}},\n  \"divisionIds\": [{{divisionId}}],\n  \"payByCard\": false\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/registration",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "registration"
+                  ]
+                },
                 "description": "US-202/203. Returns fee + paymentStatus (Owed/Paid). Registering the same athlete into the same division twice is rejected."
               }
             },
@@ -297,9 +761,27 @@
               "name": "11. Coach bulk register (idempotent)",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"eventId\": {{eventId}},\n  \"entries\": [\n    { \"athleteId\": {{athleteId}}, \"divisionIds\": [{{divisionId}}] }\n  ],\n  \"payByCard\": false,\n  \"idempotencyKey\": \"{{idempotencyKey}}\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/registration/batch", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "batch"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"eventId\": {{eventId}},\n  \"entries\": [\n    { \"athleteId\": {{athleteId}}, \"divisionIds\": [{{divisionId}}] }\n  ],\n  \"payByCard\": false,\n  \"idempotencyKey\": \"{{idempotencyKey}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/registration/batch",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "registration",
+                    "batch"
+                  ]
+                },
                 "description": "US-204. All-or-nothing; conflicts are itemized. Resubmitting with the same idempotencyKey is a no-op."
               }
             },
@@ -307,18 +789,55 @@
               "name": "Edit registration",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"divisionIds\": [{{divisionId}}]\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/registration/{{registrationId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "{{registrationId}}"] }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"divisionIds\": [{{divisionId}}]\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/registration/{{registrationId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "registration",
+                    "{{registrationId}}"
+                  ]
+                }
               }
             },
             {
               "name": "12. Roster payment status",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"status\": \"Paid\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/registration/{{registrationId}}/payment-status", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "{{registrationId}}", "payment-status"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"Paid\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/registration/{{registrationId}}/payment-status",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "registration",
+                    "{{registrationId}}",
+                    "payment-status"
+                  ]
+                },
                 "description": "US-205. status ∈ {Paid, Owed, Waived} — mark Paid (cash at door) or Waived."
               }
             },
@@ -327,7 +846,17 @@
               "request": {
                 "method": "DELETE",
                 "header": [],
-                "url": { "raw": "{{cloudBaseUrl}}/api/registration/{{registrationId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "registration", "{{registrationId}}"] }
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/registration/{{registrationId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "registration",
+                    "{{registrationId}}"
+                  ]
+                }
               }
             }
           ]
@@ -339,9 +868,28 @@
               "name": "13. Add co-organizer (by email)",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"accountId\": null,\n  \"email\": \"coorg@example.com\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "organizers"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"accountId\": null,\n  \"email\": \"coorg@example.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "organizers"
+                  ]
+                },
                 "description": "US-108. Full-Admin only. Provide either accountId (existing account) or email (invite)."
               }
             },
@@ -349,9 +897,29 @@
               "name": "Change organizer role",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"targetAccountId\": {{coOrganizerAccountId}},\n  \"newRole\": \"CoOrganizer\"\n}" },
-                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers/role", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "organizers", "role"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"targetAccountId\": {{coOrganizerAccountId}},\n  \"newRole\": \"CoOrganizer\"\n}"
+                },
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers/role",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "organizers",
+                    "role"
+                  ]
+                },
                 "description": "US-109. newRole ∈ {FullAdmin, CoOrganizer}. Demoting the last Full Admin is refused."
               }
             },
@@ -360,7 +928,19 @@
               "request": {
                 "method": "DELETE",
                 "header": [],
-                "url": { "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers/{{coOrganizerAccountId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "organizers", "{{coOrganizerAccountId}}"] }
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/organizers/{{coOrganizerAccountId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "organizers",
+                    "{{coOrganizerAccountId}}"
+                  ]
+                }
               }
             }
           ]
@@ -369,9 +949,27 @@
           "name": "14. Ingest (replication sink)",
           "request": {
             "method": "POST",
-            "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": { "mode": "raw", "raw": "{\n  \"events\": [\n    {\n      \"eventId\": {{eventId}},\n      \"deviceId\": 1001,\n      \"sequenceNumber\": 1,\n      \"eventType\": \"MatchScored\",\n      \"schemaVersion\": 1,\n      \"payloadBase64\": \"e30=\",\n      \"occurredAt\": \"2026-09-12T10:00:00Z\",\n      \"eventScopeId\": {{eventId}}\n    }\n  ]\n}" },
-            "url": { "raw": "{{cloudBaseUrl}}/api/ingest/batch", "host": ["{{cloudBaseUrl}}"], "path": ["api", "ingest", "batch"] },
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"events\": [\n    {\n      \"eventId\": {{eventId}},\n      \"deviceId\": 1001,\n      \"sequenceNumber\": 1,\n      \"eventType\": \"MatchScored\",\n      \"schemaVersion\": 1,\n      \"payloadBase64\": \"e30=\",\n      \"occurredAt\": \"2026-09-12T10:00:00Z\",\n      \"eventScopeId\": {{eventId}}\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{cloudBaseUrl}}/api/ingest/batch",
+              "host": [
+                "{{cloudBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "ingest",
+                "batch"
+              ]
+            },
             "description": "US-504. Event-scoped JWT authz, idempotent, sequence-ordered. payloadBase64 `e30=` = `{}`. Returns AcceptedCount + per-device high-water marks. Replaying the same batch accepts 0."
           }
         },
@@ -380,23 +978,556 @@
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{cloudBaseUrl}}/api/results/athletes/{{athleteId}}", "host": ["{{cloudBaseUrl}}"], "path": ["api", "results", "athletes", "{{athleteId}}"] },
+            "url": {
+              "raw": "{{cloudBaseUrl}}/api/results/athletes/{{athleteId}}",
+              "host": [
+                "{{cloudBaseUrl}}"
+              ],
+              "path": [
+                "api",
+                "results",
+                "athletes",
+                "{{athleteId}}"
+              ]
+            },
             "description": "US-603. Owner/manager only. Empty until event-day events are ingested."
           }
+        },
+        {
+          "name": "Read API (U9)",
+          "description": "Unit U9 — nine GET endpoints over the read models, governed by a three-tier access model.\n\n**Tiers** (cumulative, resolved per event):\n- **Public** — any authenticated caller, event registration Open. Event *summary*, divisions, weigh-in policy.\n- **Registrant** — caller holds a non-withdrawn registration. Adds event *detail* and their own registration.\n- **Organizer** — caller holds an organizer role. Adds the full roster and the organizer roster.\n\n**Two conventions differ from the write endpoints:**\n1. Insufficient tier returns **404, never 403** — a 403 would confirm the resource exists (US-709).\n2. Response *shape* follows from the resolved tier, not from anything you send.\n\nRun 5-13 in the Cloud Backend folder first so `eventId`, `divisionId`, and `registrationId` are populated. To exercise the tier model properly, log in as a second account that is neither an organizer nor a registrant of {{eventId}} and re-run — the roster and account requests must return 404.",
+          "item": [
+            {
+              "name": "16. Events I can access",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events"
+                  ]
+                },
+                "description": "US-704. Union of Public + Registrant + Organizer events, each tagged with `accessTier` and, where held, `organizerRole`. Complete and unpaginated (Q7=A). No ETag — the result spans multiple event scopes with no single watermark."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                      "const items = pm.response.json();",
+                      "pm.test('every item carries an access tier', () => pm.expect(items.every(i => !!i.accessTier)).to.be.true);",
+                      "pm.test('no ETag on the cross-scope collection', () => pm.expect(pm.response.headers.has('ETag')).to.be.false);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "17. Event by id (shape follows tier)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}"
+                  ]
+                },
+                "description": "US-701/702/703. Public callers get the **summary** shape; Registrant and Organizer get **detail** (adds cardEnabled, checkInStarted, weighInPolicy, createdByAccountId).\n\nCaptures the ETag into `eventEtag` for request 18."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                      "const etag = pm.response.headers.get('ETag');",
+                      "pm.test('carries a strong ETag', () => pm.expect(etag).to.be.a('string'));",
+                      "if (etag) { pm.collectionVariables.set('eventEtag', etag); console.log('eventEtag =', etag); }",
+                      "const b = pm.response.json();",
+                      "console.log(b.cardEnabled === undefined ? 'tier: Public (summary shape)' : 'tier: Registrant/Organizer (detail shape)');"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "18. Conditional GET — expect 304",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "If-None-Match",
+                    "value": "{{eventEtag}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}"
+                  ]
+                },
+                "description": "US-710. Replays the ETag captured by request 17. A match returns **304 with no body**, and no read-model table is queried to produce it.\n\nSet the `If-None-Match` header to `{{eventEtag}}` (already configured below).\n\nThe ETag covers `(endpoint, eventId, watermark, tier, flags)` — not the watermark alone. If you register for this event and re-run request 17, the ETag **changes**, because your tier changed. That is deliberate: a watermark-only tag would return 304 here and silently withhold the detail fields you just earned."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('304 Not Modified', () => pm.response.to.have.status(304));",
+                      "pm.test('no body', () => pm.expect((pm.response.text() || '').length).to.eql(0));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "19. Divisions",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/divisions",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "divisions"
+                  ]
+                },
+                "description": "US-705. Public tier and above. Completed divisions are excluded by default; add `?includeCompleted=true` to include them (BR-READ-15)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "19b. Divisions — includeCompleted",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/divisions?includeCompleted=true",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "divisions"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeCompleted",
+                      "value": "true"
+                    }
+                  ]
+                },
+                "description": "US-705 with the inclusion flag. Returns divisions whose status is Complete as well."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "20. Division by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/divisions/{{divisionId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "divisions",
+                    "{{divisionId}}"
+                  ]
+                },
+                "description": "US-705. The id must belong to {{eventId}} — a division that exists under a different event returns 404 here, so cross-event probing reveals nothing (BR-READ-19)."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "21. Weigh-in policy",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/weigh-in-policy",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "weigh-in-policy"
+                  ]
+                },
+                "description": "US-706. Public tier and above — a prospective registrant needs the policy to judge the risk of competing at their current weight.\n\n`tolerancePercent` is present **only** when `mode` is Tolerance. There is no collection form of this resource: an event has exactly one policy."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                      "const p = pm.response.json();",
+                      "pm.test('tolerance only under Tolerance mode', () => {",
+                      "  if (p.mode === 'Tolerance') pm.expect(p.tolerancePercent).to.be.a('number');",
+                      "  else pm.expect(p.tolerancePercent == null).to.be.true;   // null or omitted",
+                      "});"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "22. Registrants (Organizer only)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registrants",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "registrants"
+                  ]
+                },
+                "description": "US-707. **Organizer tier only** — Public and Registrant callers get 404, not 403.\n\nThe list shape carries no date of birth, weight, rank, or gender; those appear only on the detail endpoint (request 23). Withdrawn registrations are excluded unless `?includeWithdrawn=true`.\n\nNote: registrations whose managing account has been **deleted** are still returned. Account deletion anonymizes the identity record only — the athlete is still competing and must appear on the roster."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK for an organizer', () => pm.response.to.have.status(200));",
+                      "const rows = pm.response.json();",
+                      "pm.test('list shape omits profile fields', () => pm.expect(rows.every(r => r.weight === undefined && r.dateOfBirth === undefined)).to.be.true);",
+                      "if (rows.length) { pm.collectionVariables.set('registrationId', String(rows[0].registrationId)); }"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "22b. Registrants — includeWithdrawn",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registrants?includeWithdrawn=true",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "registrants"
+                  ],
+                  "query": [
+                    {
+                      "key": "includeWithdrawn",
+                      "value": "true"
+                    }
+                  ]
+                },
+                "description": "US-707 with the inclusion flag. Withdrawn registrations are returned and identifiable via the `withdrawn` field."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "23. Registrant detail (no ETag by design)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registrants/{{registrationId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "registrants",
+                    "{{registrationId}}"
+                  ]
+                },
+                "description": "US-707. Adds dateOfBirth, weight, rank, gender. Readable by an Organizer for any registration, or by a Registrant **only for their own** records.\n\n**This endpoint deliberately issues no ETag** (U9-CON-2). Athlete profile events are appended with the *athlete* id as their scope, not the event id, so the event watermark does not move when an athlete edits their weight — a conditional response could return 304 carrying a stale weight. Rather than paper over that, the endpoint is excluded from conditional handling."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK', () => pm.response.to.have.status(200));",
+                      "pm.test('no ETag — see U9-CON-2', () => pm.expect(pm.response.headers.has('ETag')).to.be.false);",
+                      "pm.test('detail shape includes profile fields', () => pm.expect(pm.response.json()).to.have.property('weight'));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "24. Organizer accounts",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/accounts",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "accounts"
+                  ]
+                },
+                "description": "US-708. Organizer tier only. One entry per account holding an organizer role, with accountId, email, and role.\n\nScoped strictly to this event's roster. The original request was 'any account by id'; that was rejected at requirements as a blocking SECURITY-08 finding, because it would let any organizer probe arbitrary account ids and learn which accounts exist."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 OK for an organizer', () => pm.response.to.have.status(200));",
+                      "const rows = pm.response.json();",
+                      "pm.test('no credential material is ever returned', () => pm.expect(rows.every(r =>",
+                      "  r.passwordHash === undefined && r.securityStamp === undefined && r.twoFactorEnabled === undefined)).to.be.true);"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "25. Organizer account by id",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/accounts/{{coOrganizerAccountId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "accounts",
+                    "{{coOrganizerAccountId}}"
+                  ]
+                },
+                "description": "US-708. Returns 404 for an account that exists but holds **no organizer role on this event** — this endpoint never confirms the existence of unrelated accounts (BR-READ-10). Set `coOrganizerAccountId` from the 'Add co-organizer' request first."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('200 for a real co-organizer, 404 otherwise', () => pm.expect([200, 404]).to.include(pm.response.code));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "NEG 1 — unknown event id (expect 404)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/999999999999",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "999999999999"
+                  ]
+                },
+                "description": "US-709. An event id that does not exist and an event you hold no tier on return the **same 404 with the same body** — the two cases are indistinguishable, so probing reveals nothing.\n\nTo see the other half: close registration on an event you do not administer, then request it. The response must be byte-identical to this one."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+                      "pm.test('never 403 — a 403 would confirm existence', () => pm.expect(pm.response.code).to.not.eql(403));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "NEG 2 — division from another event (expect 404)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/divisions/{{otherDivisionId}}",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "divisions",
+                    "{{otherDivisionId}}"
+                  ]
+                },
+                "description": "US-709 / BR-READ-19. Set `otherDivisionId` to a division belonging to a **different** event, then run this. A valid id under the wrong event path returns 404 — never 403, and never the resource."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('404 Not Found', () => pm.response.to.have.status(404));",
+                      "pm.test('never 403', () => pm.expect(pm.response.code).to.not.eql(403));"
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "name": "NEG 3 — roster as a non-organizer (expect 404)",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{cloudBaseUrl}}/api/events/{{eventId}}/registrants",
+                  "host": [
+                    "{{cloudBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "registrants"
+                  ]
+                },
+                "description": "US-709. Re-run this while authenticated as a Public or Registrant caller — someone who is **not** an organizer of {{eventId}}. The roster must return 404, not 403.\n\nSwap `accessToken` for a second account's token first; otherwise this is request 22 and will return 200."
+              },
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "pm.test('404 for a non-organizer, 200 for an organizer', () => pm.expect([200, 404]).to.include(pm.response.code));",
+                      "pm.test('never 403', () => pm.expect(pm.response.code).to.not.eql(403));"
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
         }
       ]
     },
     {
       "name": "Admin Hub (U4a + U4b)",
       "description": "LAN hub walkthrough from testing-guide.md §3. Base URL {{hubBaseUrl}} (`dotnet run --project admin/EventManager.Hub`; default Kestrel http port 5000 — adjust if ASPNETCORE_URLS differs). No auth on this surface (LAN trust model).",
-      "auth": { "type": "noauth" },
+      "auth": {
+        "type": "noauth"
+      },
       "item": [
         {
           "name": "Health — connected devices",
           "request": {
             "method": "GET",
             "header": [],
-            "url": { "raw": "{{hubBaseUrl}}/health", "host": ["{{hubBaseUrl}}"], "path": ["health"] },
+            "url": {
+              "raw": "{{hubBaseUrl}}/health",
+              "host": [
+                "{{hubBaseUrl}}"
+              ],
+              "path": [
+                "health"
+              ]
+            },
             "description": "Returns { status, connectedDevices }."
           }
         },
@@ -406,35 +1537,83 @@
             {
               "name": "Issue pairing token (organizer)",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "try {",
-                  "  const j = pm.response.json();",
-                  "  const t = j.enrollmentToken || j.token || j.oneTimeToken || (j.qr && (j.qr.token || j.qr.enrollmentToken));",
-                  "  if (t) { pm.collectionVariables.set('enrollmentToken', t); console.log('enrollmentToken captured'); }",
-                  "  else { console.log('enrollmentToken not auto-detected — inspect the QR payload and set it manually.'); }",
-                  "} catch (e) {}"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "try {",
+                      "  const j = pm.response.json();",
+                      "  const t = j.enrollmentToken || j.token || j.oneTimeToken || (j.qr && (j.qr.token || j.qr.enrollmentToken));",
+                      "  if (t) { pm.collectionVariables.set('enrollmentToken', t); console.log('enrollmentToken captured'); }",
+                      "  else { console.log('enrollmentToken not auto-detected — inspect the QR payload and set it manually.'); }",
+                      "} catch (e) {}"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"eventId\": {{eventId}},\n  \"roleDescriptor\": \"Judge\"\n}" },
-                "url": { "raw": "{{hubBaseUrl}}/api/pairing/tokens", "host": ["{{hubBaseUrl}}"], "path": ["api", "pairing", "tokens"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"eventId\": {{eventId}},\n  \"roleDescriptor\": \"Judge\"\n}"
+                },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/pairing/tokens",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "pairing",
+                    "tokens"
+                  ]
+                },
                 "description": "US-303. Returns the QR payload (hub address + cert fingerprint + one-time token + role)."
               }
             },
             {
               "name": "Redeem pairing token (spoke)",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "try { const j = pm.response.json(); if (j.deviceId) { pm.collectionVariables.set('deviceId', String(j.deviceId)); console.log('deviceId =', j.deviceId, 'workerId =', j.workerId); } } catch (e) {}"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "try { const j = pm.response.json(); if (j.deviceId) { pm.collectionVariables.set('deviceId', String(j.deviceId)); console.log('deviceId =', j.deviceId, 'workerId =', j.workerId); } } catch (e) {}"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"enrollmentToken\": \"{{enrollmentToken}}\",\n  \"devicePublicInfo\": \"judge-tablet-01\"\n}" },
-                "url": { "raw": "{{hubBaseUrl}}/api/pairing/redeem", "host": ["{{hubBaseUrl}}"], "path": ["api", "pairing", "redeem"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"enrollmentToken\": \"{{enrollmentToken}}\",\n  \"devicePublicInfo\": \"judge-tablet-01\"\n}"
+                },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/pairing/redeem",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "pairing",
+                    "redeem"
+                  ]
+                },
                 "description": "US-304. Returns device credential + Snowflake worker id + pinned cert. Re-redeeming the same token → 409 (single-use)."
               }
             },
@@ -443,16 +1622,48 @@
               "request": {
                 "method": "GET",
                 "header": [],
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/devices", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "devices"] }
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/devices",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "devices"
+                  ]
+                }
               }
             },
             {
               "name": "Change device role",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"roleDescriptor\": \"CheckIn\"\n}" },
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/devices/{{deviceId}}/role", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "devices", "{{deviceId}}", "role"] }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"roleDescriptor\": \"CheckIn\"\n}"
+                },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/devices/{{deviceId}}/role",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "devices",
+                    "{{deviceId}}",
+                    "role"
+                  ]
+                }
               }
             },
             {
@@ -460,7 +1671,19 @@
               "request": {
                 "method": "DELETE",
                 "header": [],
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/devices/{{deviceId}}", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "devices", "{{deviceId}}"] },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/devices/{{deviceId}}",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "devices",
+                    "{{deviceId}}"
+                  ]
+                },
                 "description": "US-305/508. Revoke frees the worker id. A later sync from that device → 403."
               }
             },
@@ -469,11 +1692,30 @@
               "request": {
                 "method": "POST",
                 "header": [
-                  { "key": "Content-Type", "value": "application/json" },
-                  { "key": "X-Device-Id", "value": "{{deviceId}}" }
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "X-Device-Id",
+                    "value": "{{deviceId}}"
+                  }
                 ],
-                "body": { "mode": "raw", "raw": "{\n  \"events\": [\n    {\n      \"eventId\": {{eventId}},\n      \"deviceId\": {{deviceId}},\n      \"sequenceNumber\": 1,\n      \"eventType\": \"MatchScored\",\n      \"schemaVersion\": 1,\n      \"payloadBase64\": \"e30=\",\n      \"occurredAt\": \"2026-09-12T10:05:00Z\",\n      \"eventScopeId\": {{eventId}}\n    }\n  ]\n}" },
-                "url": { "raw": "{{hubBaseUrl}}/api/sync/batch", "host": ["{{hubBaseUrl}}"], "path": ["api", "sync", "batch"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"events\": [\n    {\n      \"eventId\": {{eventId}},\n      \"deviceId\": {{deviceId}},\n      \"sequenceNumber\": 1,\n      \"eventType\": \"MatchScored\",\n      \"schemaVersion\": 1,\n      \"payloadBase64\": \"e30=\",\n      \"occurredAt\": \"2026-09-12T10:05:00Z\",\n      \"eventScopeId\": {{eventId}}\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/sync/batch",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "sync",
+                    "batch"
+                  ]
+                },
                 "description": "US-407. Device id comes from the X-Device-Id header (pinned credential). A revoked device → 403. Idempotent, sequence-ordered."
               }
             }
@@ -486,9 +1728,29 @@
               "name": "Assign device to mat/division",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"deviceId\": {{deviceId}},\n  \"divisionId\": {{divisionId}}\n}" },
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/mat-assignments", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "mat-assignments"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"deviceId\": {{deviceId}},\n  \"divisionId\": {{divisionId}}\n}"
+                },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/mat-assignments",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "competition",
+                    "mat-assignments"
+                  ]
+                },
                 "description": "US-404. Mat authority (US-406): a score from a device not assigned to the match's division is rejected."
               }
             },
@@ -497,7 +1759,21 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/bracket:start", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "divisions", "{{divisionId}}", "bracket:start"] },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/bracket:start",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "competition",
+                    "divisions",
+                    "{{divisionId}}",
+                    "bracket:start"
+                  ]
+                },
                 "description": "US-311. After start, bracket regeneration is blocked."
               }
             },
@@ -505,9 +1781,31 @@
               "name": "Advance a match",
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"matchId\": {{matchId}},\n  \"winnerId\": {{winnerId}},\n  \"method\": \"Points\"\n}" },
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/bracket:advance", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "divisions", "{{divisionId}}", "bracket:advance"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"matchId\": {{matchId}},\n  \"winnerId\": {{winnerId}},\n  \"method\": \"Points\"\n}"
+                },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/bracket:advance",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "competition",
+                    "divisions",
+                    "{{divisionId}}",
+                    "bracket:advance"
+                  ]
+                },
                 "description": "US-312. Winner recorded; standings updated. method ∈ {Points, Forfeit, Disqualification, Decision}. Set {{matchId}}/{{winnerId}} from bracket state."
               }
             },
@@ -516,7 +1814,21 @@
               "request": {
                 "method": "GET",
                 "header": [],
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/standings", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "divisions", "{{divisionId}}", "standings"] },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}/standings",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "competition",
+                    "divisions",
+                    "{{divisionId}}",
+                    "standings"
+                  ]
+                },
                 "description": "Ordered by wins (then losses)."
               }
             },
@@ -525,22 +1837,61 @@
               "request": {
                 "method": "POST",
                 "header": [],
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}:finalize", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "divisions", "{{divisionId}}:finalize"] },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/divisions/{{divisionId}}:finalize",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "competition",
+                    "divisions",
+                    "{{divisionId}}:finalize"
+                  ]
+                },
                 "description": "US-313. Placements by wins."
               }
             },
             {
               "name": "Flag a dispute",
               "event": [
-                { "listen": "test", "script": { "type": "text/javascript", "exec": [
-                  "try { const j = pm.response.json(); if (j.disputeId) { pm.collectionVariables.set('disputeId', String(j.disputeId)); console.log('disputeId =', j.disputeId); } } catch (e) {}"
-                ] } }
+                {
+                  "listen": "test",
+                  "script": {
+                    "type": "text/javascript",
+                    "exec": [
+                      "try { const j = pm.response.json(); if (j.disputeId) { pm.collectionVariables.set('disputeId', String(j.disputeId)); console.log('disputeId =', j.disputeId); } } catch (e) {}"
+                    ]
+                  }
+                }
               ],
               "request": {
                 "method": "POST",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"divisionId\": {{divisionId}},\n  \"matchId\": {{matchId}},\n  \"reason\": \"Scorekeeper contested the final point.\"\n}" },
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/disputes", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "disputes"] },
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"divisionId\": {{divisionId}},\n  \"matchId\": {{matchId}},\n  \"reason\": \"Scorekeeper contested the final point.\"\n}"
+                },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/disputes",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "competition",
+                    "disputes"
+                  ]
+                },
                 "description": "US-314. Recorded as an event."
               }
             },
@@ -548,9 +1899,30 @@
               "name": "Resolve a dispute",
               "request": {
                 "method": "PUT",
-                "header": [{ "key": "Content-Type", "value": "application/json" }],
-                "body": { "mode": "raw", "raw": "{\n  \"resolution\": \"Upheld — original result stands.\"\n}" },
-                "url": { "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/disputes/{{disputeId}}", "host": ["{{hubBaseUrl}}"], "path": ["api", "events", "{{eventId}}", "competition", "disputes", "{{disputeId}}"] }
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"resolution\": \"Upheld — original result stands.\"\n}"
+                },
+                "url": {
+                  "raw": "{{hubBaseUrl}}/api/events/{{eventId}}/competition/disputes/{{disputeId}}",
+                  "host": [
+                    "{{hubBaseUrl}}"
+                  ],
+                  "path": [
+                    "api",
+                    "events",
+                    "{{eventId}}",
+                    "competition",
+                    "disputes",
+                    "{{disputeId}}"
+                  ]
+                }
               }
             }
           ]

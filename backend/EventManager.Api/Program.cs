@@ -73,6 +73,15 @@ builder.Services.AddScoped<OrganizerRoleService>();
 builder.Services.AddScoped<IngestService>();
 builder.Services.AddScoped<ResultsQueryService>();
 
+// ---- U9 read/query API (API-local read authorization, U9-CON-1) ----
+builder.Services.AddScoped<ReadAuthorizer>();
+builder.Services.AddScoped<ReadEtagProvider>();
+builder.Services.AddScoped<EventQueryService>();
+builder.Services.AddScoped<DivisionQueryService>();
+builder.Services.AddScoped<WeighInPolicyQueryService>();
+builder.Services.AddScoped<RegistrantQueryService>();
+builder.Services.AddScoped<OrganizerAccountQueryService>();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 

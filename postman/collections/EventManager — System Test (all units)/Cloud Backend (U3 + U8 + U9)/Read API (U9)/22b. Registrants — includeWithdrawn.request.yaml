@@ -1,0 +1,11 @@
+$kind: http-request
+description: US-707 with the inclusion flag. Withdrawn registrations are returned and identifiable via the `withdrawn` field.
+url: "{{cloudBaseUrl}}/api/events/{{eventId}}/registrants?includeWithdrawn=true"
+method: GET
+queryParams:
+  includeWithdrawn: "true"
+scripts:
+  - type: afterResponse
+    code: pm.test('200 OK', () => pm.response.to.have.status(200));
+    language: text/javascript
+order: 9000

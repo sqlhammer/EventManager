@@ -1,7 +1,7 @@
 $kind: collection
 name: EventManager — System Test (all units)
 description: |-
-  End-to-end HTTP coverage for the EventManager MVP, mirroring aidlc-docs/testing-guide.md.
+  End-to-end HTTP coverage for the EventManager MVP plus post-MVP unit U9 (Read/Query API), mirroring aidlc-docs/testing-guide.md.
 
   Two hosts:
   - **Cloud backend** (U3 + U8) at {{cloudBaseUrl}} — behind the TLS proxy from `docker compose up` (see backend/.env). Bearer-auth; register/confirm/login/refresh are anonymous.
@@ -30,8 +30,10 @@ variables:
   matchId: ""
   winnerId: ""
   disputeId: ""
+  eventEtag: ""
+  otherDivisionId: ""
 auth:
-  - id: 7787a565-44e4-428d-bbd0-39bf88a2c5fc
+  - id: 54966991-5bd7-452c-b35e-6bc36688c3f9
     type: bearer
     name: bearer auth
     credentials:

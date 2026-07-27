@@ -1,0 +1,15 @@
+$kind: collection
+description: |-
+  Unit U9 — nine GET endpoints over the read models, governed by a three-tier access model.
+
+  **Tiers** (cumulative, resolved per event):
+  - **Public** — any authenticated caller, event registration Open. Event *summary*, divisions, weigh-in policy.
+  - **Registrant** — caller holds a non-withdrawn registration. Adds event *detail* and their own registration.
+  - **Organizer** — caller holds an organizer role. Adds the full roster and the organizer roster.
+
+  **Two conventions differ from the write endpoints:**
+  1. Insufficient tier returns **404, never 403** — a 403 would confirm the resource exists (US-709).
+  2. Response *shape* follows from the resolved tier, not from anything you send.
+
+  Run 5-13 in the Cloud Backend folder first so `eventId`, `divisionId`, and `registrationId` are populated. To exercise the tier model properly, log in as a second account that is neither an organizer nor a registrant of {{eventId}} and re-run — the roster and account requests must return 404.
+order: 5000

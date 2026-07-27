@@ -79,13 +79,30 @@ Five personas. The combined Athlete/Parent persona is named **Registrant** (user
 
 ---
 
+## Persona → Read Access Tier (unit U9, added 2026-07-26)
+
+Epic 7 introduces a three-tier read model on the cloud API. No new persona was required — the tiers
+map onto the existing five. Tiers are cumulative and evaluated **per event**, so one persona can
+hold different tiers on different events.
+
+| Persona | Reaches | Notes |
+|---|---|---|
+| **P1 Organizer** | **T2** on events they administer; T1/T0 elsewhere | An organizer reading an event they do not administer is an ordinary T0/T1 caller — organizer authority never spans events |
+| **P2 Coach** | **T1** on events their athletes are entered in; **T0** on open events | T1 exposes only registrations the coach's account manages, never the full roster |
+| **P3 Registrant** | **T1** on events they entered; **T0** on open events | T0 is what makes an event discoverable before registering |
+| **P4 Judge** | **none** | Device-paired identity with no cloud account (see P4 Authority); reads the hub, not the cloud API |
+| **P5 Check-In Staff** | **none** | Same — device-paired, hub-local |
+
+P4 and P5 are deliberately outside the read API. Their authority comes from device enrollment rather
+than a cloud account, so there is no account for a tier to attach to.
+
 ## Persona → Story Map
 
 | Persona | Primary stories |
 |---|---|
-| P1 Organizer | US-101..109, US-209, US-301..305, US-308..314, US-405, US-408, US-409, US-501, US-504..506, US-508, US-601, US-602 |
-| P2 Coach | US-204, US-205, US-206, US-207 (shared), US-603 (shared) |
-| P3 Registrant | US-201, US-202, US-203, US-207, US-208, US-210 (system-facing, on behalf of), US-211, US-603 |
+| P1 Organizer | US-101..109, US-209, US-301..305, US-308..314, US-405, US-408, US-409, US-501, US-504..506, US-508, US-601, US-602, US-703, US-704..710 |
+| P2 Coach | US-204, US-205, US-206, US-207 (shared), US-603 (shared), US-701, US-702, US-704..706, US-709, US-710 |
+| P3 Registrant | US-201, US-202, US-203, US-207, US-208, US-210 (system-facing, on behalf of), US-211, US-603, US-701, US-702, US-704..707, US-709, US-710 |
 | P4 Judge | US-303, US-304, US-401..407, US-410, US-411, US-502, US-507 |
 | P5 Check-In Staff | US-303, US-304, US-306, US-307, US-308 (initiates), US-310, US-503, US-507 |
 

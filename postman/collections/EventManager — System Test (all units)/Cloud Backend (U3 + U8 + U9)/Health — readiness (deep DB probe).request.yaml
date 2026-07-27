@@ -1,6 +1,6 @@
 $kind: http-request
-url: "{{cloudBaseUrl}}/health"
+url: "{{cloudBaseUrl}}/health/ready"
 method: GET
 auth:
   type: noauth
-order: 5000
+order: 7000
