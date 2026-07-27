@@ -846,3 +846,11 @@ We need to create GET endpoints for:
 **Context**: CONSTRUCTION - U9 verification; no code change; guide hardened
 
 ---
+
+## CORRECTION — retracted an unwarranted preference memory
+**Timestamp**: 2026-07-26T00:00:00Z
+**User Input**: "This is incorrect. Just because I rebuilt does not mean it is my preference for you to never do it. Remove this preference entry"
+**AI Response**: "Deleted memory/docker-stack-user-runs-rebuilds.md and its MEMORY.md index line. The inference was unfounded — the user rebuilding the container once is not evidence of a standing preference that I never run compose rebuilds. The docker-compose --build callout added to construction/u9-read-api/code/user-testing-guide.md (commit c15125c) is unaffected and stays; it documents the stale-image 405 symptom regardless of who runs the rebuild."
+**Context**: Memory correction; no code or U9 deliverable impact
+
+---
