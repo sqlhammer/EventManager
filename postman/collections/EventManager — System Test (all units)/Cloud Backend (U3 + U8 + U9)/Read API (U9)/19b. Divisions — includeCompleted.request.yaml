@@ -1,11 +1,11 @@
 $kind: http-request
-description: US-705 with the inclusion flag. Returns divisions whose status is Complete as well.
+description: |-
+  US-705 with the inclusion flag. Returns divisions whose status is Complete as well.
 url: "{{cloudBaseUrl}}/api/events/{{eventId}}/divisions?includeCompleted=true"
 method: GET
-queryParams:
-  includeCompleted: "true"
 scripts:
   - type: afterResponse
-    code: pm.test('200 OK', () => pm.response.to.have.status(200));
+    code: |-
+        pm.test('200 OK', () => pm.response.to.have.status(200));
     language: text/javascript
 order: 5000

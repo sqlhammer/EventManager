@@ -8,8 +8,8 @@ method: GET
 scripts:
   - type: afterResponse
     code: |-
-      pm.test('200 OK', () => pm.response.to.have.status(200));
-      pm.test('no ETag — see U9-CON-2', () => pm.expect(pm.response.headers.get('ETag')).to.be.null);
-      pm.test('detail shape includes profile fields', () => pm.expect(pm.response.json()).to.have.property('weight'));
+        pm.test('200 OK', () => pm.response.to.have.status(200));
+        pm.test('no ETag — see U9-CON-2', () => pm.expect(pm.response.headers.has('ETag')).to.be.false);
+        pm.test('detail shape includes profile fields', () => pm.expect(pm.response.json()).to.have.property('weight'));
     language: text/javascript
 order: 10000

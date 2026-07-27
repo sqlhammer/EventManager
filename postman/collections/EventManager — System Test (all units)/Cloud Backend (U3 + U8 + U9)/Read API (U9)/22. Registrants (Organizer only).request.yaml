@@ -10,9 +10,9 @@ method: GET
 scripts:
   - type: afterResponse
     code: |-
-      pm.test('200 OK for an organizer', () => pm.response.to.have.status(200));
-      const rows = pm.response.json();
-      pm.test('list shape omits profile fields', () => pm.expect(rows.every(r => r.weight === undefined && r.dateOfBirth === undefined)).to.be.true);
-      if (rows.length) { pm.collectionVariables.set('registrationId', String(rows[0].registrationId)); }
+        pm.test('200 OK for an organizer', () => pm.response.to.have.status(200));
+        const rows = pm.response.json();
+        pm.test('list shape omits profile fields', () => pm.expect(rows.every(r => r.weight === undefined && r.dateOfBirth === undefined)).to.be.true);
+        if (rows.length) { pm.collectionVariables.set('registrationId', String(rows[0].registrationId)); }
     language: text/javascript
 order: 8000

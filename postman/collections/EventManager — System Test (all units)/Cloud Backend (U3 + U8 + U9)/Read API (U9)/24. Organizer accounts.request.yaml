@@ -8,9 +8,9 @@ method: GET
 scripts:
   - type: afterResponse
     code: |-
-      pm.test('200 OK for an organizer', () => pm.response.to.have.status(200));
-      const rows = pm.response.json();
-      pm.test('no credential material is ever returned', () => pm.expect(rows.every(r =>
-        r.passwordHash === undefined && r.securityStamp === undefined && r.twoFactorEnabled === undefined)).to.be.true);
+        pm.test('200 OK for an organizer', () => pm.response.to.have.status(200));
+        const rows = pm.response.json();
+        pm.test('no credential material is ever returned', () => pm.expect(rows.every(r =>
+          r.passwordHash === undefined && r.securityStamp === undefined && r.twoFactorEnabled === undefined)).to.be.true);
     language: text/javascript
 order: 11000

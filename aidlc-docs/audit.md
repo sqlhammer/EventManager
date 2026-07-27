@@ -854,3 +854,11 @@ We need to create GET endpoints for:
 **Context**: Memory correction; no code or U9 deliverable impact
 
 ---
+
+## CONSTRUCTION — U9 Postman assertion bug fixed (test script, not API)
+**Timestamp**: 2026-07-27T00:00:00Z
+**User Input**: "/api/events received this error" [Postman: 200 OK PASSED, 'every item carries an access tier' PASSED, 'no ETag on the cross-scope collection' FAILED — AssertionError: expected undefined to be null]
+**AI Response**: "My test-script bug, not an API defect — and the failure message itself proves the API is correct. pm.response.headers.get('X') returns UNDEFINED for a missing header, never null, so `.to.be.null` could never pass; the header being reported as undefined is exactly the required behaviour (GET /api/events issues no ETag because it spans event scopes, BR-READ-25). Switched to the correct presence API, pm.response.headers.has('ETag') expected false, in request 16 and in request 23 (registrant detail, which carries the same absent-ETag assertion per BR-READ-26/U9-CON-2 — it would have failed identically on the next run). Audited every other assertion in the folder for the same class of misuse: also fixed request 21's tolerance check, where the absent branch used `.to.be.null` (would fail if System.Text.Json ever omitted the null) — now `p.tolerancePercent == null` which accepts null or omitted — and tightened its positive branch from `.to.not.be.null` to `.to.be.a('number')`, since to.not.be.null would have passed on an omitted property. Regenerated the directory-format copy from the JSON and verified programmatically that the test scripts are byte-identical across both representations and that no `headers.get(...) + to.be.null` assertion remains. No production code changed; 153 tests still green."
+**Context**: CONSTRUCTION - U9 Postman assertion fix; API behaviour confirmed correct
+
+---

@@ -8,11 +8,11 @@ method: GET
 scripts:
   - type: afterResponse
     code: |-
-      pm.test('200 OK', () => pm.response.to.have.status(200));
-      const etag = pm.response.headers.get('ETag');
-      pm.test('carries a strong ETag', () => pm.expect(etag).to.be.a('string'));
-      if (etag) { pm.collectionVariables.set('eventEtag', etag); console.log('eventEtag =', etag); }
-      const b = pm.response.json();
-      console.log(b.cardEnabled === undefined ? 'tier: Public (summary shape)' : 'tier: Registrant/Organizer (detail shape)');
+        pm.test('200 OK', () => pm.response.to.have.status(200));
+        const etag = pm.response.headers.get('ETag');
+        pm.test('carries a strong ETag', () => pm.expect(etag).to.be.a('string'));
+        if (etag) { pm.collectionVariables.set('eventEtag', etag); console.log('eventEtag =', etag); }
+        const b = pm.response.json();
+        console.log(b.cardEnabled === undefined ? 'tier: Public (summary shape)' : 'tier: Registrant/Organizer (detail shape)');
     language: text/javascript
 order: 2000

@@ -1,13 +1,14 @@
 $kind: http-request
-description: US-704. Union of Public + Registrant + Organizer events, each tagged with `accessTier` and, where held, `organizerRole`. Complete and unpaginated (Q7=A). No ETag — the result spans multiple event scopes with no single watermark.
+description: |-
+  US-704. Union of Public + Registrant + Organizer events, each tagged with `accessTier` and, where held, `organizerRole`. Complete and unpaginated (Q7=A). No ETag — the result spans multiple event scopes with no single watermark.
 url: "{{cloudBaseUrl}}/api/events"
 method: GET
 scripts:
   - type: afterResponse
     code: |-
-      pm.test('200 OK', () => pm.response.to.have.status(200));
-      const items = pm.response.json();
-      pm.test('every item carries an access tier', () => pm.expect(items.every(i => !!i.accessTier)).to.be.true);
-      pm.test('no ETag on the cross-scope collection', () => pm.expect(pm.response.headers.get('ETag')).to.be.null);
+        pm.test('200 OK', () => pm.response.to.have.status(200));
+        const items = pm.response.json();
+        pm.test('every item carries an access tier', () => pm.expect(items.every(i => !!i.accessTier)).to.be.true);
+        pm.test('no ETag on the cross-scope collection', () => pm.expect(pm.response.headers.has('ETag')).to.be.false);
     language: text/javascript
 order: 1000

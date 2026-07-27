@@ -1023,7 +1023,7 @@
                       "pm.test('200 OK', () => pm.response.to.have.status(200));",
                       "const items = pm.response.json();",
                       "pm.test('every item carries an access tier', () => pm.expect(items.every(i => !!i.accessTier)).to.be.true);",
-                      "pm.test('no ETag on the cross-scope collection', () => pm.expect(pm.response.headers.get('ETag')).to.be.null);"
+                      "pm.test('no ETag on the cross-scope collection', () => pm.expect(pm.response.headers.has('ETag')).to.be.false);"
                     ]
                   }
                 }
@@ -1228,8 +1228,8 @@
                       "pm.test('200 OK', () => pm.response.to.have.status(200));",
                       "const p = pm.response.json();",
                       "pm.test('tolerance only under Tolerance mode', () => {",
-                      "  if (p.mode === 'Tolerance') pm.expect(p.tolerancePercent).to.not.be.null;",
-                      "  else pm.expect(p.tolerancePercent).to.be.null;",
+                      "  if (p.mode === 'Tolerance') pm.expect(p.tolerancePercent).to.be.a('number');",
+                      "  else pm.expect(p.tolerancePercent == null).to.be.true;   // null or omitted",
                       "});"
                     ]
                   }
@@ -1334,7 +1334,7 @@
                     "type": "text/javascript",
                     "exec": [
                       "pm.test('200 OK', () => pm.response.to.have.status(200));",
-                      "pm.test('no ETag — see U9-CON-2', () => pm.expect(pm.response.headers.get('ETag')).to.be.null);",
+                      "pm.test('no ETag — see U9-CON-2', () => pm.expect(pm.response.headers.has('ETag')).to.be.false);",
                       "pm.test('detail shape includes profile fields', () => pm.expect(pm.response.json()).to.have.property('weight'));"
                     ]
                   }
