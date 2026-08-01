@@ -119,6 +119,44 @@
   - **Infrastructure Design is mandatory** — F3=B adds a Compose collector service (SECURITY-07/02, RESILIENCY-05)
   - 10-step package change sequence; `shared/` explicitly unchanged; the `ReplicationClient` edit is isolated as its own step because it is the only change to merged U7 code
   - Fast-track option documented (collapse Application Design + NFR Requirements + NFR Design into Functional Design → 4 stages), matching the U4a/U4b/U5/U6/U7 pattern; stage-by-stage still recommended
+- **Branch `unit/u10-http-replication` CREATED 2026-07-27** from main; INCEPTION artifacts committed (f840324). All further U10 work stays on the branch until end-of-unit approval
+- [x] INCEPTION: Application Design — **APPROVED 2026-07-27** ("approve and continue"). Plan `inception/plans/u10-application-design-plan.md` (all checklist items [x]); clarification `inception/plans/u10-application-design-clarification.md`
+  - Answers: AD-Q1=A, AD-Q2=A, AD-Q3=A, AD-Q4=B, AD-Q5=C, AD-Q6=A, AD-Q7=A, AD-Q8=A, AD-Q9=C; CL-1=A, CL-2=A
+  - **U10-CON-5 CLOSED** (AD-Q1=A — hub admin endpoint `POST /api/replication/credential` behind existing `OfflineOrganizerAuth`)
+  - Artifacts in `inception/application-design/`: u10-components.md, u10-component-methods.md, u10-services.md, u10-component-dependency.md, u10-application-design.md (18 components: 7 cloud, 10 hub, 1 infra)
+  - **U10-CON-6 AMENDED and execution plan §4 step 5 CORRECTED** — AD-Q4=B widened the `ReplicationClient` edit from retry classification alone to also owning the schedule, a channel consumer, a drain timer, close-out, and a `BackgroundService` lifetime
+  - **Named risk**: `ReplicationClient` becomes a singleton while `IEventStore`/`HubDbContext` stay scoped (`Program.cs:16,40`) → CL-1=A per-run `IServiceScopeFactory` scope. Fails intermittently under concurrency, not at startup
+  - **CL-2=A adds a sixth solution** `EventManager.Integration.slnx` so the credential-path test actually runs; Build-and-Test instructions will need a sixth `dotnet test` line
+  - No blocking extension findings at this stage
+- [x] CONSTRUCTION: Functional Design — **APPROVED 2026-07-27**. Plan `construction/plans/u10-http-replication-functional-design-plan.md` (all items [x]); clarification `construction/plans/u10-functional-design-clarification.md`
+  - Answers: FD-Q1=C, FD-Q2=C (cap 3), FD-Q3=D, FD-Q4=D, FD-Q5=D, FD-Q6=A, FD-Q7=B, **FD-Q8 rolled back C→B at CL-A**; CL-B=D
+  - Artifacts in `construction/u10-http-replication/functional-design/`: domain-entities.md, business-logic-model.md, business-rules.md (**BR-REPL-1..50** + property P-REPL-1)
+  - **CL-A**: FD-Q8=C was withdrawn because the hub cannot evaluate it — a credential is an opaque key whose event binding exists only in the cloud. Accepted consequence: the wrong-event mistake is caught at first replication attempt, not at install
+  - **CL-B**: premise corrected — the model has NO event end date (`EventRow.Date` is a single `DateOnly`), so expiry = `Event.Date` + grace (configurable, 14-day default)
+  - **Application Design amended**: `DELETE /api/replication/credential` added to `ReplicationCredentialController` — FD-Q8=B makes install refuse against an occupied slot, so clearing must be explicit
+  - All 19 U10-FR and 7 of 8 U10-NFR covered by rules; U10-NFR-7 deliberately uncovered (inherits U3)
+  - No frontend artifact (hub MAUI shell still a deferred seam); no blocking extension findings
+- [x] CONSTRUCTION: NFR Requirements (MINIMAL depth, tech-stack only) — **AWAITING APPROVAL**. Plan `construction/plans/u10-http-replication-nfr-requirements-plan.md` (all items [x]); answers NFR-Q1=A, Q2=B, Q3=A, Q4=A, Q5=A, Q6=A
+  - Artifacts in `construction/u10-http-replication/nfr-requirements/`: nfr-requirements.md (U10-NFR-1..8 inherited, each mapped to the `BR-REPL-*` rule that makes it measurable), tech-stack-decisions.md (TS-U10-1..9)
+  - **Three new packages, hub host only**: `OpenTelemetry.Extensions.Hosting` 1.17.0, `OpenTelemetry.Exporter.OpenTelemetryProtocol` 1.17.0, `System.Security.Cryptography.ProtectedData` 10.0.10 (versions resolved against nuget.org, not guessed). Nothing new in `backend/`, `shared/`, or the hub library
+  - **Finding**: SECURITY-10 pinning + scanning ALREADY satisfied by the repo — CPM with `CentralPackageVersionOverrideEnabled=false` and `NuGetAudit`/`NuGetAuditMode=all`. SBOM stays open as a pre-existing project-level gap (NFR-Q6=A)
+  - Retry/breaker hand-rolled (TS-U10-5) rather than Polly — BR-REPL-33/34 semantics would be configured around, not used
+  - No blocking findings
+- [x] CONSTRUCTION: NFR Design — **APPROVED 2026-07-27**. Plan `construction/plans/u10-http-replication-nfr-design-plan.md` (all items [x]); answers ND-Q1=C, Q2=B, Q3=A, Q4=A, Q5=A, Q6=C, Q7=A, Q8=A, Q9=C
+  - Artifacts in `construction/u10-http-replication/nfr-design/`: nfr-design-patterns.md (P-1..P-15 + full config table), logical-components.md
+  - **Two verified pipeline findings drove the design**: `UseRateLimiter()` runs BEFORE `UseAuthentication()` (`Program.cs:133-135`) so no policy can partition by `CredentialId` → partition by credential-header hash (P-8); and the API emits no `Retry-After` today, so `BR-REPL-31` would have been decorative → `OnRejected` handler added (P-9)
+  - **U10-CON-3 CLOSED** — ingest limit is 300/min per credential-hash partition + global concurrency cap of 8; server body limit 8 MB vs hub cap 4 MB, so a conforming hub can never trip it
+  - **BR-REPL-47 amended** — status endpoint computes lag and pending together in one pass (ND-Q6=C); `/health` and metrics keep cached values
+  - RESILIENCY-14 answered by the user (ND-Q9=C, defer to Operations); 8 scenarios captured, 6 covered by this unit, R-7/R-8 explicitly deferred not claimed
+  - No blocking findings
+- [x] CONSTRUCTION: Infrastructure Design — **AWAITING APPROVAL**. Plan `construction/plans/u10-http-replication-infrastructure-design-plan.md` (all items [x]); answers ID-Q1..Q6 all = A
+  - Artifacts in `construction/u10-http-replication/infrastructure-design/`: infrastructure-design.md, deployment-architecture.md
+  - **Key finding**: the hub is behind NAT, so the collector's OTLP receiver must be reachable from the public internet — not obvious when F3=B was chosen. Resolved by routing `/otlp/*` through the existing Caddy proxy to an internal-only collector, so the stack keeps its single published port (443)
+  - Collector `otel/opentelemetry-collector-contrib:0.157.0` (verified current stable; 0.158.0 is nightly-only), OTLP/HTTP 4318, `memory_limiter` first in pipeline, no diagnostic extensions
+  - **SECURITY-02 pre-existing gap CLOSED** (ID-Q3=A) — the Caddyfile had no `log` directive, so the only network intermediary logged nothing. Now JSON access logging for the whole site
+  - New env: `METRICS_TOKEN` (cloud, no default — stack won't start without it); hub uses standard `OTEL_EXPORTER_OTLP_*`
+  - Recorded honestly: no metrics retention until Operations adds a scraper; token comparison is not constant-time; one shared token means no per-hub metrics revocation; writing access logs is not retaining them (SECURITY-14 retention still an open project gap)
+  - No blocking findings. **INCEPTION + all pre-code CONSTRUCTION design stages now complete for U10**
 
 ## Post-MVP Untracked Work (backfilled 2026-07-26)
 - **Account self-deletion (US-110)** — `DELETE /api/accounts/me` endpoint, `AccountDeletionService`/`AccountDeletionGuard`, EF migration `AccountSoftDelete`, `AccountDeletionTests` — implemented directly on `main` (commit 7159038, merged via PR #1 / 56b2c3e) on 2026-07-25, **without** a `unit/<id>-<slug>` branch, per-unit stage gates, or audit.md logging, in violation of the per-unit git branch process requirement (line 10 above). Functionally complete and merged; retroactively logged here for traceability. No further action taken.

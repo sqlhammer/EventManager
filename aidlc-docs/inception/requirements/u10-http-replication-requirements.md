@@ -172,6 +172,20 @@ requirements rather than discovered during code generation.
 D-U10-03 changes `ReplicationClient`, merged at `0b51346`. The 17 existing admin tests must stay
 green, and the change must not alter in-process `StoreBackedReplicationTransport` behaviour.
 
+**Amended 2026-07-27 (Application Design AD-Q4=B).** This constraint was written assuming the edit
+would be limited to retry classification. It is not. `ReplicationClient` now also owns the replication
+schedule: a channel consumer for append signals, a drain timer, the close-out flush, and a
+`BackgroundService` lifetime. Two consequences follow:
+
+- The class becomes long-lived, while `IEventStore`/`HubEventStore` and `HubDbContext` are registered
+  **scoped** (`admin/EventManager.Hub/Program.cs:16,40`). Per CL-1=A it takes `IServiceScopeFactory`
+  and creates a scope per replication run — a singleton holding a scoped, non-thread-safe `DbContext`
+  would fail intermittently under concurrency rather than at startup.
+- The "17 admin tests stay green" gate is now the primary protection for the flagship offline
+  guarantee across a substantially larger edit, not a formality. `ReplicationClient` is currently
+  constructed directly in `ResilienceTests.cs:56,117` and is not registered in DI, so those tests
+  must keep working against the amended constructor.
+
 ---
 
 ## 7. Out of Scope
