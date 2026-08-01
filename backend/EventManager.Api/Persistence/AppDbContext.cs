@@ -20,6 +20,8 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
     public DbSet<AthleteProfileRow> AthleteProfileRows => Set<AthleteProfileRow>();
     public DbSet<ResultRow> ResultRows => Set<ResultRow>();
 
+    public DbSet<HubCredentialRecord> HubCredentials => Set<HubCredentialRecord>();
+
     public DbSet<IdempotencyKey> IdempotencyKeys => Set<IdempotencyKey>();
     public DbSet<RefreshTokenRecord> RefreshTokens => Set<RefreshTokenRecord>();
     public DbSet<EmailOutboxRecord> EmailOutbox => Set<EmailOutboxRecord>();
@@ -42,6 +44,15 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
         b.Entity<RegistrationRow>(e => { e.HasKey(x => x.RegistrationId); e.HasIndex(x => x.EventId); });
         b.Entity<AthleteProfileRow>(e => { e.HasKey(x => x.AthleteId); e.HasIndex(x => x.OwnerAccountId); });
         b.Entity<ResultRow>(e => { e.HasKey(x => x.Id); e.HasIndex(x => x.AthleteId); });
+
+        b.Entity<HubCredentialRecord>(e =>
+        {
+            e.HasKey(x => x.CredentialId);
+            e.Property(x => x.CredentialId).ValueGeneratedNever();
+            e.HasIndex(x => x.KeyHash).IsUnique();   // authentication is a single indexed lookup (BR-REPL-7)
+            e.HasIndex(x => x.EventScopeId);          // active-credential cap + listing (BR-REPL-5)
+            e.Property(x => x.Label).HasMaxLength(120);
+        });
 
         b.Entity<IdempotencyKey>(e => e.HasKey(x => x.Key));
         b.Entity<RefreshTokenRecord>(e => { e.HasKey(x => x.TokenHash); e.HasIndex(x => x.AccountId); });

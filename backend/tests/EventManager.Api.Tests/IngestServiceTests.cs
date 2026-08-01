@@ -1,4 +1,5 @@
 using EventManager.Api.Events;
+using EventManager.Api.Auth;
 using EventManager.Contracts;
 using EventManager.Sync;
 
@@ -29,8 +30,8 @@ public sealed class IngestServiceTests
         var (eventId, divisionId, athleteId, adminAccount) = await h.SeedOpenEventAsync();
         var batch = Batch(eventId, athleteId, divisionId, count: 4);
 
-        var first = await h.Ingest.IngestAsync(adminAccount, batch);
-        var second = await h.Ingest.IngestAsync(adminAccount, batch);
+        var first = await h.Ingest.IngestAsync(new IngestCaller.Account(adminAccount), batch);
+        var second = await h.Ingest.IngestAsync(new IngestCaller.Account(adminAccount), batch);
 
         Assert.False(first.IsError);
         Assert.Equal(4, first.Value.AcceptedCount);
@@ -45,7 +46,7 @@ public sealed class IngestServiceTests
         var (eventId, divisionId, athleteId, _) = await h.SeedOpenEventAsync();
         var batch = Batch(eventId, athleteId, divisionId, count: 2);
 
-        var result = await h.Ingest.IngestAsync(callerAccountId: 999999, batch); // not an organizer on the scope
+        var result = await h.Ingest.IngestAsync(new IngestCaller.Account(999999), batch); // not an organizer on the scope
         Assert.True(result.IsError);
     }
 
@@ -60,8 +61,8 @@ public sealed class IngestServiceTests
         var forward = Batch(s1.EventId, s1.AthleteId, s1.DivisionId, 4);
         var reversed = new ReplicationBatchDto(Batch(s2.EventId, s2.AthleteId, s2.DivisionId, 4).Events.Reverse().ToList());
 
-        await h1.Ingest.IngestAsync(s1.AccountId, forward);
-        await h2.Ingest.IngestAsync(s2.AccountId, reversed);
+        await h1.Ingest.IngestAsync(new IngestCaller.Account(s1.AccountId), forward);
+        await h2.Ingest.IngestAsync(new IngestCaller.Account(s2.AccountId), reversed);
 
         Assert.Equal(h1.Db.Events.Count(e => e.DeviceId == 7), h2.Db.Events.Count(e => e.DeviceId == 7));
     }

@@ -10,6 +10,7 @@ using EventManager.Domain.Engines;
 using EventManager.Payments;
 using EventManager.Sync;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Identity;
@@ -82,6 +83,13 @@ builder.Services.AddScoped<WeighInPolicyQueryService>();
 builder.Services.AddScoped<RegistrantQueryService>();
 builder.Services.AddScoped<OrganizerAccountQueryService>();
 
+// ---- U10 hub credentials (a hub is a principal, not a person — AD-Q2=A / AD-Q3=A) ----
+builder.Services.AddSingleton(TimeProvider.System);
+builder.Services.AddSingleton(builder.Configuration.GetSection("HubCredentials").Get<HubCredentialOptions>()
+                              ?? new HubCredentialOptions());
+builder.Services.AddScoped<HubCredentialService>();
+builder.Services.AddScoped<CurrentCaller>();
+
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddValidatorsFromAssemblyContaining<Program>();
 
@@ -99,7 +107,11 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = jwt.Audience,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt.SigningKey)),
         };
-    });
+    })
+    // U10: a second principal type. Routes declare which schemes they accept, so a hub and a person
+    // can never be confused by accident (AD-Q2=A).
+    .AddScheme<AuthenticationSchemeOptions, HubCredentialAuthenticationHandler>(
+        HubCredentialDefaults.Scheme, _ => { });
 builder.Services.AddAuthorization();
 
 // ---- Rate limiting (SP-4, U3-NFR-S8) ----
@@ -112,6 +124,26 @@ builder.Services.AddRateLimiter(o =>
     o.AddPolicy("registration", ctx => RateLimitPartition.GetFixedWindowLimiter(
         ctx.Connection.RemoteIpAddress?.ToString() ?? "anon",
         _ => new FixedWindowRateLimiterOptions { PermitLimit = 10, Window = TimeSpan.FromHours(1) }));
+
+    // U10 ingest hardening (ND-Q1=C). Two layers: a per-hub rate limit and a global concurrency cap.
+    // The limiter runs BEFORE authentication, so the partition key is a hash of the presented
+    // credential header rather than a credential id (ND-Q2=B, IngestPolicy.PartitionKey).
+    o.AddPolicy(IngestPolicy.Name, IngestPolicy.Partition);
+
+    // The bulkhead is a GLOBAL limiter scoped to the ingest path rather than a second endpoint
+    // policy: an endpoint carries at most one [EnableRateLimiting], and the two layers protect
+    // different things — the policy above bounds one hub, this bounds all of them at once.
+    o.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(IngestPolicy.GlobalPartition);
+
+    // Emit Retry-After so BR-REPL-31 ("honour the wait the cloud asks for") is real rather than
+    // decorative — nothing asked before this (ND-Q3=A).
+    o.OnRejected = async (ctx, ct) =>
+    {
+        if (ctx.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+            ctx.HttpContext.Response.Headers.RetryAfter = ((int)retryAfter.TotalSeconds).ToString();
+        ctx.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        await ctx.HttpContext.Response.WriteAsJsonAsync(new { title = "Too many requests." }, ct);
+    };
 });
 
 // ---- Health checks (RP-6) ----

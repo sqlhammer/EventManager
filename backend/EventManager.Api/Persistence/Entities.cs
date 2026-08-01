@@ -16,6 +16,40 @@ public sealed class EventRecord
     public byte[] Payload { get; set; } = [];
     public DateTimeOffset OccurredAt { get; set; }
     public long EventScopeId { get; set; }     // tournament event id — partition + ingest authz key
+
+    // Ingest provenance (U10, FD-Q7=B / BR-REPL-19..21). Nullable because cloud-authored events have
+    // no delivering hub, and every pre-U10 row predates the column. Set once at insert, ingest path
+    // only; duplicates are skipped rather than updated, so this is the FIRST deliverer (BR-REPL-20).
+    public long? IngestedByCredentialId { get; set; }
+}
+
+// ---------------------------------------------------------------------------
+// Hub credential (U10). The cloud's record of one hub's identity for one event.
+// Only a hash of the key is stored (BR-REPL-3) — a reader of this table cannot
+// recover a usable credential. State is DERIVED from the timestamps, never stored,
+// so it cannot drift.
+// ---------------------------------------------------------------------------
+public sealed class HubCredentialRecord
+{
+    public long CredentialId { get; set; }       // PK, Snowflake
+    public long EventScopeId { get; set; }       // the single event this credential may act on
+    public string KeyHash { get; set; } = "";    // SHA-256 hex of the key (see HubCredentialService)
+    public string Label { get; set; } = "";      // human identification only; carries no authority
+    public long IssuedByAccountId { get; set; }  // audit, not authorization
+    public DateTimeOffset IssuedAt { get; set; }
+    public DateTimeOffset ExpiresAt { get; set; }
+    public DateTimeOffset? RevokedAt { get; set; }
+
+    public bool IsRevoked => RevokedAt is not null;
+    public bool IsExpired(DateTimeOffset now) => now >= ExpiresAt;
+
+    /// <summary>Active = neither revoked nor expired (BR-REPL-5 counts only these against the cap).</summary>
+    public bool IsActive(DateTimeOffset now)
+    {
+        if (IsRevoked) return false;
+        if (IsExpired(now)) return false;
+        return true;
+    }
 }
 
 // ---------------------------------------------------------------------------
