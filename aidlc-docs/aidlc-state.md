@@ -157,6 +157,14 @@
   - New env: `METRICS_TOKEN` (cloud, no default — stack won't start without it); hub uses standard `OTEL_EXPORTER_OTLP_*`
   - Recorded honestly: no metrics retention until Operations adds a scraper; token comparison is not constant-time; one shared token means no per-hub metrics revocation; writing access logs is not retaining them (SECURITY-14 retention still an open project gap)
   - No blocking findings. **INCEPTION + all pre-code CONSTRUCTION design stages now complete for U10**
+- [x] CONSTRUCTION: Code Generation — **COMPLETE, AWAITING APPROVAL**. Plan `construction/plans/u10-http-replication-code-generation-plan.md`, all **36 steps [x]**. Summary `construction/u10-http-replication/code/code-summary.md`
+  - **202 tests green** (shared 42, backend 99, admin 44, judge 6, checkin 5, integration 6) — up from the 153 baseline, **+49**, zero regressions. The 17 pre-existing admin tests green across the `ReplicationClient` rewrite
+  - **2 build warnings — the 0-warning gate is NOT met.** Pre-existing SYSLIB0060 in U7's `BackupRecovery.cs`, verified by stashing all U10 changes and rebuilding. Not fixed (out of scope: backup crypto). NOTE: incremental builds report 0; `--no-incremental` is needed to see them
+  - CS-1 verified, `shared/` untouched, both Postman representations agree (13 requests each)
+  - **The cross-solution test caught a real defect**: the transport was mutating an `HttpClient` it got from `IHttpClientFactory`. Fixed to be stateless per request
+  - Corrections C-1 (BR-REPL-3 salted→SHA-256), C-2 (U10-CON-1 wording) applied to approved artifacts
+  - End-of-unit deliverables DONE: as-built architecture (`inception/application-design/architecture-overview.md`, U10 section) + verification guide (`construction/u10-http-replication/code/user-testing-guide.md`)
+  - **NOT executed-verified**: collector config + Caddyfile (no Docker daemon during generation); no load test
 
 ## Post-MVP Untracked Work (backfilled 2026-07-26)
 - **Account self-deletion (US-110)** — `DELETE /api/accounts/me` endpoint, `AccountDeletionService`/`AccountDeletionGuard`, EF migration `AccountSoftDelete`, `AccountDeletionTests` — implemented directly on `main` (commit 7159038, merged via PR #1 / 56b2c3e) on 2026-07-25, **without** a `unit/<id>-<slug>` branch, per-unit stage gates, or audit.md logging, in violation of the per-unit git branch process requirement (line 10 above). Functionally complete and merged; retroactively logged here for traceability. No further action taken.

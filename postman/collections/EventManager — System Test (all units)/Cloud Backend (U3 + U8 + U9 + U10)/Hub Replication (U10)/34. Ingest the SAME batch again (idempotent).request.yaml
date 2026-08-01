@@ -1,0 +1,31 @@
+$kind: http-request
+description: "US-803 / BR-REPL-44. Re-sending is always safe: the cloud gains nothing and reports the same progress."
+url: "{{cloudBaseUrl}}/api/ingest/batch"
+method: POST
+headers:
+  Content-Type: application/json
+  X-Hub-Credential: "{{hubCredentialKey}}"
+body:
+  type: text
+  content: |-
+    {
+      "events": [
+        {
+          "eventId": 990001,
+          "deviceId": 71,
+          "sequenceNumber": 1,
+          "eventType": "CheckedIn",
+          "schemaVersion": 1,
+          "payloadBase64": "e30=",
+          "occurredAt": "2026-09-01T10:00:00Z",
+          "eventScopeId": "{{eventId}}"
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('replay accepts nothing', () => pm.expect(pm.response.json().acceptedCount).to.eql(0));
+    language: text/javascript
+order: 4000

@@ -59,7 +59,9 @@ Component boundaries and responsibilities only. Business rules belong to Functio
 
 ### C-U10-8 · `ISecretProtector` / `DpapiSecretProtector`
 **Purpose**: keep a stored credential useless on any other machine.
-**Responsibilities**: protect and unprotect a byte payload. The interface lives in the hub library; the DPAPI implementation is registered by the composition root, so the library itself stays platform-neutral (U10-CON-1).
+**Responsibilities**: protect and unprotect a byte payload. The interface keeps `HubCredentialStore` free of any Windows dependency, and only the composition root names DPAPI.
+
+**Corrected 2026-08-01 (Code Generation C-2)**: this originally claimed the library "stays platform-neutral" because the implementation is registered by the composition root. That was too strong — `admin/EventManager.Hub` is a **single project** that is both library and host, so there is no separate host project and the DPAPI package reference lands in the same `.csproj`. The accurate and narrower claim: `System.Security.Cryptography.ProtectedData` builds on every platform (it throws only at runtime, off Windows), so the project still compiles anywhere; the store carries no Windows dependency; tests substitute a pass-through; and a future library/host split becomes a project-file change rather than a refactor (U10-CON-1).
 **Interface**: `Protect(byte[]) → byte[]`, `Unprotect(byte[]) → byte[]`. A pass-through implementation exists for tests.
 **Serves**: U10-FR-5, D-U10-02; US-802.
 

@@ -1,0 +1,13 @@
+$kind: http-request
+description: US-806. Computed on demand, and computable with NO internet — the one question asked during an outage must be answerable during an outage. Never echoes the credential.
+url: "{{hubBaseUrl}}/api/replication/status"
+method: GET
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      const s = pm.response.json();
+      pm.test('reports backlog and circuit state', () => { pm.expect(s).to.have.property('pendingEvents'); pm.expect(s).to.have.property('circuitState'); });
+      pm.test('never echoes the credential', () => pm.expect(pm.response.text()).to.not.include(pm.collectionVariables.get('hubCredentialKey') || 'no-key-set'));
+    language: text/javascript
+order: 11000

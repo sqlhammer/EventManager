@@ -112,11 +112,11 @@ working unchanged. If that proves impossible, the fallback is updating the two c
 
 ## PART E — Documentation and deliverables
 
-- [ ] **Step 32** — Postman: add U10 requests to **both** representations — `postman/EventManager.postman_collection.json` and the directory format under `postman/collections/…/`. Regenerate the directory format from the JSON so the two cannot drift; assert absent headers with `pm.response.headers.has()`.
-- [ ] **Step 33** — `aidlc-docs/construction/u10-http-replication/code/code-summary.md`: created vs modified files, story coverage, extension compliance.
-- [ ] **Step 34** — Apply corrections C-1 (`business-rules.md`) and C-2 (`u10-components.md`).
-- [ ] **Step 35** — **End-of-unit deliverable**: update `inception/application-design/architecture-overview.md` to as-built with a U10 section and diagram.
-- [ ] **Step 36** — **End-of-unit deliverable**: `construction/u10-http-replication/code/user-testing-guide.md` — the manual docker-compose walkthrough that Q11=D makes this unit's primary integration verification, covering scenarios R-1..R-6.
+- [x] **Step 32** — Postman: add U10 requests to **both** representations — `postman/EventManager.postman_collection.json` and the directory format under `postman/collections/…/`. Regenerate the directory format from the JSON so the two cannot drift; assert absent headers with `pm.response.headers.has()`.
+- [x] **Step 33** — `aidlc-docs/construction/u10-http-replication/code/code-summary.md`: created vs modified files, story coverage, extension compliance.
+- [x] **Step 34** — Apply corrections C-1 (`business-rules.md`) and C-2 (`u10-components.md`).
+- [x] **Step 35** — **End-of-unit deliverable**: update `inception/application-design/architecture-overview.md` to as-built with a U10 section and diagram.
+- [x] **Step 36** — **End-of-unit deliverable**: `construction/u10-http-replication/code/user-testing-guide.md` — the manual docker-compose walkthrough that Q11=D makes this unit's primary integration verification, covering scenarios R-1..R-6.
 
 ---
 

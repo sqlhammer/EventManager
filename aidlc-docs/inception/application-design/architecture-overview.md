@@ -424,3 +424,71 @@ provider reads only the event log.
 **MVP unit set COMPLETE** (all 9 units): U1 Shared Core · U2 Contracts & ClientSync · U3 Cloud Backend · U4a Hub Core · U4b Hub Competition · U5 Judge · U6 Check-In · U7 Offline Resilience · U8 Payment Stub. Cross-cutting refactor R1 (ternary elimination, CS-1) applied. The two topology worlds (View 1) and the event-flow backbone (View 2) are realized end-to-end, with MAUI UI shells shipped as compiling Windows heads (other platform heads deferred on toolchain availability).
 
 **Post-MVP**: U9 Read/Query API (2026-07-26) — the cloud API is now readable as well as writable.
+
+---
+
+## As-built: U10 HTTP Replication Adapter (updated 2026-08-01, end-of-unit) — post-MVP
+
+**What changed architecturally**: the cloud learned to authenticate a **hub**, not just a person, and
+the hub→cloud replication seam U7 deferred is now implemented over a real network.
+
+Until this unit, `ICloudReplicationTransport` had exactly one implementation — the in-process
+`StoreBackedReplicationTransport` — so US-504 and US-602 were true only inside a single process. Both
+stories carry delivery notes recording that.
+
+### Topology (what crosses the internet, and in which direction)
+
+```text
+   VENUE (behind NAT, frequently offline)                    CLOUD
+   ┌───────────────────────────────────┐          ┌──────────────────────────────┐
+   │ spokes ──LAN──► HUB               │          │  :443  Caddy                 │
+   │                 ├ hub.db (SQLite) │          │   ├ TLS + JSON access log    │
+   │                 ├ credential      │          │   ├ /otlp/* → collector      │
+   │                 │  (DPAPI)        │  ──────► │   │   (bearer token)         │
+   │                 ├ ReplicationClient          │   └ /*     → api             │
+   │                 │  signal│timer│close-out    │                              │
+   │                 └ /health (offline-safe)     │  api ── HubCredential scheme │
+   └───────────────────────────────────┘          │      ── ingest + cursors     │
+                                                   │  db  ── HubCredentials table │
+              ALL traffic is hub → cloud           │  otel-collector (no port)    │
+              The cloud never calls the hub.        └──────────────────────────────┘
+```
+
+**Text alternative**: the venue side holds spokes, the hub, its SQLite log, a DPAPI-protected
+credential, the replication client (triggered by an append signal, a drain timer, or an explicit
+close-out), and a `/health` endpoint that works with no internet. The cloud side publishes only port
+443 on Caddy, which terminates TLS, writes JSON access logs, routes `/otlp/*` to an unpublished
+collector behind a bearer token, and everything else to the API. Every arrow crossing the internet
+points hub → cloud; the cloud never initiates contact with a hub, which is why credential revocation
+takes effect on the hub's next attempt rather than being pushed to it.
+
+### Components added
+
+| Side | Component | Purpose |
+|---|---|---|
+| Cloud | `HubCredentialRecord` + migration `HubCredentials` | Event-scoped hub identity; hash only |
+| Cloud | `HubCredentialService` | Issue / authenticate / revoke / list |
+| Cloud | `HubCredentialAuthenticationHandler` | Second authentication scheme beside JWT |
+| Cloud | `IngestCaller` | Closed set of two principals: account or hub |
+| Cloud | `IngestPolicy` | Rate limit partitioned by credential-header hash + global bulkhead |
+| Cloud | `EventRecord.IngestedByCredentialId` | Ingest provenance, nullable, first-deliverer-wins |
+| Hub | `HttpCloudReplicationTransport` | **The adapter** |
+| Hub | `ReplicationFailureClassifier` / `ReplicationCircuitBreaker` | What to retry; when to stop |
+| Hub | `ReplicationSignal` / `ReplicationStatus` / `ReplicationMetrics` | Trigger, health, instruments |
+| Hub | `HubCredentialStore` / `ISecretProtector` | Local custody, DPAPI-protected |
+| Hub | `ReplicationController` | Install / clear / status / close-out — **closes U10-CON-5** |
+| Infra | `otel-collector` service | Metrics destination (unpublished; via Caddy) |
+| Tests | `EventManager.Integration.slnx` | The only project referencing both `admin/` and `backend/` |
+
+### Decisions that shaped the structure
+
+- **A hub is a principal, not a person acting through a machine.** Mapping a credential onto its issuing account was rejected: cloud audit would attribute hub writes to someone who was not present, and the credential's reach would follow that organizer's role changes rather than its own event scope.
+- **`ReplicationClient` owns its own schedule** (AD-Q4=B). It became a `BackgroundService` while `IEventStore` stayed scoped, so it resolves a store per run through `IServiceScopeFactory` — a captive scoped `DbContext` would not fail at startup, it would corrupt intermittently under concurrency.
+- **Only connection failures open the circuit breaker.** A `5xx` means the cloud is reachable and unwell, which is a different condition from a dead venue link.
+- **Metrics push, not scrape.** A venue hub behind NAT cannot be scraped, so the collector had to be publicly reachable — and OTLP has no authentication of its own, hence the token gate at Caddy.
+
+### Still deferred after this unit
+
+SQLCipher for `hub.db` as a whole (D-09 — the *credential* is protected, the database is not);
+non-Windows secret protection; hot standby; mDNS and SignalR; the hub MAUI UI; metrics **retention**
+(the collector exposes, nothing scrapes); alerting and dashboards.

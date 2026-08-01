@@ -1,0 +1,4 @@
+$kind: collection
+description: |-
+  Unit U10 — hub identity and cloud replication. Issuing an event-scoped hub credential, installing it on the hub, ingesting as a hub rather than as a person, cursor reads, close-out, revocation, and the negative cases. Run 31 first: it captures the one-time key.
+order: 6000
