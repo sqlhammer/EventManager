@@ -1,0 +1,10 @@
+<Solution>
+  <!--
+    Sixth solution (CL-2=A). Exists so the U10 credential-path seam test is actually executed by the
+    verification sweep; Build-and-Test runs `dotnet test` per solution, so a project outside every
+    solution would never run.
+  -->
+  <Folder Name="/tests/">
+    <Project Path="tests/EventManager.Integration.Tests/EventManager.Integration.Tests.csproj" />
+  </Folder>
+</Solution>

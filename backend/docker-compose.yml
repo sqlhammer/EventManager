@@ -6,7 +6,11 @@
 services:
   proxy:
     image: caddy:2.8
-    depends_on: [api]
+    depends_on: [api, otel-collector]
+    environment:
+      # U10: bearer token gating the /otlp/* metrics route (ID-Q2=A). No default — the stack will not
+      # start without one, which is deliberate (SECURITY-09, no default credentials).
+      METRICS_TOKEN: "${METRICS_TOKEN}"
     ports:
       - "443:443"
     volumes:
@@ -30,6 +34,22 @@ services:
       Jwt__SigningKey: "${JWT_SIGNING_KEY}"
     expose:
       - "8080"
+    restart: unless-stopped
+
+  # U10 hub metrics (F3=B). Publishes NO port: reached only via Caddy at /otlp/*, so the stack keeps
+  # its single published port (443) and stays deny-by-default (SECURITY-07).
+  #
+  # Known limitation, stated where an operator will see it: this collector lives in the cloud, so
+  # during exactly the outages U10 exists to survive it receives nothing. Silence here means "the hub
+  # cannot report", never "the hub is fine" — the venue-visible signal is the hub's own /health.
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.157.0
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol/config.yaml:ro
+    expose:
+      - "4318"   # OTLP/HTTP receiver
+      - "8889"   # Prometheus exposition (nothing scrapes it yet — an Operations task)
     restart: unless-stopped
 
   db:

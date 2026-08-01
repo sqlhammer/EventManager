@@ -43,11 +43,13 @@ public sealed class HttpCloudReplicationTransport(
 
     public async Task<ReplicationAckDto> SendAsync(ReplicationBatchDto batch, CancellationToken ct = default)
     {
-        var (client, _) = await PrepareAsync(ct);
+        var (client, credential, baseUri) = await PrepareAsync(ct);
 
         return await ExecuteAsync(async token =>
         {
-            using var response = await client.PostAsJsonAsync(BatchPath, batch, token);
+            using var request = Request(HttpMethod.Post, baseUri, BatchPath, credential);
+            request.Content = JsonContent.Create(batch);
+            using var response = await client.SendAsync(request, token);
             var failure = ReplicationFailureClassifier.Classify(response);
             if (failure is not null) throw new ReplicationFailureException(failure);
 
@@ -67,11 +69,12 @@ public sealed class HttpCloudReplicationTransport(
     /// </summary>
     public async Task<IReadOnlyDictionary<long, long>> GetHighWaterMarksAsync(CancellationToken ct = default)
     {
-        var (client, _) = await PrepareAsync(ct);
+        var (client, credential, baseUri) = await PrepareAsync(ct);
 
         return await ExecuteAsync(async token =>
         {
-            using var response = await client.GetAsync(CursorPath, token);
+            using var request = Request(HttpMethod.Get, baseUri, CursorPath, credential);
+            using var response = await client.SendAsync(request, token);
             var failure = ReplicationFailureClassifier.Classify(response);
             if (failure is not null) throw new ReplicationFailureException(failure);
 
@@ -89,9 +92,14 @@ public sealed class HttpCloudReplicationTransport(
     /// </summary>
     private async Task<T> ExecuteAsync<T>(Func<CancellationToken, Task<T>> action, CancellationToken ct)
     {
+        // BR-REPL-27 — no unbounded wait. Applied per call rather than through HttpClient.Timeout so
+        // the transport never mutates a client it does not own.
+        using var deadline = new CancellationTokenSource(options.RequestTimeout);
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, deadline.Token);
+
         try
         {
-            var result = await action(ct);
+            var result = await action(linked.Token);
             breaker.RecordSuccess();
             return result;
         }
@@ -133,7 +141,7 @@ public sealed class HttpCloudReplicationTransport(
     /// override is explicitly enabled (BR-REPL-26) — checked here as well as at install, because the
     /// base URL also arrives from configuration.
     /// </summary>
-    private async Task<(HttpClient Client, HubCloudCredential Credential)> PrepareAsync(CancellationToken ct)
+    private async Task<(HttpClient Client, HubCloudCredential Credential, Uri BaseUri)> PrepareAsync(CancellationToken ct)
     {
         var credential = await credentials.TryGetAsync(ct);
         if (credential is null)
@@ -149,11 +157,17 @@ public sealed class HttpCloudReplicationTransport(
             throw new ReplicationFailureException(new ReplicationFailure(
                 FailureKind.Permanent, null, "The cloud address must use HTTPS."));
 
-        var client = httpClientFactory.CreateClient(HttpClientName);
-        client.BaseAddress = new Uri(baseUri, "/");
-        client.Timeout = options.RequestTimeout;                       // BR-REPL-27 — no unbounded wait
-        client.DefaultRequestHeaders.Remove(CredentialHeader);
-        client.DefaultRequestHeaders.Add(CredentialHeader, credential.Key);
-        return (client, credential);
+        // The client is NOT mutated: base address, credential, and timeout are applied per request.
+        // Mutating a client obtained from the factory would break the moment one is reused, and it is
+        // not ours to configure.
+        return (httpClientFactory.CreateClient(HttpClientName), credential, new Uri(baseUri, "/"));
+    }
+
+    /// <summary>Builds a self-contained request — absolute URI and credential header, no client state.</summary>
+    private static HttpRequestMessage Request(HttpMethod method, Uri baseUri, string path, HubCloudCredential credential)
+    {
+        var request = new HttpRequestMessage(method, new Uri(baseUri, path));
+        request.Headers.Add(CredentialHeader, credential.Key);
+        return request;
     }
 }

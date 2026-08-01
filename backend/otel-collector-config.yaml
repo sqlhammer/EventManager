@@ -1,0 +1,40 @@
+# OpenTelemetry collector for hub replication metrics (U10, F3=B / ID-Q1=A).
+#
+# Reached only through Caddy at /otlp/*, behind a bearer-token gate — this service publishes no port.
+# Minimal configuration on purpose (SECURITY-09): no zpages, no pprof, no health_check extension, no
+# debug exporter. Each would be a diagnostic surface on an internet-adjacent service that nothing has
+# asked for.
+
+receivers:
+  otlp:
+    protocols:
+      # OTLP/HTTP rather than gRPC: gRPC through a reverse proxy needs h2c on both sides, and at a
+      # handful of exports per minute its efficiency advantage buys nothing against that risk.
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  # MUST be first in the pipeline — placed later it would admit data it exists to reject. This is
+  # what keeps an internet-reachable receiver from being pushed over (ID-Q5=A).
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 256
+    spike_limit_mib: 64
+  batch:
+
+exporters:
+  # Prometheus EXPOSITION, not storage: current values held in memory and served on scrape. With
+  # nothing scraping, nothing is retained — this unit delivers a pipeline, not a history. Adding a
+  # scraper and storage is an Operations task.
+  prometheus:
+    endpoint: 0.0.0.0:8889
+
+service:
+  pipelines:
+    metrics:
+      receivers: [otlp]
+      processors: [memory_limiter, batch]
+      exporters: [prometheus]
+  telemetry:
+    logs:
+      level: info

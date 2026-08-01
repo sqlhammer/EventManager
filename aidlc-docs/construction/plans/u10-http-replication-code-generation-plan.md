@@ -100,15 +100,15 @@ working unchanged. If that proves impossible, the fallback is updating the two c
 
 ## PART C — Cross-solution integration test
 
-- [ ] **Step 26** — Create `tests/EventManager.Integration.Tests/` referencing **both** `admin/EventManager.Hub` and `backend/EventManager.Api`, plus `EventManager.Integration.slnx` at the repo root. *(CL-2=A · U10-CON-4)*
-- [ ] **Step 27** — `CredentialPathTests.cs`: real adapter → real `EventIngestController` via `WebApplicationFactory`. Valid scoped credential succeeds; revoked, expired, and wrong-event credentials are refused and **not retried**.
+- [x] **Step 26** — Create `tests/EventManager.Integration.Tests/` referencing **both** `admin/EventManager.Hub` and `backend/EventManager.Api`, plus `EventManager.Integration.slnx` at the repo root. *(CL-2=A · U10-CON-4)*
+- [x] **Step 27** — `CredentialPathTests.cs`: real adapter → real `EventIngestController` via `WebApplicationFactory`. Valid scoped credential succeeds; revoked, expired, and wrong-event credentials are refused and **not retried**.
 
 ## PART D — Configuration and infrastructure
 
-- [ ] **Step 28** — `Directory.Packages.props`: `OpenTelemetry.Extensions.Hosting` 1.17.0, `OpenTelemetry.Exporter.OpenTelemetryProtocol` 1.17.0, `System.Security.Cryptography.ProtectedData` 10.0.10. Reference all three from `admin/EventManager.Hub/EventManager.Hub.csproj` (C-2).
-- [ ] **Step 29** — `backend/docker-compose.yml` + new `backend/otel-collector-config.yaml`: collector `0.157.0`, `expose` only, `memory_limiter` first. *(ID-Q1/Q4/Q5)*
-- [ ] **Step 30** — `backend/Caddyfile` **(modify)**: JSON access logging for the whole site (**closes the pre-existing SECURITY-02 gap**), `/otlp/*` route with bearer-token gate. *(ID-Q2/Q3)*
-- [ ] **Step 31** — `backend/.env.example` **(modify)**: `METRICS_TOKEN` placeholder, no default.
+- [x] **Step 28** — `Directory.Packages.props`: `OpenTelemetry.Extensions.Hosting` 1.17.0, `OpenTelemetry.Exporter.OpenTelemetryProtocol` 1.17.0, `System.Security.Cryptography.ProtectedData` 10.0.10. Reference all three from `admin/EventManager.Hub/EventManager.Hub.csproj` (C-2).
+- [x] **Step 29** — `backend/docker-compose.yml` + new `backend/otel-collector-config.yaml`: collector `0.157.0`, `expose` only, `memory_limiter` first. *(ID-Q1/Q4/Q5)*
+- [x] **Step 30** — `backend/Caddyfile` **(modify)**: JSON access logging for the whole site (**closes the pre-existing SECURITY-02 gap**), `/otlp/*` route with bearer-token gate. *(ID-Q2/Q3)*
+- [x] **Step 31** — `backend/.env.example` **(modify)**: `METRICS_TOKEN` placeholder, no default.
 
 ## PART E — Documentation and deliverables
 
