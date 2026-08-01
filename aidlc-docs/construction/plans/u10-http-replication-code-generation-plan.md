@@ -83,20 +83,20 @@ working unchanged. If that proves impossible, the fallback is updating the two c
 
 ## PART B — Hub (`admin/EventManager.Hub`)
 
-- [ ] **Step 12** — `Resilience/ReplicationOptions.cs`: every knob from the NFR Design table with defaults, data-annotation ranges, and the cross-field rule (max batch bytes < server body limit). *(ND-Q8=A)*
-- [ ] **Step 13** — `Resilience/SecretProtection.cs`: `ISecretProtector`, `DpapiSecretProtector` (`CurrentUser`), `PassthroughSecretProtector`. *(ND-Q5=A · C-2)*
-- [ ] **Step 14** — `Persistence/HubEntities.cs` + `HubDbContext.cs` **(modify)**: `HubCredentialRow`. New `Resilience/HubCredentialStore.cs` — install refuses when occupied, explicit clear, never returns the key. *(BR-REPL-22..25 · FD-Q8=B)*
-- [ ] **Step 15** — `Resilience/ReplicationFailureClassifier.cs`: pure function, four failure kinds, `Retry-After` extraction. *(BR-REPL-29..32)*
-- [ ] **Step 16** — `Resilience/ReplicationCircuitBreaker.cs`: 3 failures / 60s / single trial; connection failures only. *(BR-REPL-34..36)*
-- [ ] **Step 17** — `Resilience/ReplicationSignal.cs`: bounded channel, non-blocking, drop-on-full. *(BR-REPL-37)*
-- [ ] **Step 18** — `Resilience/ReplicationStatus.cs`: cached snapshot for `/health` and metrics; on-demand computation path for the status route. *(BR-REPL-45..48 · ND-Q6=C)*
-- [ ] **Step 19** — `Resilience/ReplicationMetrics.cs`: `Meter` `eventmanager.replication.*`, six instruments, no credential in any tag. *(P-14 · ND-Q7=A)*
-- [ ] **Step 20** — `Resilience/HttpCloudReplicationTransport.cs`: `ICloudReplicationTransport` over `IHttpClientFactory`; credential header; HTTPS enforcement with dev override; 30s timeout; `GetHighWaterMarksAsync`. *(U10-FR-1, 12, 14 · BR-REPL-26, 27)*
-- [ ] **Step 21** — `Resilience/ReplicationClient.cs` **(modify — the only merged-U7 edit)**: retry only transient failures, honour `Retry-After`; `BackgroundService` loop consuming signal / drain timer; `SeedCursorsAsync`; `FlushForCloseOutAsync` bounded to the configured window; `IServiceScopeFactory` per run (CL-1=A); direct-store constructor retained (C-3). *(BR-REPL-33, 38..44)*
-- [ ] **Step 22** — `Events/HubEventWriter.cs` **(modify)**: one `ReplicationSignal.Signal()` after a successful append. *(AD-Q5=C — the only U4a change)*
-- [ ] **Step 23** — `Controllers/HubControllers.cs` **(modify)** or new `ReplicationController`: `POST`/`DELETE /api/replication/credential`, `GET /api/replication/status`, `POST /api/replication/close-out`, behind `OfflineOrganizerAuth`. *(US-802, US-806, US-807)*
-- [ ] **Step 24** — `Program.cs` **(modify)**: register options with validate-on-start, protector, store, classifier, breaker, signal, status, metrics, named `HttpClient`, transport, hosted `ReplicationClient`; OTel meter provider + OTLP exporter; extend `/health` with replication status. *(TS-U10-1, 4, 7)*
-- [ ] **Step 25** — `admin/tests/EventManager.Hub.Tests/ReplicationAdapterTests.cs`: stub `HttpMessageHandler` covering classification, retry-only-transient, `Retry-After`, breaker open/cool-down/close, HTTPS refusal, batch splitting, cursor seeding incl. unreachable-cloud start, close-out bound, credential install refusal when occupied, DPAPI round-trip via pass-through, no-credential no-op, non-blocking signal under a full channel. Plus **`P-REPL-1`** as an FsCheck property. *(PBT-01)*
+- [x] **Step 12** — `Resilience/ReplicationOptions.cs`: every knob from the NFR Design table with defaults, data-annotation ranges, and the cross-field rule (max batch bytes < server body limit). *(ND-Q8=A)*
+- [x] **Step 13** — `Resilience/SecretProtection.cs`: `ISecretProtector`, `DpapiSecretProtector` (`CurrentUser`), `PassthroughSecretProtector`. *(ND-Q5=A · C-2)*
+- [x] **Step 14** — `Persistence/HubEntities.cs` + `HubDbContext.cs` **(modify)**: `HubCredentialRow`. New `Resilience/HubCredentialStore.cs` — install refuses when occupied, explicit clear, never returns the key. *(BR-REPL-22..25 · FD-Q8=B)*
+- [x] **Step 15** — `Resilience/ReplicationFailureClassifier.cs`: pure function, four failure kinds, `Retry-After` extraction. *(BR-REPL-29..32)*
+- [x] **Step 16** — `Resilience/ReplicationCircuitBreaker.cs`: 3 failures / 60s / single trial; connection failures only. *(BR-REPL-34..36)*
+- [x] **Step 17** — `Resilience/ReplicationSignal.cs`: bounded channel, non-blocking, drop-on-full. *(BR-REPL-37)*
+- [x] **Step 18** — `Resilience/ReplicationStatus.cs`: cached snapshot for `/health` and metrics; on-demand computation path for the status route. *(BR-REPL-45..48 · ND-Q6=C)*
+- [x] **Step 19** — `Resilience/ReplicationMetrics.cs`: `Meter` `eventmanager.replication.*`, six instruments, no credential in any tag. *(P-14 · ND-Q7=A)*
+- [x] **Step 20** — `Resilience/HttpCloudReplicationTransport.cs`: `ICloudReplicationTransport` over `IHttpClientFactory`; credential header; HTTPS enforcement with dev override; 30s timeout; `GetHighWaterMarksAsync`. *(U10-FR-1, 12, 14 · BR-REPL-26, 27)*
+- [x] **Step 21** — `Resilience/ReplicationClient.cs` **(modify — the only merged-U7 edit)**: retry only transient failures, honour `Retry-After`; `BackgroundService` loop consuming signal / drain timer; `SeedCursorsAsync`; `FlushForCloseOutAsync` bounded to the configured window; `IServiceScopeFactory` per run (CL-1=A); direct-store constructor retained (C-3). *(BR-REPL-33, 38..44)*
+- [x] **Step 22** — `Events/HubEventWriter.cs` **(modify)**: one `ReplicationSignal.Signal()` after a successful append. *(AD-Q5=C — the only U4a change)*
+- [x] **Step 23** — `Controllers/HubControllers.cs` **(modify)** or new `ReplicationController`: `POST`/`DELETE /api/replication/credential`, `GET /api/replication/status`, `POST /api/replication/close-out`, behind `OfflineOrganizerAuth`. *(US-802, US-806, US-807)*
+- [x] **Step 24** — `Program.cs` **(modify)**: register options with validate-on-start, protector, store, classifier, breaker, signal, status, metrics, named `HttpClient`, transport, hosted `ReplicationClient`; OTel meter provider + OTLP exporter; extend `/health` with replication status. *(TS-U10-1, 4, 7)*
+- [x] **Step 25** — `admin/tests/EventManager.Hub.Tests/ReplicationAdapterTests.cs`: stub `HttpMessageHandler` covering classification, retry-only-transient, `Retry-After`, breaker open/cool-down/close, HTTPS refusal, batch splitting, cursor seeding incl. unreachable-cloud start, close-out bound, credential install refusal when occupied, DPAPI round-trip via pass-through, no-credential no-op, non-blocking signal under a full channel. Plus **`P-REPL-1`** as an FsCheck property. *(PBT-01)*
 
 ## PART C — Cross-solution integration test
 

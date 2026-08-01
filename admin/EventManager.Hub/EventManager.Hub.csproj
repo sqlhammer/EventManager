@@ -11,6 +11,10 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <!-- Security pin (version + rationale in Directory.Packages.props). -->
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
+    <!-- U10 replication adapter: metrics export + DPAPI protection for the hub credential. -->
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" />
   </ItemGroup>
 
   <ItemGroup>

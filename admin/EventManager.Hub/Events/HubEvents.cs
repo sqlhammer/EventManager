@@ -18,7 +18,9 @@ public sealed record DeviceRevokedPayload(long DeviceId, long EventId);
 public sealed record DeviceRoleChangedPayload(long DeviceId, long EventId, string RoleDescriptor);
 
 /// <summary>Single hub write path: mint id → contiguous hub sequence → append → project (mirrors U3).</summary>
-public sealed class HubEventWriter(HubDbContext db, IIdGenerator ids, IEventSerializer ser, HubProjectionHost projections)
+public sealed class HubEventWriter(
+    HubDbContext db, IIdGenerator ids, IEventSerializer ser, HubProjectionHost projections,
+    EventManager.Hub.Resilience.ReplicationSignal? replication = null)
 {
     /// <summary>Hub origin device id (the admin hub is a device; worker 0 within its own scope).</summary>
     public const long HubDeviceId = 1_000_000;
@@ -35,6 +37,11 @@ public sealed class HubEventWriter(HubDbContext db, IIdGenerator ids, IEventSeri
         };
         db.Events.Add(record);
         projections.Dispatch(record);
+
+        // U10 (AD-Q5=C): nudge replication. Non-blocking and safe to drop — the signal carries no
+        // data, and the drain timer is the backstop, so an append is never delayed by the cloud.
+        replication?.Signal();
+
         return record.EventId;
     }
 
