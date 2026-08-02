@@ -54,15 +54,30 @@ Auth (1–4) → Events & Divisions (5–8) → Registration (9–12) → Organi
 
 ## Scenario 2 — Hub → cloud replication over HTTP
 
-**Tests**: U7 `ReplicationClient` → U3 `EventIngestController`, the system's most important seam.
+**Tests**: U7/U10 `ReplicationClient` → `HttpCloudReplicationTransport` → U3 `EventIngestController`,
+the system's most important seam.
 
-⛔ **Blocked.** `ICloudReplicationTransport` has only `StoreBackedReplicationTransport`, an
-in-process implementation. The **real HTTP adapter does not exist** — it is an open deferred seam
-(`admin/EventManager.Hub/Resilience/CloudReplicationTransport.cs`). Until it is built, hub→cloud
-replication cannot be integration-tested over a network; it is covered in-process only.
+✅ **Unblocked by U10 (2026-08-02).** `HttpCloudReplicationTransport` now implements the seam, and the
+hub authenticates with its own event-scoped credential rather than borrowing an organizer's identity.
 
-Both ends are ready — the hub client and the cloud endpoint exist and `ReplicationBatchDto` is
-shared via U2 — so this is a buildable unit of work, not a design gap.
+**Automated coverage**: `dotnet test EventManager.Integration.slnx` drives the real adapter against
+the real `EventIngestController` in-process — valid, revoked, expired, wrong-event, and unknown
+credentials, plus a cursor read.
+
+**Live setup**
+```bash
+cd backend && docker compose up -d --build
+dotnet run --project admin/EventManager.Hub
+```
+
+**Steps**: Postman folder **Hub Replication (U10)**, requests 31 → 43 in order. Request 31 captures
+the one-time key; 40 installs it on the hub.
+
+**Expected**: a batch is accepted once and re-accepted as zero (idempotent); cursors advance; a
+foreign event scope is refused **entirely**, with nothing from that batch stored; a revoked credential
+is refused on the very next request.
+
+**Full detail**: `construction/u10-http-replication/code/user-testing-guide.md` §3.
 
 ---
 
@@ -96,10 +111,21 @@ discovered. Genuine LAN discovery is untested.
 completeness verification, backup/restore with integrity checking, and a zero-internet full-event
 property.
 
-A live rehearsal would be: start hub + spokes on an isolated LAN with no internet, run a full event
-(check-in → weigh-in → bracket → scoring → finalize), reconnect, and assert the cloud holds 100% of
-the event log via `VerifyCompletenessAsync`. That rehearsal **depends on Scenario 2**, so it is
-blocked on the same missing HTTP adapter.
+✅ **Unblocked by U10 (2026-08-02).** The live rehearsal is now runnable, because Scenario 2 is.
+
+**Steps**
+1. With a credential installed and replication working, stop the cloud: `docker compose stop proxy api`.
+2. Keep running the event on the hub — pair spokes, post sync batches. **Nothing at the venue should error.**
+3. `GET http://localhost:5000/api/replication/status` — `pendingEvents` climbs, `consecutiveFailures`
+   rises, and after 3 connection failures `circuitState` becomes `Open`. That is the correct response
+   to an outage, not a fault.
+4. Restart: `docker compose start api proxy`.
+5. Within the cool-down (60s) plus one drain interval, the backlog drains to zero unaided.
+6. `POST /api/replication/close-out` → `fullyReplicated: true`, `outstanding: 0`.
+
+**Expected**: zero data loss, no duplicates, and — the actual point — **no error surfaced to anyone
+running the tournament at any stage**. If step 2 produces a visible error, that is a defect regardless
+of what the unit tests say.
 
 ---
 
@@ -119,8 +145,8 @@ asserted in `EventManager.Hub.Tests` for the hub-side implementation).
 
 | Gap | Consequence | Blocked on |
 |---|---|---|
-| No automated integration suite | All scenarios are manual | Post-MVP by decision (NFR-4.4) |
-| No HTTP replication adapter | Scenarios 2 and 4 cannot run live | A unit of work — both ends already exist |
+| No automated integration suite | Scenarios 1, 3, 5 remain manual. Scenario 2's credential path is now automated (`EventManager.Integration.slnx`) | Post-MVP by decision (NFR-4.4) |
+| ~~No HTTP replication adapter~~ | ~~Scenarios 2 and 4 cannot run live~~ | **CLOSED by U10 (2026-08-02)** |
 | mDNS and SignalR are no-ops | LAN discovery and push untested | Concrete adapters + MAUI host |
 | MAUI heads are template shells | No UI-level e2e is possible | Real UI implementation |
 | SMTP is an outbox stub | Email flows verified by reading the outbox table, not by delivery | Provider choice |

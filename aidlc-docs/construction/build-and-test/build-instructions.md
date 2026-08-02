@@ -1,7 +1,15 @@
 # Build Instructions
 
-**Scope**: all 9 MVP units + post-MVP U9, across five solutions.
-**Verified**: 2026-07-27 on `main` — build succeeded, 0 warnings, 0 errors.
+**Scope**: all 9 MVP units + post-MVP U9 and U10, across **six** solutions.
+**Verified**: 2026-08-02 on `unit/u10-http-replication` — build succeeded, 0 errors, **2 warnings**.
+
+> **The 0-warning gate is not currently met.** Two `SYSLIB0060` obsolescence warnings come from
+> `admin/EventManager.Hub/Resilience/BackupRecovery.cs` (U7 code, unchanged since it was merged) and
+> surface in both the admin and integration solutions. They are pre-existing — verified by building
+> the branch with all U10 changes stashed — and are tracked as a follow-up, not a U10 regression.
+>
+> **An incremental build reports 0 warnings** because that file is not recompiled. Use
+> `--no-incremental` when you need the true count.
 
 ---
 
@@ -32,6 +40,7 @@ dotnet restore backend/EventManager.Backend.slnx
 dotnet restore admin/EventManager.Admin.slnx
 dotnet restore judge/EventManager.Judge.slnx
 dotnet restore checkin/EventManager.Checkin.slnx
+dotnet restore EventManager.Integration.slnx     # U10 cross-solution seam test
 ```
 
 ### 2. Build all units

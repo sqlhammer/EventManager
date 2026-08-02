@@ -1106,3 +1106,20 @@ update the md files for me with these answers"
 **Context**: CONSTRUCTION - Code Generation complete for U10; approval gate presented
 
 ---
+
+## CONSTRUCTION — Code Generation APPROVED (U10)
+**Timestamp**: 2026-08-02T00:00:00Z
+**User Input**: "approved"
+**AI Response**: "Code Generation approved for U10. Marked complete in aidlc-state.md. Proceeding to Build and Test — the last stage before the end-of-unit gate. Key items for this unit: the verification sweep must now cover SIX solutions (EventManager.Integration.slnx is new and a five-solution sweep would silently skip the credential-path test), and integration Scenarios 2 and 4 move from blocked to executable."
+**Context**: CONSTRUCTION - Code Generation approved for U10; proceeding to Build and Test
+
+---
+
+## CONSTRUCTION — Build and Test COMPLETE (U10)
+**Timestamp**: 2026-08-02T00:00:00Z
+**Build Status**: 0 errors, **2 warnings — the 0-warning gate is NOT met** (pre-existing SYSLIB0060, U7 `BackupRecovery.cs`)
+**Test Status**: **202 passing / 0 failing / 0 skipped** across 6 solutions and 10 assemblies (shared 42, backend 99, admin 44, judge 6, checkin 5, integration 6)
+**AI Response**: "Re-ran the full verification sweep with MEASURED per-assembly counts rather than carrying forward the previous figures, and rebuilt with --no-incremental to get a true warning count. Reported the warning gate as NOT MET rather than quietly passing it: the two SYSLIB0060 warnings live in U7's BackupRecovery.cs, are verified pre-existing by rebuilding with all U10 changes stashed, and now surface in TWO solutions because the new integration project references the hub. Recorded in three places that an incremental build reports 0 warnings because that file is not recompiled — this is the specific trap that nearly led me to report a clean build. THE UNIT'S STATED PURPOSE IS ACHIEVED: integration Scenarios 2 and 4 move from blocked to executable. Scenario 2's rewrite records that its credential path is now AUTOMATED via EventManager.Integration.slnx rather than manual, and Scenario 4 gained a step-by-step live runbook whose expected result is stated as 'no error surfaced to anyone running the tournament at any stage' — with the explicit note that a visible error during the outage step is a defect regardless of what the unit tests say. Struck through the 'No HTTP replication adapter' row in the known-gaps table and marked it CLOSED, and struck the corresponding item 1 from the prioritized next steps. Updated six artifacts plus the consolidated testing-guide.md, flagging in each place that EventManager.Integration.slnx is a SIXTH solution and that a five-solution sweep silently skips the only test proving a real credential reaches the real endpoint. Added security §8 covering the second authentication path — eight checks including that unknown, expired and revoked credentials must all produce the SAME response — and the metrics-ingress limitations (not constant-time, one shared token). Added a performance addendum stating plainly that U10-NFR-1's 5-minute target is NOT MEASURED: what exists is a definition test for BR-REPL-45, not a measurement, and whether the target holds under a real write rate is unknown. Revised the summary's honest assessment: U10 closed the largest previously-stated gap, but what remains is still operational — no load test, CI coverage gate still a placeholder, SBOM and dependency scanning absent, and although Caddy now WRITES access logs (closing SECURITY-02), writing logs is not retaining them and nothing collects them."
+**Files Updated**: build-instructions.md, unit-test-instructions.md, integration-test-instructions.md, performance-test-instructions.md, security-test-instructions.md, build-and-test-summary.md, testing-guide.md
+
+---

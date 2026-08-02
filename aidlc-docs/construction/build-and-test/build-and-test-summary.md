@@ -1,7 +1,7 @@
 # Build and Test Summary
 
-**Stage**: CONSTRUCTION → Build and Test (project-level, after all units)
-**Executed**: 2026-07-27 on `main`, commit `34d866d`
+**Stage**: CONSTRUCTION → Build and Test
+**Executed**: 2026-07-27 (project-level, `main`) · **re-run 2026-08-02 for U10** on `unit/u10-http-replication`
 
 ---
 
@@ -10,10 +10,16 @@
 | Field | Value |
 |---|---|
 | **Build tool** | .NET SDK 10.0.302 |
-| **Solutions** | 5 (`shared`, `backend`, `admin`, `judge`, `checkin`) |
-| **Status** | ✅ **Success** — 0 errors, **0 warnings** |
+| **Solutions** | **6** (`shared`, `backend`, `admin`, `judge`, `checkin`, **`EventManager.Integration`**) |
+| **Status** | ⚠️ **Success with warnings** — 0 errors, **2 warnings** |
 | **Artifacts** | Per-project `bin/Debug/net10.0/`; MAUI heads at `bin/Debug/net10.0-windows10.0.19041.0/` |
-| **Container** | `backend-api` image builds from repo root via `backend/EventManager.Api/Dockerfile` |
+| **Container** | `backend-api` image builds from repo root via `backend/EventManager.Api/Dockerfile`; stack now also runs `otel-collector` (unpublished) |
+
+> **The 0-warning gate is not met.** Two `SYSLIB0060` obsolescence warnings in
+> `admin/EventManager.Hub/Resilience/BackupRecovery.cs` — U7 code, untouched by U10, and verified
+> pre-existing by rebuilding the branch with all U10 changes stashed. They appear in both the admin
+> and integration solutions because the latter references the hub. **An incremental build reports
+> 0**; `--no-incremental` is required to see them. Tracked as a follow-up, not a U10 regression.
 
 ---
 
@@ -28,15 +34,16 @@
 | `EventManager.Contracts.Tests` | U2 | 4 |
 | `EventManager.ClientSync.Tests` | U2 | 7 |
 | `EventManager.Payments.Tests` | U8 | 6 |
-| `EventManager.Api.Tests` | U3 + U9 | 77 |
-| `EventManager.Hub.Tests` | U4a/U4b/U7 | 17 |
+| `EventManager.Api.Tests` | U3 + U9 + **U10** | **93** |
+| `EventManager.Hub.Tests` | U4a/U4b/U7 + **U10** | **44** |
 | `EventManager.Judge.Core.Tests` | U5 | 6 |
 | `EventManager.Checkin.Core.Tests` | U6 | 5 |
-| **Total** | | **153 passed, 0 failed, 0 skipped** |
+| `EventManager.Integration.Tests` | **U10** | **6** |
+| **Total** | | **202 passed, 0 failed, 0 skipped** |
 
 Property-based tests run alongside example-based tests via FsCheck.Xunit, with shrinking enabled and
 seeds logged on failure. All mandatory properties from NFR-4.3 and U3-NFR-T2 are implemented, plus
-U9's P1–P6.
+U9's P1–P6 and U10's **P-REPL-1** (for any interleaving of outages, server errors and batch splits, the cloud log is a gap-free prefix of the hub log with no duplicates).
 
 **Coverage**: collected via `--collect:"XPlat Code Coverage"`. Target is 80%+ on core logic
 (NFR-4.1). ⚠️ The **threshold gate is not wired into CI** — NFR-4.4 requires it to block merge, so
@@ -84,27 +91,27 @@ Spoke behaviour is verified at the app-core layer instead.
 
 | | |
 |---|---|
-| **Build** | ✅ Success |
-| **Unit tests** | ✅ 153/153 pass |
-| **Integration** | ⚠️ Manual, two scenarios blocked |
+| **Build** | ⚠️ 0 errors, 2 pre-existing warnings |
+| **Unit tests** | ✅ 202/202 pass |
+| **Integration** | ⚠️ Manual, **but Scenarios 2 and 4 are now unblocked**; the credential path is automated |
 | **Performance** | ❌ Not executed |
 | **Security** | ⚠️ Authorization strong; operational controls outstanding |
 | **Ready for Operations** | **Not yet** — see below |
 
-**Honest assessment**: the code is in good shape and the automated suite is genuinely strong for a
-system of this size, particularly around authorization and offline correctness. What is missing is
-almost entirely **operational**: nothing has been load-tested, nothing has run over a real network
-boundary between hub and cloud, and the production controls SECURITY-10/14 require (SBOM, scanning,
-centralized logging, alerting) are not in place. That is consistent with Operations still being a
-placeholder phase — but it means "all tests pass" should not be read as "ready to deploy".
+**Honest assessment (updated 2026-08-02)**: U10 closed the largest gap in the previous assessment —
+hub→cloud replication now runs over a real network boundary, and the credential path is verified
+automatically rather than only by a human reading a walkthrough. What remains is still
+**operational**: nothing has been load-tested, the CI coverage gate is still a placeholder, and the
+SECURITY-10/14 controls (SBOM, dependency scanning, centralized logging, alerting, log retention)
+are not in place. Caddy now *writes* access logs, which closes SECURITY-02 — but writing logs is not
+retaining them, and nothing collects them. "All tests pass" still should not be read as "ready to
+deploy".
 
 ---
 
 ## Prioritized next steps
 
-1. **HTTP replication adapter** for `ICloudReplicationTransport` — unblocks two integration
-   scenarios and is the single highest-value item. Both ends already exist, so it is buildable now
-   with no external decisions.
+1. ~~**HTTP replication adapter**~~ — **DONE (U10, 2026-08-02)**. Scenarios 2 and 4 unblocked.
 2. **Wire the CI coverage gate** — NFR-4.4 specifies it and the placeholder is already in the
    workflow.
 3. **Run the registration-burst load test** — the only stated latency target, currently unmeasured.
