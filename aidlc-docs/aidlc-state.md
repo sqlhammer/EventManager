@@ -170,6 +170,19 @@
   - **Integration Scenarios 2 and 4 UNBLOCKED** — the stated purpose of this unit. Scenario 2 credential path is now automated; both have live runbooks
   - Updated: build-instructions, unit-test-instructions, integration-test-instructions (gap table: HTTP adapter row struck through, CLOSED), security-test-instructions (new §8 hub credentials + metrics ingress), performance-test-instructions (U10-NFR-1 addendum — **not measured**), build-and-test-summary, and the consolidated `testing-guide.md`
   - Still open project-level: CI coverage gate, SBOM, dependency scanning, log retention/alerting, no load test ever run
+- [x] **END-OF-UNIT APPROVAL + MERGE + PUSH** — approved 2026-08-02. Branch `unit/u10-http-replication` merged to `main` with `--no-ff` (merge **24ad446**, 151 files, +11702/-2043); branch deleted with `git branch -d`. Post-merge sweep on `main`: **202 tests green**, zero failures. **PUSHED to origin/main** (34d866d..24ad446, 11 commits) at the user's explicit request — the first push in this project
+- [x] CONSTRUCTION: **U10 HTTP Replication Adapter — COMPLETE, MERGED & PUSHED** 2026-08-02. The hub replicates to the cloud over a real network, authenticated as itself. Closes U10-CON-5 and U10-CON-3, plus a pre-existing SECURITY-02 access-logging gap. Unblocks integration Scenarios 2 and 4
+  - **Carried forward, not resolved**: 2 pre-existing SYSLIB0060 warnings in U7 `BackupRecovery.cs` (0-warning gate not met; invisible to incremental builds); collector config + Caddyfile never executed (no Docker daemon); U10-NFR-1's 5-minute lag target unmeasured; no per-hub metrics revocation; no event check at credential install
+
+## >>> RESUME POINTER (updated 2026-08-02) <<<
+On `main`, tree clean, **synced with origin/main at 24ad446**. All 9 MVP units + R1 + U9 + U10 merged
+and pushed. **202 tests green** across **SIX** solutions — `EventManager.Integration.slnx` is new and a
+five-solution sweep silently skips the U10 credential-path test. Build reports **2 warnings**
+(pre-existing SYSLIB0060, U7 `BackupRecovery.cs`); `--no-incremental` is required to see them.
+Highest-value remaining work, in order: (1) run the U10 manual walkthrough — the collector config and
+Caddyfile have never been executed; (2) wire the CI coverage gate; (3) run a load test — no
+performance target has ever been measured; (4) SBOM + dependency scanning; (5) log retention and
+alerting. The Blazor web portal remains an input-document change with no unit.
 
 ## Post-MVP Untracked Work (backfilled 2026-07-26)
 - **Account self-deletion (US-110)** — `DELETE /api/accounts/me` endpoint, `AccountDeletionService`/`AccountDeletionGuard`, EF migration `AccountSoftDelete`, `AccountDeletionTests` — implemented directly on `main` (commit 7159038, merged via PR #1 / 56b2c3e) on 2026-07-25, **without** a `unit/<id>-<slug>` branch, per-unit stage gates, or audit.md logging, in violation of the per-unit git branch process requirement (line 10 above). Functionally complete and merged; retroactively logged here for traceability. No further action taken.

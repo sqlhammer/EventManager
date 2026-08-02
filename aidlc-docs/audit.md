@@ -1131,3 +1131,11 @@ update the md files for me with these answers"
 **Context**: CONSTRUCTION - Build and Test approved for U10; end-of-unit gate presented
 
 ---
+
+## END-OF-UNIT APPROVAL + MERGE + PUSH — U10 HTTP Replication Adapter
+**Timestamp**: 2026-08-02T00:00:00Z
+**User Input**: "I approve. Merge and push"
+**AI Response**: "U10 approved at the end-of-unit gate. Merged unit/u10-http-replication into main with --no-ff per the per-unit git branch process requirement (merge commit 24ad446; 151 files, +11702/-2043) and deleted the branch with git branch -d, the safe form that refuses unless fully merged. Both end-of-unit deliverables were complete before the gate: as-built architecture diagrams and the user testing guide. Re-ran the full suite on main after the merge: 202 tests green across all six solutions (shared 42, backend 99, admin 44, judge 6, checkin 5, integration 6), zero failures, no regression. PUSHED to origin/main at the user's explicit request — 34d866d..24ad446, 11 commits. This is the FIRST push in this project; every prior unit stopped at the local merge, so I confirmed the remote (github.com/sqlhammer/EventManager) and the pushed ref afterwards rather than assuming success. Note that one commit ahead of origin/main predated U10 (the project-level Build-and-Test stage), so the push carried it too. Carried forward as NOT resolved rather than quietly closed: the 0-warning gate is still unmet because of two pre-existing SYSLIB0060 warnings in U7's BackupRecovery.cs, which incremental builds hide; the collector config and Caddyfile have never been executed because no Docker daemon was available, so the manual walkthrough is the first thing that will exercise them; U10-NFR-1's 5-minute lag target is defined and unit-tested but never measured under load; there is no per-hub metrics revocation because the metrics token is shared; and there is no event check at credential install, so a wrong-event credential surfaces on first replication rather than at install time. Updated aidlc-state.md with the merge, the push, and a new RESUME POINTER, and refreshed the orientation memory."
+**Context**: U10 complete, merged, and pushed; first push in the project
+
+---
