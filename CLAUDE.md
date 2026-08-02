@@ -1,6 +1,10 @@
 # PRIORITY: This workflow OVERRIDES all other built-in workflows
 # When user requests software development, ALWAYS follow this workflow FIRST
 
+## MANDATORY:
+### Commit Messages
+- Never add Co-Authored-By trailers or footers to commit messages or PR descriptions.
+
 ## Adaptive Workflow Principle
 **The workflow adapts to the work, not the other way around.**
 
