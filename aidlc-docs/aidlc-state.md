@@ -166,9 +166,9 @@
   - End-of-unit deliverables DONE: as-built architecture (`inception/application-design/architecture-overview.md`, U10 section) + verification guide (`construction/u10-http-replication/code/user-testing-guide.md`)
   - **NOT executed-verified**: collector config + Caddyfile (no Docker daemon during generation); no load test
 - [x] CONSTRUCTION: Build and Test (U10) — **COMPLETE 2026-08-02, AWAITING APPROVAL**
-  - **202 tests pass** across **six** solutions / 10 assemblies. Build 0 errors, **2 warnings (gate NOT met)** — pre-existing SYSLIB0060 in U7 , visible only with 
+  - **202 tests pass** across **six** solutions / 10 assemblies. Build 0 errors, **2 warnings (gate NOT met)** — pre-existing SYSLIB0060 in U7 `BackupRecovery.cs`, visible only with `--no-incremental`
   - **Integration Scenarios 2 and 4 UNBLOCKED** — the stated purpose of this unit. Scenario 2 credential path is now automated; both have live runbooks
-  - Updated: build-instructions, unit-test-instructions, integration-test-instructions (gap table: HTTP adapter row struck through, CLOSED), security-test-instructions (new §8 hub credentials + metrics ingress), performance-test-instructions (U10-NFR-1 addendum — **not measured**), build-and-test-summary, and the consolidated 
+  - Updated: build-instructions, unit-test-instructions, integration-test-instructions (gap table: HTTP adapter row struck through, CLOSED), security-test-instructions (new §8 hub credentials + metrics ingress), performance-test-instructions (U10-NFR-1 addendum — **not measured**), build-and-test-summary, and the consolidated `testing-guide.md`
   - Still open project-level: CI coverage gate, SBOM, dependency scanning, log retention/alerting, no load test ever run
 
 ## Post-MVP Untracked Work (backfilled 2026-07-26)
