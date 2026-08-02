@@ -94,6 +94,83 @@
 - [x] CONSTRUCTION: **U9 Read/Query API — COMPLETE & MERGED** to main 2026-07-27. `backend/EventManager.Api` gains 9 GET endpoints under a three-tier read model (Public/Registrant/Organizer), an API-local `ReadAuthorizer` (U9-CON-1 — shared enum deliberately NOT extended, so `shared/` and `admin/` are untouched), watermark ETags hashing `(endpoint, eventId, watermark, tier, flags)`, and 404-never-403 non-disclosure. **153 tests green** (shared 42, backend 83, admin 17, judge 6, checkin 5). Postman collection updated in both representations. Not pushed to any remote.
 - **Process for U9**: branch `unit/u9-read-api` from main; end-of-unit deliverables = as-built architecture diagrams + developer verification guide before merge ✅ both done
 
+## Post-MVP Increment — Unit U10 HTTP Replication Adapter (started 2026-07-27)
+- **Request**: implement the deferred hub→cloud HTTP replication seam (`ICloudReplicationTransport`), unblocking integration Scenarios 2 and 4
+- **Branch**: not yet created — will be `unit/u10-http-replication` per the per-unit git branch process requirement
+- [x] INCEPTION: Requirements Analysis — **APPROVED 2026-07-27** (`inception/requirements/u10-http-replication-requirements.md`)
+  - Verification answers: Q1=C, Q2=C, Q3=A, Q4=C, Q5=D, Q6=B, Q7=B, Q8=C, Q9=C, Q10=D (5 min), Q11=D
+  - Clarification answers: F1=B (DPAPI-wrap the credential), F2=C (append-driven + drain timer + close-out flush), F3=B (OTLP collector in the cloud Compose stack), F4=B (one in-process credential-path E2E test)
+  - F1=B **closed a blocking SECURITY-12/SECURITY-01 finding** (Q1=C long-lived credential + Q2=C plaintext `hub.db` row)
+  - F2=C closed a functional gap: Q5=D append-driven alone could not satisfy Q4=C breaker recovery or Q10=D close-out completeness
+  - **Scope is larger than the request implied** — three surfaces (`admin/`, `backend/`, Compose stack) + modification of merged U7 code. `shared/` untouched.
+  - Decisions D-U10-01..15; requirements U10-FR-1..19, U10-NFR-1..8
+  - Open design constraints carried forward: U10-CON-1 (DPAPI makes the hub library Windows-only in code — needs an `ISecretProtector` seam), U10-CON-2 (cloud-side collector is blind during the outages the unit exists to survive), U10-CON-3 (rate limit points at our own hub — needs a concrete number), U10-CON-4 (first `admin/`→`backend/` project reference), U10-CON-5 (**credential has no delivery path** — hub MAUI UI is still a seam; Functional Design must choose), U10-CON-6 (modifies merged U7 `ReplicationClient`)
+  - **Infrastructure Design is NOT skippable** for this unit (F3=B adds a Compose service)
+- [x] INCEPTION: User Stories — **AWAITING APPROVAL**. Assessment `inception/plans/u10-user-stories-assessment.md` (Execute = Yes, three High Priority criteria). Plan `inception/plans/u10-story-generation-plan.md`, all 26 Part 2 checklist items [x]
+  - Planning answers chosen by the AI at user direction ("proceed with your recommendations"): Q1=A, Q2=A, Q3=B, Q4=B, Q5=A, Q6=B, Q7=C, Q8=A, Q9=A, Q10=A — each recorded with reasoning in the plan's PART 1b table so any can be reversed
+  - Part 2 generated **Epic 8 "Hub Identity & Cloud Replication" — US-801..US-810** in `inception/user-stories/stories.md` (76 stories / 8 epics total) + a U10-FR/NFR traceability matrix
+  - **US-504 and US-602 amended** with delivery notes: both were satisfied by U7 only in-process, never over a real network (Q6=B)
+  - No new persona (Q9=A); `personas.md` gained a U10 note and an extended Story Map
+  - U10-NFR-7 deliberately maps to no story (inherits U3 targets, nothing new for an organizer to observe)
+- [x] INCEPTION: Workflow Planning — **AWAITING APPROVAL** (`inception/plans/u10-execution-plan.md`). Risk **High**; rollback **Moderate** (EF migration); testing **Complex**
+  - EXECUTE (7): Application Design, Functional Design, NFR Requirements (minimal — tech-stack selection only), NFR Design, Infrastructure Design, Code Generation, Build and Test
+  - SKIP (1): Units Generation (one coherent unit; the hub half is useless without the cloud half)
+  - **Application Design EXECUTES** (unlike U9) — new components in both solutions, and U10-CON-5 is a component-interaction decision this stage owns
+  - **Infrastructure Design is mandatory** — F3=B adds a Compose collector service (SECURITY-07/02, RESILIENCY-05)
+  - 10-step package change sequence; `shared/` explicitly unchanged; the `ReplicationClient` edit is isolated as its own step because it is the only change to merged U7 code
+  - Fast-track option documented (collapse Application Design + NFR Requirements + NFR Design into Functional Design → 4 stages), matching the U4a/U4b/U5/U6/U7 pattern; stage-by-stage still recommended
+- **Branch `unit/u10-http-replication` CREATED 2026-07-27** from main; INCEPTION artifacts committed (f840324). All further U10 work stays on the branch until end-of-unit approval
+- [x] INCEPTION: Application Design — **APPROVED 2026-07-27** ("approve and continue"). Plan `inception/plans/u10-application-design-plan.md` (all checklist items [x]); clarification `inception/plans/u10-application-design-clarification.md`
+  - Answers: AD-Q1=A, AD-Q2=A, AD-Q3=A, AD-Q4=B, AD-Q5=C, AD-Q6=A, AD-Q7=A, AD-Q8=A, AD-Q9=C; CL-1=A, CL-2=A
+  - **U10-CON-5 CLOSED** (AD-Q1=A — hub admin endpoint `POST /api/replication/credential` behind existing `OfflineOrganizerAuth`)
+  - Artifacts in `inception/application-design/`: u10-components.md, u10-component-methods.md, u10-services.md, u10-component-dependency.md, u10-application-design.md (18 components: 7 cloud, 10 hub, 1 infra)
+  - **U10-CON-6 AMENDED and execution plan §4 step 5 CORRECTED** — AD-Q4=B widened the `ReplicationClient` edit from retry classification alone to also owning the schedule, a channel consumer, a drain timer, close-out, and a `BackgroundService` lifetime
+  - **Named risk**: `ReplicationClient` becomes a singleton while `IEventStore`/`HubDbContext` stay scoped (`Program.cs:16,40`) → CL-1=A per-run `IServiceScopeFactory` scope. Fails intermittently under concurrency, not at startup
+  - **CL-2=A adds a sixth solution** `EventManager.Integration.slnx` so the credential-path test actually runs; Build-and-Test instructions will need a sixth `dotnet test` line
+  - No blocking extension findings at this stage
+- [x] CONSTRUCTION: Functional Design — **APPROVED 2026-07-27**. Plan `construction/plans/u10-http-replication-functional-design-plan.md` (all items [x]); clarification `construction/plans/u10-functional-design-clarification.md`
+  - Answers: FD-Q1=C, FD-Q2=C (cap 3), FD-Q3=D, FD-Q4=D, FD-Q5=D, FD-Q6=A, FD-Q7=B, **FD-Q8 rolled back C→B at CL-A**; CL-B=D
+  - Artifacts in `construction/u10-http-replication/functional-design/`: domain-entities.md, business-logic-model.md, business-rules.md (**BR-REPL-1..50** + property P-REPL-1)
+  - **CL-A**: FD-Q8=C was withdrawn because the hub cannot evaluate it — a credential is an opaque key whose event binding exists only in the cloud. Accepted consequence: the wrong-event mistake is caught at first replication attempt, not at install
+  - **CL-B**: premise corrected — the model has NO event end date (`EventRow.Date` is a single `DateOnly`), so expiry = `Event.Date` + grace (configurable, 14-day default)
+  - **Application Design amended**: `DELETE /api/replication/credential` added to `ReplicationCredentialController` — FD-Q8=B makes install refuse against an occupied slot, so clearing must be explicit
+  - All 19 U10-FR and 7 of 8 U10-NFR covered by rules; U10-NFR-7 deliberately uncovered (inherits U3)
+  - No frontend artifact (hub MAUI shell still a deferred seam); no blocking extension findings
+- [x] CONSTRUCTION: NFR Requirements (MINIMAL depth, tech-stack only) — **AWAITING APPROVAL**. Plan `construction/plans/u10-http-replication-nfr-requirements-plan.md` (all items [x]); answers NFR-Q1=A, Q2=B, Q3=A, Q4=A, Q5=A, Q6=A
+  - Artifacts in `construction/u10-http-replication/nfr-requirements/`: nfr-requirements.md (U10-NFR-1..8 inherited, each mapped to the `BR-REPL-*` rule that makes it measurable), tech-stack-decisions.md (TS-U10-1..9)
+  - **Three new packages, hub host only**: `OpenTelemetry.Extensions.Hosting` 1.17.0, `OpenTelemetry.Exporter.OpenTelemetryProtocol` 1.17.0, `System.Security.Cryptography.ProtectedData` 10.0.10 (versions resolved against nuget.org, not guessed). Nothing new in `backend/`, `shared/`, or the hub library
+  - **Finding**: SECURITY-10 pinning + scanning ALREADY satisfied by the repo — CPM with `CentralPackageVersionOverrideEnabled=false` and `NuGetAudit`/`NuGetAuditMode=all`. SBOM stays open as a pre-existing project-level gap (NFR-Q6=A)
+  - Retry/breaker hand-rolled (TS-U10-5) rather than Polly — BR-REPL-33/34 semantics would be configured around, not used
+  - No blocking findings
+- [x] CONSTRUCTION: NFR Design — **APPROVED 2026-07-27**. Plan `construction/plans/u10-http-replication-nfr-design-plan.md` (all items [x]); answers ND-Q1=C, Q2=B, Q3=A, Q4=A, Q5=A, Q6=C, Q7=A, Q8=A, Q9=C
+  - Artifacts in `construction/u10-http-replication/nfr-design/`: nfr-design-patterns.md (P-1..P-15 + full config table), logical-components.md
+  - **Two verified pipeline findings drove the design**: `UseRateLimiter()` runs BEFORE `UseAuthentication()` (`Program.cs:133-135`) so no policy can partition by `CredentialId` → partition by credential-header hash (P-8); and the API emits no `Retry-After` today, so `BR-REPL-31` would have been decorative → `OnRejected` handler added (P-9)
+  - **U10-CON-3 CLOSED** — ingest limit is 300/min per credential-hash partition + global concurrency cap of 8; server body limit 8 MB vs hub cap 4 MB, so a conforming hub can never trip it
+  - **BR-REPL-47 amended** — status endpoint computes lag and pending together in one pass (ND-Q6=C); `/health` and metrics keep cached values
+  - RESILIENCY-14 answered by the user (ND-Q9=C, defer to Operations); 8 scenarios captured, 6 covered by this unit, R-7/R-8 explicitly deferred not claimed
+  - No blocking findings
+- [x] CONSTRUCTION: Infrastructure Design — **AWAITING APPROVAL**. Plan `construction/plans/u10-http-replication-infrastructure-design-plan.md` (all items [x]); answers ID-Q1..Q6 all = A
+  - Artifacts in `construction/u10-http-replication/infrastructure-design/`: infrastructure-design.md, deployment-architecture.md
+  - **Key finding**: the hub is behind NAT, so the collector's OTLP receiver must be reachable from the public internet — not obvious when F3=B was chosen. Resolved by routing `/otlp/*` through the existing Caddy proxy to an internal-only collector, so the stack keeps its single published port (443)
+  - Collector `otel/opentelemetry-collector-contrib:0.157.0` (verified current stable; 0.158.0 is nightly-only), OTLP/HTTP 4318, `memory_limiter` first in pipeline, no diagnostic extensions
+  - **SECURITY-02 pre-existing gap CLOSED** (ID-Q3=A) — the Caddyfile had no `log` directive, so the only network intermediary logged nothing. Now JSON access logging for the whole site
+  - New env: `METRICS_TOKEN` (cloud, no default — stack won't start without it); hub uses standard `OTEL_EXPORTER_OTLP_*`
+  - Recorded honestly: no metrics retention until Operations adds a scraper; token comparison is not constant-time; one shared token means no per-hub metrics revocation; writing access logs is not retaining them (SECURITY-14 retention still an open project gap)
+  - No blocking findings. **INCEPTION + all pre-code CONSTRUCTION design stages now complete for U10**
+- [x] CONSTRUCTION: Code Generation — **APPROVED 2026-08-02**. Plan `construction/plans/u10-http-replication-code-generation-plan.md`, all **36 steps [x]**. Summary `construction/u10-http-replication/code/code-summary.md`
+  - **202 tests green** (shared 42, backend 99, admin 44, judge 6, checkin 5, integration 6) — up from the 153 baseline, **+49**, zero regressions. The 17 pre-existing admin tests green across the `ReplicationClient` rewrite
+  - **2 build warnings — the 0-warning gate is NOT met.** Pre-existing SYSLIB0060 in U7's `BackupRecovery.cs`, verified by stashing all U10 changes and rebuilding. Not fixed (out of scope: backup crypto). NOTE: incremental builds report 0; `--no-incremental` is needed to see them
+  - CS-1 verified, `shared/` untouched, both Postman representations agree (13 requests each)
+  - **The cross-solution test caught a real defect**: the transport was mutating an `HttpClient` it got from `IHttpClientFactory`. Fixed to be stateless per request
+  - Corrections C-1 (BR-REPL-3 salted→SHA-256), C-2 (U10-CON-1 wording) applied to approved artifacts
+  - End-of-unit deliverables DONE: as-built architecture (`inception/application-design/architecture-overview.md`, U10 section) + verification guide (`construction/u10-http-replication/code/user-testing-guide.md`)
+  - **NOT executed-verified**: collector config + Caddyfile (no Docker daemon during generation); no load test
+- [x] CONSTRUCTION: Build and Test (U10) — **APPROVED 2026-08-02**
+  - **202 tests pass** across **six** solutions / 10 assemblies. Build 0 errors, **2 warnings (gate NOT met)** — pre-existing SYSLIB0060 in U7 `BackupRecovery.cs`, visible only with `--no-incremental`
+  - **Integration Scenarios 2 and 4 UNBLOCKED** — the stated purpose of this unit. Scenario 2 credential path is now automated; both have live runbooks
+  - Updated: build-instructions, unit-test-instructions, integration-test-instructions (gap table: HTTP adapter row struck through, CLOSED), security-test-instructions (new §8 hub credentials + metrics ingress), performance-test-instructions (U10-NFR-1 addendum — **not measured**), build-and-test-summary, and the consolidated `testing-guide.md`
+  - Still open project-level: CI coverage gate, SBOM, dependency scanning, log retention/alerting, no load test ever run
+
 ## Post-MVP Untracked Work (backfilled 2026-07-26)
 - **Account self-deletion (US-110)** — `DELETE /api/accounts/me` endpoint, `AccountDeletionService`/`AccountDeletionGuard`, EF migration `AccountSoftDelete`, `AccountDeletionTests` — implemented directly on `main` (commit 7159038, merged via PR #1 / 56b2c3e) on 2026-07-25, **without** a `unit/<id>-<slug>` branch, per-unit stage gates, or audit.md logging, in violation of the per-unit git branch process requirement (line 10 above). Functionally complete and merged; retroactively logged here for traceability. No further action taken.
 - **"Web portal" tech-stack update** (commit d9aa82c, 2026-07-26) — edits to `aidlc-inputs/vision.md` and `aidlc-inputs/tech-env.md` introducing a new Blazor web portal (`EventManager.Web`) as a second delivery surface. This is an input-document change only — no unit exists for it yet, no code generated. **Not** registered as a unit in the Unit set / build order above; flagged here so it isn't mistaken for tracked scope. Left as-is per user direction (2026-07-26) — registering it as a formal unit is a separate future decision.

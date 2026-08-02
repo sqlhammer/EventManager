@@ -228,6 +228,9 @@ namespace EventManager.Api.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<long?>("IngestedByCredentialId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTimeOffset>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
@@ -301,6 +304,45 @@ namespace EventManager.Api.Persistence.Migrations
                     b.HasKey("EventId");
 
                     b.ToTable("EventRows");
+                });
+
+            modelBuilder.Entity("EventManager.Api.Persistence.HubCredentialRecord", b =>
+                {
+                    b.Property<long>("CredentialId")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("EventScopeId")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTimeOffset>("ExpiresAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<DateTimeOffset>("IssuedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long>("IssuedByAccountId")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("KeyHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(120)
+                        .HasColumnType("character varying(120)");
+
+                    b.Property<DateTimeOffset?>("RevokedAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.HasKey("CredentialId");
+
+                    b.HasIndex("EventScopeId");
+
+                    b.HasIndex("KeyHash")
+                        .IsUnique();
+
+                    b.ToTable("HubCredentials");
                 });
 
             modelBuilder.Entity("EventManager.Api.Persistence.IdempotencyKey", b =>

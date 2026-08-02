@@ -1,7 +1,7 @@
 # EventManager — System Testing Guide (end-to-end)
 
 **Scope**: the whole MVP across all 9 units — cloud backend, admin hub, and the judge/check-in spokes — plus post-MVP unit U9 (Read/Query API).
-**Status**: 2026-07-26 · MVP units merged to `main`; U9 on `unit/u9-read-api`; **153 automated tests green**. Per-unit guides are linked
+**Status**: 2026-08-02 · MVP units + U9 merged to `main`; U10 on `unit/u10-http-replication`; **202 automated tests green**. Per-unit guides are linked
 at the end. Where a real UI does not yet exist (MAUI shells), the guide covers the tested app-core flow
 and marks the manual UI walkthrough as pending.
 
@@ -17,14 +17,22 @@ and marks the manual UI walkthrough as pending.
 ```bash
 cd C:\repos\EventManager
 dotnet test shared/EventManager.Shared.slnx        # 42  (U1 Domain/Sync, U2 Contracts/ClientSync)
-dotnet test backend/EventManager.Backend.slnx      # 83  (U8 Payments 6, U3 Api 20, U9 read API 57)
-dotnet test admin/EventManager.Admin.slnx          # 17  (U4a hub 5, U4b competition 7, U7 resilience 5)
+dotnet test backend/EventManager.Backend.slnx      # 99  (U8 Payments 6, U3+U9 Api 77, U10 credentials 16)
+dotnet test admin/EventManager.Admin.slnx          # 44  (U4a/U4b/U7 17, U10 replication adapter 27)
 dotnet test judge/tests/EventManager.Judge.Core.Tests/EventManager.Judge.Core.Tests.csproj      # 6  (U5)
 dotnet test checkin/tests/EventManager.Checkin.Core.Tests/EventManager.Checkin.Core.Tests.csproj # 5  (U6)
+dotnet test EventManager.Integration.slnx          #  6  (U10 seam — SIXTH solution, easy to miss)
 ```
-Expected: **153 passing**, 0 failing. These cover the four PBT invariants (cloud) + hub pairing/scoring/
+Expected: **202 passing**, 0 failing. These cover the four PBT invariants (cloud) + hub pairing/scoring/
 resilience properties + spoke durable-before-ack + the U9 read-tier matrix, non-disclosure, and
-conditional-request properties.
+conditional-request properties + U10's hub-credential lifecycle, failure classification, circuit
+breaker, and `P-REPL-1` (the cloud log is always a gap-free, duplicate-free prefix of the hub log).
+
+> `EventManager.Integration.slnx` is a **sixth** solution added by U10. A sweep over the five original
+> solutions silently skips the only test that proves a real credential reaches the real endpoint.
+
+> Build note: `dotnet build` currently reports **2 warnings** (`SYSLIB0060` in U7's
+> `BackupRecovery.cs`, pre-existing). An *incremental* build reports 0 — use `--no-incremental`.
 
 Optional compiling MAUI Windows heads:
 ```bash
@@ -141,3 +149,4 @@ Detail: [U5 guide](construction/u5-judge/user-testing-guide.md) · [U6 guide](co
 - Resilience: [U7](construction/u7-offline-resilience/user-testing-guide.md)
 - Spokes: [U5](construction/u5-judge/user-testing-guide.md) · [U6](construction/u6-checkin/user-testing-guide.md)
 - Post-MVP read API: [U9](construction/u9-read-api/code/user-testing-guide.md) — three-tier read access, non-disclosure, conditional requests
+- Post-MVP replication: [U10](construction/u10-http-replication/code/user-testing-guide.md) — hub credentials, HTTP replication, outage/close-out walkthrough. **§3 is this unit's primary integration verification**, not a supplement

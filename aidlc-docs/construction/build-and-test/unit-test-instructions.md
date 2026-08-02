@@ -1,17 +1,18 @@
 # Unit Test Execution
 
-**Verified**: 2026-07-27 on `main` — **153 passing, 0 failing, 0 skipped** across 9 test assemblies.
+**Verified**: 2026-08-02 on `unit/u10-http-replication` — **202 passing, 0 failing, 0 skipped** across **10** test assemblies.
 
 ---
 
 ## Run all tests
 
 ```bash
-dotnet test shared/EventManager.Shared.slnx        # 42
-dotnet test backend/EventManager.Backend.slnx      # 83
-dotnet test admin/EventManager.Admin.slnx          # 17
-dotnet test judge/EventManager.Judge.slnx          #  6
-dotnet test checkin/EventManager.Checkin.slnx      #  5
+dotnet test shared/EventManager.Shared.slnx        #  42
+dotnet test backend/EventManager.Backend.slnx      #  99
+dotnet test admin/EventManager.Admin.slnx          #  44
+dotnet test judge/EventManager.Judge.slnx          #   6
+dotnet test checkin/EventManager.Checkin.slnx      #   5
+dotnet test EventManager.Integration.slnx          #   6   <-- U10, easy to miss
 ```
 
 ## Expected results
@@ -23,13 +24,18 @@ dotnet test checkin/EventManager.Checkin.slnx      #  5
 | `EventManager.Contracts.Tests` | U2 | 4 | Envelope serialization round-trips |
 | `EventManager.ClientSync.Tests` | U2 | 7 | Local event queue, transport seam |
 | `EventManager.Payments.Tests` | U8 | 6 | Stub payment provider outcomes |
-| `EventManager.Api.Tests` | U3 + U9 | 77 | Registration, RBAC, ingest, division eligibility, account deletion, **U9 read tiers / shapes / non-disclosure / ETags / properties** |
-| `EventManager.Hub.Tests` | U4a/U4b/U7 | 17 | Pairing, device registry, competition orchestration, replication, backup/recovery |
+| `EventManager.Api.Tests` | U3 + U9 + U10 | 93 | Registration, RBAC, ingest, division eligibility, account deletion, **U9 read tiers / shapes / non-disclosure / ETags / properties**, **U10 hub-credential lifecycle / ingest scope / provenance** |
+| `EventManager.Hub.Tests` | U4a/U4b/U7 + **U10** | 44 | Pairing, device registry, competition orchestration, replication, backup/recovery, **U10 failure classification / circuit breaker / credential custody / P-REPL-1** |
 | `EventManager.Judge.Core.Tests` | U5 | 6 | Durable-before-ack score capture, mat queue |
 | `EventManager.Checkin.Core.Tests` | U6 | 5 | Check-in, weigh-in range validation |
-| **Total** | | **153** | |
+| `EventManager.Integration.Tests` | **U10** | 6 | The seam: a real hub credential, through the real adapter, to the real ingest endpoint |
+| **Total** | | **202** | |
 
-Runtime is roughly 12 seconds in total; `EventManager.Api.Tests` dominates at ~6 s because the
+> **`EventManager.Integration.slnx` is the one to remember.** It is a sixth solution added by U10,
+> and a sweep that iterates the five original solutions will silently skip the only test proving a
+> real credential reaches the real endpoint.
+
+Runtime is roughly 40 seconds in total; `EventManager.Api.Tests` dominates at ~6 s because the
 property tests each stand up a fresh in-memory SQLite host.
 
 ---
@@ -102,7 +108,7 @@ dotnet test admin/EventManager.Admin.slnx --filter "DisplayName~zero_internet"
 2. Determine whether the **test** or the **code** is wrong. Both happen: during U9 a Postman
    assertion used `headers.get(...) == null`, which can never hold because a missing header reads
    as `undefined` — the API was correct and the assertion was not.
-3. Fix, re-run the affected assembly, then re-run all five solutions before committing.
+3. Fix, re-run the affected assembly, then re-run all **six** solutions before committing.
 
 ## Test host pattern
 

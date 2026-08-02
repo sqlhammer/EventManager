@@ -100,10 +100,18 @@ than a cloud account, so there is no account for a tier to attach to.
 
 | Persona | Primary stories |
 |---|---|
-| P1 Organizer | US-101..109, US-209, US-301..305, US-308..314, US-405, US-408, US-409, US-501, US-504..506, US-508, US-601, US-602, US-703, US-704..710 |
+| P1 Organizer | US-101..109, US-209, US-301..305, US-308..314, US-405, US-408, US-409, US-501, US-504..506, US-508, US-601, US-602, US-703, US-704..710, US-801..810 |
 | P2 Coach | US-204, US-205, US-206, US-207 (shared), US-603 (shared), US-701, US-702, US-704..706, US-709, US-710 |
 | P3 Registrant | US-201, US-202, US-203, US-207, US-208, US-210 (system-facing, on behalf of), US-211, US-603, US-701, US-702, US-704..707, US-709, US-710 |
 | P4 Judge | US-303, US-304, US-401..407, US-410, US-411, US-502, US-507 |
 | P5 Check-In Staff | US-303, US-304, US-306, US-307, US-308 (initiates), US-310, US-503, US-507 |
 
 Stories with system-level behavior (e.g., US-210 auto division assignment, US-504 cloud replication) are written from the persona that benefits/observes.
+
+**Unit U10 (2026-07-27) — no new persona.** Epic 8 is entirely P1 Organizer: they issue, install, and
+revoke the hub credential, watch replication health at the venue, and close the event out. The hub
+itself acts without a human in the loop, but per plan decision Q4=B that behaviour is expressed as
+acceptance criteria on the organizer outcome it produces rather than as system-actor stories, so no
+non-human actor needed a definition here. A separate "Hub Operator / event-day IT" role was
+considered and rejected — no other epic has ever needed it, and inventing one would imply a division
+of labour the product does not assume.

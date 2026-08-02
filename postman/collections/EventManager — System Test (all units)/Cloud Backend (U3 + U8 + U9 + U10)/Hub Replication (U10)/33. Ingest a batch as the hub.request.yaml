@@ -1,0 +1,31 @@
+$kind: http-request
+description: US-803 / U10-FR-1. A batch authenticated by the HUB credential rather than an organizer JWT.
+url: "{{cloudBaseUrl}}/api/ingest/batch"
+method: POST
+headers:
+  Content-Type: application/json
+  X-Hub-Credential: "{{hubCredentialKey}}"
+body:
+  type: text
+  content: |-
+    {
+      "events": [
+        {
+          "eventId": 990001,
+          "deviceId": 71,
+          "sequenceNumber": 1,
+          "eventType": "CheckedIn",
+          "schemaVersion": 1,
+          "payloadBase64": "e30=",
+          "occurredAt": "2026-09-01T10:00:00Z",
+          "eventScopeId": "{{eventId}}"
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('acknowledges per-device high-water marks', () => pm.expect(pm.response.json().perDeviceHighWaterMarks).to.be.an('object'));
+    language: text/javascript
+order: 3000

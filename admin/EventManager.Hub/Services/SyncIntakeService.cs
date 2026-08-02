@@ -11,7 +11,9 @@ namespace EventManager.Hub.Services;
 /// events idempotently to the hub log (replays on reconnect never duplicate), and returns per-device
 /// high-water marks. Mat-authority enforcement and competition projections belong to U4b.
 /// </summary>
-public sealed class SyncIntakeService(HubDbContext db, IEventStore store, DeviceRegistry devices)
+public sealed class SyncIntakeService(
+    HubDbContext db, IEventStore store, DeviceRegistry devices,
+    EventManager.Hub.Resilience.ReplicationSignal? replication = null)
 {
     public async Task<ErrorOr<ReplicationAckDto>> IntakeAsync(long deviceId, ReplicationBatchDto batch, CancellationToken ct = default)
     {
@@ -23,6 +25,10 @@ public sealed class SyncIntakeService(HubDbContext db, IEventStore store, Device
         foreach (var evt in ordered)
             if (await store.AppendIfNotExistsAsync(evt, ct)) accepted++;
         await db.SaveChangesAsync(ct);
+
+        // U10 (AD-Q5=C): spoke sync is where the bulk of an event log actually arrives, so this is
+        // the signal that makes replication genuinely append-driven rather than timer-driven.
+        if (accepted > 0) replication?.Signal();
 
         var hwm = new Dictionary<long, long>();
         foreach (var d in ordered.Select(e => e.DeviceId).Distinct())

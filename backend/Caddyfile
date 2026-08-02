@@ -2,9 +2,40 @@
 # Caddy provisions/renews certificates automatically in production. For local dev use `localhost`.
 {$SITE_ADDRESS:localhost} {
     encode gzip
-    reverse_proxy api:8080
+
+    # Access logging (U10, ID-Q3=A). This CLOSES a pre-existing SECURITY-02 gap: Caddy is the only
+    # network intermediary in the system and wrote no access log at all, because Caddy v2 logs per
+    # site only when configured. This covers every route, not just the new one.
+    #
+    # Note: writing logs is not retaining them — these go to stdout and nothing collects them, so the
+    # 90-day retention SECURITY-14 asks for remains an open project-level gap.
+    log {
+        output stdout
+        format json
+    }
+
     header {
         Strict-Transport-Security "max-age=31536000;"
         -Server
+    }
+
+    # U10 metrics ingress (ID-Q1=A / ID-Q2=A). A venue hub sits behind NAT and cannot be scraped, so
+    # metrics must be PUSHED to a publicly reachable endpoint — and an OTLP receiver has no
+    # authentication of its own, so one is added here before anything reaches the collector.
+    #
+    # Honest limitation: this is an ordinary string comparison, so it is not constant-time. That is
+    # proportionate for a metrics gate, and it is the first thing to revisit if metrics ever carry
+    # anything sensitive. The token is also shared across all hubs — rotating it invalidates every hub
+    # at once. The REPLICATION credential is per-hub and revocable; this is only the metrics gate.
+    handle /otlp/* {
+        @unauthorized not header Authorization "Bearer {$METRICS_TOKEN}"
+        respond @unauthorized 401
+
+        uri strip_prefix /otlp
+        reverse_proxy otel-collector:4318
+    }
+
+    handle {
+        reverse_proxy api:8080
     }
 }

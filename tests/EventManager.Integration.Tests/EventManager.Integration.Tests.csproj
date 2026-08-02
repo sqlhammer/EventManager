@@ -1,0 +1,43 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    U10 cross-solution seam test (F4=B, U10-CON-4, CL-2=A).
+
+    This is the ONLY project in the repo that references both admin/ and backend/. The coupling is
+    deliberately confined here so it stays visible and cannot spread into production code: no code
+    under admin/ references backend/, and none under backend/ references admin/.
+
+    It lives in its own solution (EventManager.Integration.slnx) so that `dotnet test` actually runs
+    it — a project belonging to no solution would be built by nothing, and the credential-path
+    regression this exists to catch would never fail a build.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="coverlet.collector" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <!-- Security pin (version + rationale in Directory.Packages.props). -->
+    <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\backend\EventManager.Api\EventManager.Api.csproj" />
+    <ProjectReference Include="..\..\admin\EventManager.Hub\EventManager.Hub.csproj" />
+    <ProjectReference Include="..\..\shared\EventManager.Contracts\EventManager.Contracts.csproj" />
+    <ProjectReference Include="..\..\shared\EventManager.Sync\EventManager.Sync.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -142,3 +142,33 @@ rejected during requirements in favour of roster-only reads.
 None of these blocked a stage gate at design time — they are deployment-and-operations concerns,
 and the Operations phase is still a placeholder. They are recorded here so they are not mistaken
 for completed controls.
+
+
+---
+
+## 8. Hub credentials — the second authentication path (U10, 2026-08-02)
+
+Added by U10. Until then the cloud authenticated only people; it now also authenticates **hubs**, so
+these checks are additional to §2 and §3 rather than covered by them.
+
+| Check | How | Expected |
+|---|---|---|
+| Key returned once only | Issue a credential, then `GET .../hub-credentials` | The listing carries no `key` or `keyHash` field |
+| Hash-only storage | Inspect the `HubCredentials` table | No column holds a usable key |
+| Scope confinement | Ingest a batch naming another event | **Refused entirely** — no partial acceptance, nothing stored |
+| Immediate revocation | Revoke, then ingest again | Refused on the very next request (no session, no cache) |
+| Expiry ≡ revocation | Advance past `ExpiresAt` | Same refusal, same generic message |
+| Non-disclosure | Present unknown / expired / revoked keys | All three produce the **same** response; the body must not say which |
+| No credential in output | Read `/health`, `/api/replication/status`, and logs | The key never appears |
+| Least privilege | Attempt any non-ingest route with a hub credential | Refused — the credential permits ingest and cursor read only |
+
+Automated coverage: `backend/tests/.../HubCredentialTests.cs` and
+`tests/EventManager.Integration.Tests/CredentialPathTests.cs`.
+
+### Metrics ingress
+
+The `/otlp/*` route is internet-reachable by necessity — a venue hub sits behind NAT and cannot be
+scraped — and OTLP has no authentication of its own, so Caddy gates it with a bearer token.
+
+- A wrong or absent token must yield **401 at Caddy**, with the collector never seeing the request.
+- **Known limitations, deliberate and recorded**: the comparison is not constant-time, and the token is shared across all hubs, so rotation invalidates every hub at once. Proportionate for metrics; revisit if metrics ever carry anything sensitive. The *replication* credential is per-hub and revocable.

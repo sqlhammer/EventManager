@@ -1,0 +1,30 @@
+$kind: http-request
+description: US-809 / BR-REPL-10. A batch containing ANY foreign scope is refused whole — no partial acceptance, because a batch is the unit of atomic intent.
+url: "{{cloudBaseUrl}}/api/ingest/batch"
+method: POST
+headers:
+  Content-Type: application/json
+  X-Hub-Credential: "{{hubCredentialKey}}"
+body:
+  type: text
+  content: |-
+    {
+      "events": [
+        {
+          "eventId": 990099,
+          "deviceId": 71,
+          "sequenceNumber": 99,
+          "eventType": "CheckedIn",
+          "schemaVersion": 1,
+          "payloadBase64": "e30=",
+          "occurredAt": "2026-09-01T10:00:00Z",
+          "eventScopeId": 999999999
+        }
+      ]
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('refused', () => pm.expect(pm.response.code).to.be.oneOf([401, 403]));
+    language: text/javascript
+order: 6000

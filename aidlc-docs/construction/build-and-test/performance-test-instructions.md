@@ -102,3 +102,29 @@ Measure before changing anything. The three levers most likely to matter, in ord
 suggested by query plans, add pagination to the roster read, and move projection off the write path
 — but note that the last one **invalidates the U9 watermark ETag** (U9-CON-3) and would require
 switching to a projection-applied high-water mark.
+
+
+---
+
+## U10 addendum — replication lag (2026-08-02)
+
+U10 introduced **U10-NFR-1**: under normal connectivity the cloud is no more than **5 minutes** behind
+the hub.
+
+**Status: NOT MEASURED.** Consistent with every other target in this document, no load test has been
+run. What exists is a *definition* test, not a measurement: `BR-REPL-45` defines lag as the age of
+the oldest unreplicated event (zero when there is no backlog), and that definition is unit-tested.
+Whether the target holds under a real event's write rate is unknown.
+
+Time-since-last-success was rejected as the metric precisely because it would look like a breach
+whenever the hub is idle and the cloud is perfectly current — worth remembering when someone
+eventually builds the dashboard.
+
+### When a load test is run
+
+| Parameter | Value |
+|---|---|
+| Workload | Spoke sync batches at an event-day rate (~300 athletes, ~8 mats, ~20 devices — NFR-5.1) |
+| Measure | `eventmanager.replication.lag.seconds` p95 over the run |
+| Pass | p95 < 300 s under normal connectivity |
+| Also watch | `eventmanager.replication.backlog` should return to 0 between bursts; `replication.failures` tagged `Throttled` should be 0 — a conforming hub should never trip its own rate limit |

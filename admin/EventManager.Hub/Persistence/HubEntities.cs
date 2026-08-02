@@ -51,3 +51,18 @@ public sealed class ReadinessRecord
     public bool Ready { get; set; }
     public DateTimeOffset DownloadedAt { get; set; }
 }
+
+/// <summary>
+/// The hub's local custody of its cloud credential (U10, US-802). At most ONE row exists: installing
+/// while one is present is refused, and clearing is a separate explicit action (FD-Q8=B).
+/// The key is protected before write and unprotected only in memory, at use (BR-REPL-23).
+/// </summary>
+public sealed class HubCredentialRow
+{
+    public int Id { get; set; } = SingletonId;      // PK, always SingletonId — enforces "at most one"
+    public byte[] ProtectedKey { get; set; } = [];
+    public string CloudBaseUrl { get; set; } = "";
+    public DateTimeOffset InstalledAt { get; set; }
+
+    public const int SingletonId = 1;
+}

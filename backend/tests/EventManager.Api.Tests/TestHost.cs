@@ -38,6 +38,17 @@ public sealed class TestHost : IDisposable
     public OrganizerAccountQueryService AccountQueries { get; }
     public OrganizerRoleService OrganizerRoles { get; }
 
+    // ---- U10 hub credentials ----
+    public HubCredentialService HubCredentials { get; }
+    public FakeClock Clock { get; } = new();
+
+    /// <summary>Controllable time so expiry can be tested without waiting fourteen days.</summary>
+    public sealed class FakeClock : TimeProvider
+    {
+        public DateTimeOffset Now { get; set; } = new(2026, 8, 15, 12, 0, 0, TimeSpan.Zero);
+        public override DateTimeOffset GetUtcNow() => Now;
+    }
+
     public TestHost(Func<PaymentRequest, PaymentOutcome>? paymentOutcome = null)
     {
         _conn = new SqliteConnection("DataSource=:memory:");
@@ -65,6 +76,7 @@ public sealed class TestHost : IDisposable
         RegistrantQueries = new RegistrantQueryService(Db);
         AccountQueries = new OrganizerAccountQueryService(Db);
         OrganizerRoles = new OrganizerRoleService(Db, Writer, Ids, Authorizer, new NoopEmailSender());
+        HubCredentials = new HubCredentialService(Db, Authorizer, Ids, new HubCredentialOptions(), Clock);
     }
 
     /// <summary>Register an athlete owned by <paramref name="accountId"/> into an open event.</summary>

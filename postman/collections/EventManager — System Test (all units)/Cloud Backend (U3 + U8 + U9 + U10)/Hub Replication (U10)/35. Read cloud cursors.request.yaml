@@ -1,0 +1,13 @@
+$kind: http-request
+description: US-805 / U10-FR-12. Lets a restarted hub resume from where the cloud actually is instead of re-sending the whole event. A hub credential is already bound to one event, so it does not name it.
+url: "{{cloudBaseUrl}}/api/ingest/high-water-marks"
+method: GET
+headers:
+  X-Hub-Credential: "{{hubCredentialKey}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK', () => pm.response.to.have.status(200));
+      pm.test('returns per-device cursors', () => pm.expect(pm.response.json()).to.be.an('object'));
+    language: text/javascript
+order: 5000
