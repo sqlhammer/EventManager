@@ -48,7 +48,49 @@ is the one thing the offline-first design promises cannot happen.
 
 ```bash
 cd backend
-cp .env.example .env          # then edit: set METRICS_TOKEN and JWT_SIGNING_KEY
+cp .env.example .env
+```
+
+**Generate the two secrets.** `.env` is git-ignored (`.gitignore:13`), so generated values stay local.
+Run each command once per value — never reuse one secret for both.
+
+PowerShell:
+```powershell
+# 256-bit secret, hex (64 chars)
+[Convert]::ToHexString([Security.Cryptography.RandomNumberGenerator]::GetBytes(32))
+
+# or base64url (43 chars) — no '+', '/' or '=' padding
+[Convert]::ToBase64String([Security.Cryptography.RandomNumberGenerator]::GetBytes(32)).Replace('+','-').Replace('/','_').TrimEnd('=')
+```
+
+bash / macOS / Linux:
+```bash
+openssl rand -hex 32
+```
+
+Paste the results into `.env`:
+
+```bash
+JWT_SIGNING_KEY=<first value>       # 32+ chars required; the API throws at startup without it
+METRICS_TOKEN=<second value>        # gates the /otlp/* route at Caddy
+```
+
+**Use hex or base64url, not plain base64, for `METRICS_TOKEN`.** The hub passes it through
+`OTEL_EXPORTER_OTLP_HEADERS`, whose format is a comma-separated list of `key=value` pairs — a token
+containing `=` (base64 padding) or `,` lands in a position where parsing depends on the SDK splitting
+on the *first* `=` rather than every one. Hex and base64url avoid the question. Also avoid `$` in
+either value: docker compose interpolates it inside `.env`.
+
+`JWT_SIGNING_KEY` has no such constraint — it is UTF-8 bytes fed straight to HMAC-SHA256 — but the
+same generators are fine for it.
+
+**Rotation, when you come to it:**
+- Changing `JWT_SIGNING_KEY` invalidates every issued access token immediately. Refresh tokens survive (they are random values hashed in the database, not signed), so clients recover by refreshing rather than signing in again.
+- Changing `METRICS_TOKEN` breaks metrics export for **every** hub at once — each needs its `OTEL_EXPORTER_OTLP_HEADERS` updated. **Replication is unaffected**: that uses the per-hub credential, which is revoked individually.
+
+Then start the stack:
+
+```bash
 docker compose up -d --build
 ```
 

@@ -1139,3 +1139,11 @@ update the md files for me with these answers"
 **Context**: U10 complete, merged, and pushed; first push in the project
 
 ---
+
+## POST-MERGE — secret generation steps added to the U10 verification guide
+**Timestamp**: 2026-08-02T00:00:00Z
+**User Input**: "How do I generate the METRICS_TOKEN and JWT_SIGNING_KEY" -> "Add steps into section 3.1 of the user-testing-guide"
+**AI Response**: "Added generation steps to §3.1 of construction/u10-http-replication/code/user-testing-guide.md. Verified both generators by running them rather than quoting from memory — the PowerShell hex and base64url one-liners, and openssl (confirmed present on this machine). Also verified backend/.env is git-ignored (.gitignore:13) before telling the user generated values stay local. Recorded a non-obvious constraint the guide did not previously state: METRICS_TOKEN should be hex or base64url rather than plain base64, because the hub passes it through OTEL_EXPORTER_OTLP_HEADERS, whose format is a comma-separated list of key=value pairs — a token containing '=' (base64 padding) or ',' sits where parsing depends on the SDK splitting on the FIRST '=' rather than every one. Phrased as a precaution rather than a verified failure, because I did not test that it breaks. Also noted that '$' must be avoided in either value since docker compose interpolates it inside .env, and that JWT_SIGNING_KEY itself has no character constraint since it is UTF-8 bytes fed to HMAC-SHA256. Documented rotation consequences: changing JWT_SIGNING_KEY invalidates issued access tokens but not refresh tokens (which are random values hashed in the DB, not signed), so clients recover by refreshing; changing METRICS_TOKEN breaks metrics export for every hub at once, while replication is unaffected because it uses the per-hub revocable credential. Split the original single code block so secret generation happens between `cp .env.example .env` and `docker compose up`, which is the order an operator actually needs. Did NOT generate or write a real .env — that puts secrets on disk and was not asked for."
+**Context**: Post-merge documentation improvement on main; no code change
+
+---
