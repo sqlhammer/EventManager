@@ -5,10 +5,8 @@ method: POST
 headers:
   Content-Type: application/json
   X-Hub-Credential: "{{hubCredentialKey}}"
-auth:
-  type: noauth
 body:
-  type: text
+  type: json
   content: |-
     {
       "events": [
@@ -24,6 +22,8 @@ body:
         }
       ]
     }
+auth:
+  type: noauth
 scripts:
   - type: afterResponse
     code: |-

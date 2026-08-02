@@ -35,7 +35,7 @@ variables:
   hubCredentialKey: ""
   hubCredentialId: ""
 auth:
-  - id: 0a14e780-0c4e-41e3-831c-b6d048d8a201
+  - id: 74d1ad76-1262-491f-9761-557b114b1581
     type: bearer
     name: bearer auth
     credentials:

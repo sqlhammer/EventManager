@@ -174,15 +174,39 @@
 - [x] CONSTRUCTION: **U10 HTTP Replication Adapter — COMPLETE, MERGED & PUSHED** 2026-08-02. The hub replicates to the cloud over a real network, authenticated as itself. Closes U10-CON-5 and U10-CON-3, plus a pre-existing SECURITY-02 access-logging gap. Unblocks integration Scenarios 2 and 4
   - **Carried forward, not resolved**: 2 pre-existing SYSLIB0060 warnings in U7 `BackupRecovery.cs` (0-warning gate not met; invisible to incremental builds); collector config + Caddyfile never executed (no Docker daemon); U10-NFR-1's 5-minute lag target unmeasured; no per-hub metrics revocation; no event check at credential install
 
-## >>> RESUME POINTER (updated 2026-08-02) <<<
-On `main`, tree clean, **synced with origin/main at 24ad446**. All 9 MVP units + R1 + U9 + U10 merged
-and pushed. **202 tests green** across **SIX** solutions — `EventManager.Integration.slnx` is new and a
-five-solution sweep silently skips the U10 credential-path test. Build reports **2 warnings**
-(pre-existing SYSLIB0060, U7 `BackupRecovery.cs`); `--no-incremental` is required to see them.
-Highest-value remaining work, in order: (1) run the U10 manual walkthrough — the collector config and
-Caddyfile have never been executed; (2) wire the CI coverage gate; (3) run a load test — no
-performance target has ever been measured; (4) SBOM + dependency scanning; (5) log retention and
-alerting. The Blazor web portal remains an input-document change with no unit.
+## >>> RESUME POINTER (updated 2026-08-02, post-merge) <<<
+On `main`, tree clean, **synced with origin/main**. All 9 MVP units + R1 + U9 + **U10** merged AND
+**pushed** (github.com/sqlhammer/EventManager). U10's merge `24ad446` was the first push in the project.
+
+**202 tests green across SIX solutions.** `EventManager.Integration.slnx` (repo root) is new — a
+five-solution sweep silently skips the U10 credential-path test.
+
+**Build reports 2 warnings**: SYSLIB0060 in `admin/EventManager.Hub/Resilience/BackupRecovery.cs`
+(U7 code, pre-existing). **Invisible to incremental builds** — use `--no-incremental`.
+
+### OPEN DEFECT — daily backups have never run (not caused by U10, predates it)
+`backend/backup/backup.sh` has **CRLF line endings**, so its shebang is `#!/bin/sh` and the kernel
+looks for an interpreter literally named `/bin/sh`. Container log: `/bin/sh: 1: /backup.sh: not found`,
+repeatedly. `/backups` has been **empty since 2026-07-26**. Root cause: `core.autocrlf=true` with **no
+`.gitattributes`**, so every Windows checkout converts it.
+**Consequence: NFR-3.10 and RESILIENCY-12 have never actually held.** Fix = add `.gitattributes`
+pinning `*.sh` to LF, renormalize, recreate the backup container, then **verify an archive is actually
+written** — do not assume. User was offered this fix and has not yet accepted.
+
+### Secrets — recovery trick worth remembering
+`backend/.env` is git-ignored, so git is never a recovery path. Compose bakes resolved env into a
+container at **CREATE** time; `docker ps` "Up N minutes" is uptime since last **START**. So
+`docker inspect <container> --format '{{range .Config.Env}}{{println .}}{{end}}'` recovers secrets
+from a container created before the loss — **but any recreate destroys them**. `BACKUP_ENCRYPTION_KEY`
+was recovered this way on 2026-08-02 and verified by SHA-256 match against `.env`.
+
+### Highest-value remaining work
+1. **Fix the backup CRLF defect** (above) — an unmet NFR, silently failing for a week.
+2. **Run the U10 manual walkthrough** — the collector config and Caddyfile have *never been executed*.
+3. Wire the CI coverage gate. 4. Run a load test (no performance target has ever been measured).
+5. SBOM + dependency scanning. 6. Log retention and alerting.
+
+The Blazor web portal remains an input-document change with no unit.
 
 ## Post-MVP Untracked Work (backfilled 2026-07-26)
 - **Account self-deletion (US-110)** — `DELETE /api/accounts/me` endpoint, `AccountDeletionService`/`AccountDeletionGuard`, EF migration `AccountSoftDelete`, `AccountDeletionTests` — implemented directly on `main` (commit 7159038, merged via PR #1 / 56b2c3e) on 2026-07-25, **without** a `unit/<id>-<slug>` branch, per-unit stage gates, or audit.md logging, in violation of the per-unit git branch process requirement (line 10 above). Functionally complete and merged; retroactively logged here for traceability. No further action taken.

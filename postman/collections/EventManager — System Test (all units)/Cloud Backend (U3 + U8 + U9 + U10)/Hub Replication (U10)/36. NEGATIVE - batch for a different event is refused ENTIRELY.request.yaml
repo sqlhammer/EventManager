@@ -22,6 +22,8 @@ body:
         }
       ]
     }
+auth:
+  type: noauth
 scripts:
   - type: afterResponse
     code: pm.test('refused', () => pm.expect(pm.response.code).to.be.oneOf([401, 403]));
