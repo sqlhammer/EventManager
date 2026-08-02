@@ -32,8 +32,10 @@ variables:
   disputeId: ""
   eventEtag: ""
   otherDivisionId: ""
+  hubCredentialKey: ""
+  hubCredentialId: ""
 auth:
-  - id: 54966991-5bd7-452c-b35e-6bc36688c3f9
+  - id: 0a14e780-0c4e-41e3-831c-b6d048d8a201
     type: bearer
     name: bearer auth
     credentials:

@@ -1614,6 +1614,9 @@
 										"value": "{{hubCredentialKey}}"
 									}
 								],
+								"auth": {
+									"type": "noauth"
+								},
 								"body": {
 									"mode": "raw",
 									"raw": "{\n  \"events\": [\n    {\n      \"eventId\": 990001,\n      \"deviceId\": 71,\n      \"sequenceNumber\": 1,\n      \"eventType\": \"CheckedIn\",\n      \"schemaVersion\": 1,\n      \"payloadBase64\": \"e30=\",\n      \"occurredAt\": \"2026-09-01T10:00:00Z\",\n      \"eventScopeId\": \"{{eventId}}\"\n    }\n  ]\n}",
@@ -1663,6 +1666,9 @@
 										"value": "{{hubCredentialKey}}"
 									}
 								],
+								"auth": {
+									"type": "noauth"
+								},
 								"body": {
 									"mode": "raw",
 									"raw": "{\n  \"events\": [\n    {\n      \"eventId\": 990001,\n      \"deviceId\": 71,\n      \"sequenceNumber\": 1,\n      \"eventType\": \"CheckedIn\",\n      \"schemaVersion\": 1,\n      \"payloadBase64\": \"e30=\",\n      \"occurredAt\": \"2026-09-01T10:00:00Z\",\n      \"eventScopeId\": \"{{eventId}}\"\n    }\n  ]\n}",
@@ -1708,6 +1714,9 @@
 										"value": "{{hubCredentialKey}}"
 									}
 								],
+								"auth": {
+									"type": "noauth"
+								},
 								"url": {
 									"raw": "{{cloudBaseUrl}}/api/ingest/high-water-marks",
 									"host": [
@@ -1748,6 +1757,9 @@
 										"value": "{{hubCredentialKey}}"
 									}
 								],
+								"auth": {
+									"type": "noauth"
+								},
 								"body": {
 									"mode": "raw",
 									"raw": "{\n  \"events\": [\n    {\n      \"eventId\": 990099,\n      \"deviceId\": 71,\n      \"sequenceNumber\": 99,\n      \"eventType\": \"CheckedIn\",\n      \"schemaVersion\": 1,\n      \"payloadBase64\": \"e30=\",\n      \"occurredAt\": \"2026-09-01T10:00:00Z\",\n      \"eventScopeId\": 999999999\n    }\n  ]\n}",
@@ -1796,6 +1808,9 @@
 										"value": "this-key-was-never-issued"
 									}
 								],
+								"auth": {
+									"type": "noauth"
+								},
 								"body": {
 									"mode": "raw",
 									"raw": "{\n  \"events\": []\n}",
@@ -1877,6 +1892,9 @@
 										"value": "{{hubCredentialKey}}"
 									}
 								],
+								"auth": {
+									"type": "noauth"
+								},
 								"body": {
 									"mode": "raw",
 									"raw": "{\n  \"events\": []\n}",

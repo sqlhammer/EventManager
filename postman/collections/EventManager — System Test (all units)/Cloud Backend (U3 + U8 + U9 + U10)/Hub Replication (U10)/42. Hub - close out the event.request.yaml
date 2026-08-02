@@ -1,0 +1,15 @@
+$kind: http-request
+description: US-807. Drives replication to completion within a bounded window, then reports whether the cloud holds 100%. Always returns - at a venue, an honest incomplete beats a call that never comes back.
+url: "{{hubBaseUrl}}/api/replication/close-out"
+method: POST
+scripts:
+  - type: afterResponse
+    code: |-
+      pm.test('200 OK or no credential installed', () => pm.expect(pm.response.code).to.be.oneOf([200, 409]));
+      if (pm.response.code === 200) {
+        const r = pm.response.json();
+        pm.test('reports completeness explicitly', () => pm.expect(r).to.have.property('fullyReplicated'));
+        pm.test('names what is outstanding', () => pm.expect(r).to.have.property('outstanding'));
+      }
+    language: text/javascript
+order: 12000

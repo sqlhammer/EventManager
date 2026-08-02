@@ -5,6 +5,8 @@ method: POST
 headers:
   Content-Type: application/json
   X-Hub-Credential: "{{hubCredentialKey}}"
+auth:
+  type: noauth
 body:
   type: text
   content: |-

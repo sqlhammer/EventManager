@@ -4,6 +4,8 @@ url: "{{cloudBaseUrl}}/api/ingest/high-water-marks"
 method: GET
 headers:
   X-Hub-Credential: "{{hubCredentialKey}}"
+auth:
+  type: noauth
 scripts:
   - type: afterResponse
     code: |-

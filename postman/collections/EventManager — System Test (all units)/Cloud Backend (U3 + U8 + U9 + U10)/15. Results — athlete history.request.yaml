@@ -2,4 +2,4 @@ $kind: http-request
 description: US-603. Owner/manager only. Empty until event-day events are ingested.
 url: "{{cloudBaseUrl}}/api/results/athletes/{{athleteId}}"
 method: GET
-order: 9000
+order: 10000

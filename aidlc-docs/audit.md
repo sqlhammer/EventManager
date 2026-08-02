@@ -1147,3 +1147,11 @@ update the md files for me with these answers"
 **Context**: Post-merge documentation improvement on main; no code change
 
 ---
+
+## POST-MERGE — U10 Postman negative tests fixed (inherited collection auth defeated them)
+**Timestamp**: 2026-08-02T00:00:00Z
+**User Input**: "Section 3.3 line item 37 test failure" [screenshot: FAILED 'refused' — AssertionError: expected 200 to be one of [401, 403]; PASSED 'discloses nothing about why']
+**AI Response**: "My test defect, not a product defect — and the product is verifiably correct. Investigated before concluding: the collection sets collection-level BEARER auth, and requests 33-37 and 39 inherited it, so request 37 was sending a VALID ORGANIZER JWT alongside the bogus X-Hub-Credential header. EventIngestController accepts both schemes by design (account-based ingest is still supported, BR-REPL-13), so the bad hub credential failed, Bearer succeeded, CurrentCaller resolved to IngestCaller.Account, and an empty batch was trivially authorized — 200 is the CORRECT response to what was actually sent. Confirmed the product is sound rather than asserting it: the integration test An_unknown_credential_is_refused in CredentialPathTests.cs presents ONLY a hub credential with no JWT and passes. While fixing 37 I found a worse instance of the same flaw that had not failed and would not have: requests 33, 34 and 35 assert 200 on the POSITIVE path, so with the inherited bearer token they would have returned 200 EVEN IF THE HUB CREDENTIAL WERE COMPLETELY BROKEN — a false pass that would have made the whole positive walkthrough meaningless. Set auth type noauth on all six requests (33, 34, 35, 36, 37, 39) so the hub credential is the only thing that can authenticate them. Left 31, 32 and 38 inheriting bearer, correctly — those are organizer-facing routes where the caller IS a person. Extended the directory-format generator to emit the auth block and regenerated from the JSON, then verified programmatically that both representations mark exactly the same six requests noauth. Added a note to §3.3 of the verification guide explaining why noauth is deliberate on those six and what breaks if someone 'fixes' it, so the trap is not re-introduced."
+**Context**: Post-merge test fix on main; no production code change
+
+---

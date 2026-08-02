@@ -131,6 +131,18 @@ it is shown once and cannot be retrieved again, so if you lose it, issue another
 | 39 | **401/403** immediately — no session, no cache |
 | 40–43 | Hub-side install, status, close-out, clear |
 
+**Requests 33–37 and 39 are set to `noauth` deliberately — do not "fix" that.** The collection
+authenticates with a bearer token by default, and the ingest route accepts *both* the hub-credential
+scheme and organizer JWTs (account ingest is still supported, `BR-REPL-13`). If these requests
+inherited the collection token they would be authenticated as the **organizer**, and the hub
+credential would never be exercised:
+
+- Request 37 would return **200** instead of 401 — the bogus hub header is ignored once the JWT authenticates, and an empty batch is trivially authorized. That is correct behaviour for what was sent, and a useless test.
+- Worse, 33–35 would return **200 even if the hub credential were completely broken** — a false pass on the positive path.
+
+`noauth` forces the hub credential to be the only thing that can authenticate the request, which is
+the whole point of these six.
+
 ### 3.4 The scenarios this unit unblocked
 
 `construction/build-and-test/integration-test-instructions.md` had **Scenario 2** (hub→cloud
