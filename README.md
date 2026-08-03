@@ -1,223 +1,119 @@
-# EventManager — Project Guide
+# EventManager
 
-This is the guide for **you, the person running this project**. It explains how EventManager gets
-planned, built, reviewed, and shipped using three cooperating pieces:
+Offline-first tournament management software for independent dojo owners running local martial
+arts tournaments of 50–300 athletes.
 
-- **AI-DLC** (in this repo) — a structured method that turns your ideas into requirements, user
-  stories, and features. You drive it interactively.
-- **Jira project AH** ("Ascendant Hammer") — the board where all work lives: features, deliverables,
-  and bugs. It's your control panel.
-- **loop-agent** (`C:\repos\loop-agent`) — an autonomous build harness that pulls a piece of work
-  off the board, builds it, has it reviewed, and hands it back to you for sign-off.
+## The problem
 
-> **This project is greenfield.** Nothing about *what* EventManager is — the language, the
-> framework, the database, the features — is decided yet. **You** make those decisions in the
-> planning inputs below. The tools never decide the product for you.
+Every existing tournament platform (Smoothcomp, TournamentTiger, Kihapp, MartialMatch, NinjaPanel)
+is priced for large grappling federations or national circuits, and every one of them is
+entirely cloud-dependent — a venue WiFi outage can take down registration, scoring, and results
+mid-event with no fallback. Independent dojo owners running a one-day, 50–300 athlete tournament
+are left with tools built for the wrong scale, the wrong budget, and the wrong risk tolerance.
 
-You are always in control. The agent proposes and builds; **you** approve the plan and **you** do
-the final acceptance. The agent can never mark work "Done" — only you can.
+## The approach
 
----
+EventManager treats internet connectivity as a bonus, not a requirement. The entire event —
+registration, brackets, check-in, weigh-in, scoring, results — runs on a local hub-and-spoke
+network at the venue, with zero internet dependency. Every state change is written as an
+immutable, sequence-numbered event to a local, durable log *before* anything acknowledges
+success; state is a replay of that log. Replay is idempotent, so the same event applied twice
+(a queued offline action replayed after reconnect, a retried sync) changes nothing. That
+idempotent-append discipline is what makes offline queuing, LAN sync, and eventual cloud
+replication safe without a distributed consensus protocol.
 
-## The big picture
+Connectivity, when it exists, is additive: the venue hub mirrors its event log to the cloud
+asynchronously whenever internet is available, and the cloud is never a competing source of
+truth — only a mirror the hub replicates into.
+
+## Who it's for
+
+| User | Needs |
+|---|---|
+| Tournament organizer (dojo owner) | Run a 50–300 athlete event with fast setup and confidence it won't fail if venue WiFi does |
+| Judges/scorekeepers | Enter scores on their assigned mat with zero cloud dependency |
+| Check-in/weigh-in staff | Mark athletes present and record weight with automatic range validation, offline |
+| Athletes & spectators | Register online ahead of time; follow brackets and results on the day |
+
+## Architecture
+
+Two planes, one shared event-sourcing core:
+
+- **Cloud plane (online, pre-event + mirror)** — an ASP.NET Core Web API backed by PostgreSQL.
+  Handles accounts, organizer RBAC, registration (including coach bulk entry), division
+  configuration, payment (behind a provider-agnostic seam), and read access to event/division/
+  registration data. It also authenticates the hub itself as a principal, receiving replicated
+  event batches over HTTPS.
+- **Venue plane (event day, LAN, internet optional)** — a hub-and-spoke topology. The **Admin
+  hub** embeds a local ASP.NET Core server and local SQLite event log, and is authoritative for
+  bracket structure, divisions, and schedule. **Judge** and **Check-In** apps are spokes that pair
+  to the hub over the LAN: each Judge instance is authoritative only for its own assigned mat;
+  Check-In is append-only. The hub replicates its event log to the cloud asynchronously whenever
+  internet is available, and resumes gap-free after an outage.
 
 ```
-   YOU ──describe the product──►  AI-DLC Inception  ──► features + deliverables
-                                        │
-                                        ▼  (seed)
-                                 ┌──────────────────────┐
-   YOU ──add features/bugs────► │   Jira board (AH)     │ ◄── you watch progress here
-   directly, any time           │  Epic = Feature       │
-                                 │   Story/Task = work   │
-                                 │   Bug = defect        │
-                                 └──────────┬────────────┘
-                                            │ loop pulls the next "To Do" item
-                                            ▼
-                                    loop-agent builds it
-                                            │
-                                            ▼
-                            YOU ──review & accept──► Done
+CLOUD (online):        cloud-backend (ASP.NET Core API) --- PostgreSQL (mirror)
+                               ▲  |
+                   replicate   |  | download event
+                   (HTTPS,     |  | before event day
+                   hub creds)  |  ▼
+VENUE LAN (event day, internet optional):
+    admin-hub (embedded Kestrel server + local SQLite event log)
+        ◄── scores (mat-scoped) ──  judge app
+        ◄── check-ins/weigh-ins ──  checkin app
+        ── pushes brackets/schedule/results ──►  both spokes
 ```
 
-### The work hierarchy on the board
+Every action becomes a durable local write before it's acknowledged, is applied to the hub
+idempotently (`AppendIfNotExists`), and is mirrored to the cloud the same way — so an event
+written on a phone with no signal is never lost and never double-counted once connectivity
+returns.
 
-| Jira type | Means | Who creates it |
-|-----------|-------|----------------|
-| **Epic** | A **feature** — a coherent capability of EventManager | AI-DLC seeding, or you |
-| **Story** / **Task** | A **deliverable** — one UAT-able piece of work the agent builds | AI-DLC seeding, or you |
-| **Bug** | A defect to reproduce, fix, and regression-test | You |
-| **Sub-task** | The agent's own breakdown of a deliverable | The agent, while building |
+## Major components
 
-### The status workflow (every item moves through these)
+| Component | What it is |
+|---|---|
+| `shared/EventManager.Domain` | Core domain engines: bracket generation/advancement, seeding, scoring, weigh-in policy evaluation, role-based authorization policy |
+| `shared/EventManager.Sync` | The event-sourcing primitives: `TournamentEvent`, `IEventStore`, idempotent replay, projections, Snowflake ID generation, the replication protocol |
+| `shared/EventManager.Contracts` | Wire DTOs, mappers, and FluentValidation validators shared by every client and the API |
+| `shared/EventManager.ClientSync` | Reusable spoke-side sync library: durable offline queue, hub pairing, reconnect/replay, push consumption |
+| `backend/EventManager.Api` | The cloud backend — accounts/auth (incl. MFA), organizer RBAC, registration (self/parent/coach-bulk), division config, event ingest from hubs, results and read endpoints, hub-credential issuance/authentication |
+| `backend/EventManager.Payments` | Payment-provider seam (`IPaymentProvider`) with a stub implementation; a real Stripe adapter is a drop-in replacement |
+| `admin/EventManager.Hub` | The venue-day LAN hub: device pairing, offline RBAC, sync intake, bracket/scoring/weigh-in/finalization/dispute orchestration, backup/recovery, and the HTTP client that replicates the hub's event log to the cloud |
+| `judge/EventManager.Judge*` | The Judge spoke app — durable-before-ack score capture, mat queue and cross-mat views |
+| `checkin/EventManager.Checkin*` | The Check-In spoke app — append-only check-in and weigh-in recording against the weigh-in policy engine |
+| `tests/`, `*/tests/` | xUnit test suites per component, including property-based tests (FsCheck) for the event-sourcing and bracket/scoring engines |
+
+Native operational apps (Admin hub, Judge, Check-In) are built on .NET MAUI; each currently ships
+as a compiling Windows desktop head, with Android/iOS/Mac heads pending those toolchains. A
+browser-based web portal (Blazor) for pre-event registrant/coach self-service and organizer setup
+is part of the product vision but not yet built — today, registration and event setup happen
+through the cloud API directly.
+
+## Current state
+
+All core tournament-day capabilities are implemented and tested end to end: account/auth,
+organizer RBAC, registration (including coach bulk entry), division configuration, bracket
+generation and advancement, mat-scoped scoring, weigh-in recording and policy evaluation,
+check-in, division finalization, dispute flagging, offline queuing with idempotent replay, local
+backup/recovery, and HTTP-based hub-to-cloud replication with its own hub identity and credential
+lifecycle. Payment processing is a stub behind a real interface, not a live integration.
+
+Deliberately out of scope for now: the Spectator app, multi-event/federation management, a public
+web portal, live payment processing, and transactional email — all noted as open items before a
+public launch.
+
+## Repository layout
 
 ```
-To Do ──► In Progress ──► Agent Review ──► Human Review ──► Done
-  ▲            ▲                │              (YOU do          (YOU
-  │            └── found gaps ──┘               UAT here)        set this)
- you or                                          HARD STOP
- AI-DLC
+shared/    Event-sourcing core, domain engines, contracts, client sync — consumed by every app
+backend/   Cloud API (ASP.NET Core + PostgreSQL) and the payment-provider seam
+admin/     The venue-day hub app (MAUI + embedded server)
+judge/     The Judge spoke app
+checkin/   The Check-In spoke app
+tests/     Cross-solution integration tests (e.g. hub-to-cloud credential path)
+postman/   API request collections
 ```
 
-- **To Do** — queued. The loop builds the top-ranked To Do item next.
-- **In Progress** — the loop is actively building it.
-- **Agent Review** — a *separate* AI session reviews the build (independent of the one that wrote
-  it). If it finds gaps, the item goes back to In Progress automatically.
-- **Human Review** — **a hard stop for you.** The item is complete and ready for your acceptance
-  testing. The agent halts here and waits.
-- **Done** — **only you** set this, after your UAT passes.
-
----
-
-## Getting started: plan the project (AI-DLC Inception)
-
-Do this once at the start (and again whenever you want to plan a new batch of features).
-
-1. **Write your inputs.** Fill in the two skeleton files in [`aidlc-inputs/`](aidlc-inputs/):
-   - [`aidlc-inputs/vision.md`](aidlc-inputs/vision.md) — what EventManager is, who it's for, and
-     the MVP feature list. **Each feature here becomes an Epic.**
-   - [`aidlc-inputs/tech-env.md`](aidlc-inputs/tech-env.md) — the stack: language, framework,
-     database, how it runs, and the test tooling.
-
-   These are blank on purpose. Be specific — allow-lists and disallow-lists stop the AI from
-   guessing. (Guidance links are inside each file.)
-
-2. **Run Inception.** Open Claude Code in this folder (`C:\repos\EventManager`) and say:
-
-   > **Using AI-DLC, build EventManager** — using my `aidlc-inputs/vision.md` and
-   > `aidlc-inputs/tech-env.md`.
-
-   Answer its structured questions. It works through requirements → user stories → features/units
-   of work. **Review and approve each stage** — you can request changes at any gate. Everything it
-   produces is written to `aidlc-docs/` in this repo.
-
-3. **Lock the build stack.** Once `tech-env.md` fixes the stack, configure the loop's checker:
-   open `C:\repos\loop-agent\verify.ps1` and set its Build / Lint / Test commands for your stack
-   (one-time). This is what the loop uses to know a deliverable is genuinely "green."
-
----
-
-## Putting work on the board
-
-You have two ways to create work — use whichever fits.
-
-### A. Seed from your AI-DLC plan (bulk)
-
-After Inception, mirror everything it planned onto the board in one step. From
-`C:\repos\loop-agent`:
-
-```powershell
-pwsh -File jira-loop.ps1 -Seed
-```
-
-This creates an **Epic per feature** and the **Stories/Tasks** under each, with acceptance criteria
-already filled in. It's safe to re-run after a later Inception pass — it only adds what's new, never
-duplicates.
-
-### B. Add work by hand (any time)
-
-You don't have to route everything through AI-DLC. On the [AH board](https://ascendanthammer.atlassian.net/jira/software/projects/KAN/boards/2)
-you can directly:
-
-- **Add a feature** → create an **Epic**, then add **Stories/Tasks** under it for each deliverable.
-  Put clear **acceptance criteria** in each Story's description — those become the automated tests
-  that define "done."
-- **Add a single deliverable** to an existing feature → create a **Story** or **Task** under that
-  Epic.
-- **Report a bug** → create a **Bug** in **To Do**. Describe how to reproduce it and what the
-  correct behavior should be. The loop treats a bug as "reproduce, fix, and add a regression test."
-
-Anything you leave in **To Do** gets picked up automatically on the next run — whether it came from
-AI-DLC or from you.
-
-> **Write good acceptance criteria.** They are the definition of done and become real tests. Prefer
-> concrete GIVEN / WHEN / THEN statements over vague wishes. Anything that can't be checked
-> automatically belongs in a comment for your manual UAT, not in the acceptance criteria.
-
----
-
-## Building work
-
-The loop builds **one deliverable at a time**, top-ranked To Do item first. From
-`C:\repos\loop-agent`:
-
-```powershell
-pwsh -File jira-loop.ps1            # pull the next To-Do item, plan it, then stop for your review
-```
-
-Review the generated plan and the acceptance tests it wrote (paths are printed). If the tests
-captured your intent, start the build:
-
-```powershell
-pwsh -File jira-loop.ps1 -Approve   # build it green, run Agent Review, move to Human Review, stop
-```
-
-While this runs, watch the item on the board move `In Progress → Agent Review → Human Review`. Each
-run posts a **comment** on the item with what it did and which commits it made.
-
-**Hands-off option:** `pwsh -File jira-loop.ps1 -AutoApprove` does plan + build in one shot. It skips
-only the plan-review gate — it can **never** skip your Human Review.
-
-To check what's active at any time: `pwsh -File jira-loop.ps1 -Status`.
-
----
-
-## Reviewing and accepting work (your job)
-
-When an item reaches **Human Review**, it's ready for you:
-
-1. Read the agent's comment on the Jira item (outcome + commits). The code is in the EventManager
-   repo.
-2. Do your acceptance testing — run it, exercise the feature, check the things a test can't.
-3. Then:
-   - **It's good** → move the item to **Done** in Jira. Run `jira-loop.ps1` again for the next item.
-   - **It's not** → move it back to **In Progress** (or To Do) and add a comment explaining what's
-     wrong. The next run reads your comment and continues. If it's a *new* problem you found, file a
-     **Bug** instead.
-
-If a run ends **stalled** (the agent got stuck), the item keeps a `blocked` label and a comment
-explaining where it stopped — that's your cue to look, adjust, and re-run.
-
----
-
-## Watching progress / reporting
-
-Your Jira board is the live report:
-
-- **Board columns** = the five statuses, so a glance shows what's queued, building, in review, and
-  done.
-- **Each item's comments** = the agent's running log: what it built, commits, and any blockers.
-- **Epics** = feature-level rollup of how much of each feature is complete.
-
-Useful board filters (JQL):
-
-- Everything awaiting *your* acceptance: `project = AH AND status = "Human Review"`
-- What's blocked: `project = AH AND labels = blocked`
-- What the loop will pick up next: `project = AH AND issuetype in (Story, Task, Bug) AND statusCategory = "To Do" ORDER BY Rank ASC`
-
----
-
-## Where things live
-
-| Thing | Location |
-|-------|----------|
-| Your planning inputs | `aidlc-inputs/vision.md`, `aidlc-inputs/tech-env.md` (this repo) |
-| AI-DLC's generated plan | `aidlc-docs/` (this repo, after Inception) |
-| The product code | this repo (built by the loop) |
-| The build harness + commands | `C:\repos\loop-agent` (`jira-loop.ps1`) |
-| Full mechanical runbook | `C:\repos\loop-agent\docs\JIRA-AIDLC-RUNBOOK.md` |
-| The board | Jira project **AH** on `ascendanthammer.atlassian.net` |
-
----
-
-## First-time checklist
-
-- [ ] loop-agent authenticated for headless use, and the Atlassian connection authorized once
-      interactively (see the runbook's one-time setup).
-- [ ] `aidlc-inputs/vision.md` and `tech-env.md` filled in.
-- [ ] Ran `Using AI-DLC, build EventManager…` through to features/stories.
-- [ ] Configured `verify.ps1` for the chosen stack.
-- [ ] `jira-loop.ps1 -Seed` populated the board.
-- [ ] Built the first deliverable and did your UAT.
-
-For exact commands, flags, and troubleshooting, see the runbook:
-`C:\repos\loop-agent\docs\JIRA-AIDLC-RUNBOOK.md`.
+Each area under `shared/`, `backend/`, `admin/`, `judge/`, and `checkin/` has its own `tests/`
+project alongside the source.
